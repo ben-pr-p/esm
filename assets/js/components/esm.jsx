@@ -12,41 +12,98 @@ const ESM_TAG = 'Event: Should Contact Host'
 const tabSpec = [
   {
     title: 'ESM Call #1',
-    fn: ev => ev.tags.includes(ESM_TAG) && ev.status == 'tentative'
+    fn: ev =>
+      ev.tags.includes(ESM_TAG) &&
+      ev.status == 'tentative' &&
+      !ev.tags.includes('Event: Action: Called')
   },
   {
     title: 'Needs Approval',
-    fn: ev => !ev.tags.includes(ESM_TAG) && ev.status == 'tentative'
+    fn: ev =>
+      ev.status == 'tentative' &&
+      (!ev.tags.includes(ESM_TAG) || ev.tags.includes('Event: Action: Called'))
   },
   {
     title: 'Needs Logistics',
-    fn: ev => true
+    fn: ev =>
+      ev.tags.includes(ESM_TAG) &&
+      ev.status == 'confirmed' &&
+      !ev.tags.includes('Event: Action: Logisticsed')
+  },
+  {
+    title: 'Upcoming',
+    fn: ev =>
+      ev.status == 'confirmed' &&
+      new Date(ev.end_date).getTime() > new Date().getTime() &&
+      (!ev.tags.includes(ESM_TAG) || ev.tags.includes('Event: Action: Logisticsed'))
   },
   {
     title: 'Needs Debrief',
-    fn: ev => true
+    fn: ev =>
+      ev.status == 'confirmed' &&
+      new Date(ev.end_date).getTime() < new Date().getTime() &&
+      !ev.tags.includes('Event: Action: Debriefed')
   },
   {
     title: 'Past',
-    fn: ev => new Date(ev.end_date).getTime() < new Date().getTime()
+    fn: ev =>
+      new Date(ev.end_date).getTime() < new Date().getTime() &&
+      ev.tags.includes('Event: Action: Debriefed')
   },
   {
     title: 'Rejected',
+    fn: ev => ev.status == 'rejected'
+  },
+  {
+    title: 'Cancelled',
     fn: ev => ev.status == 'cancelled'
   }
 ]
 
 export default class Esm extends Component {
   state = {
-    events: {}
+    events: {},
+    channel: null,
+    search: ''
   }
 
-  channel = null
+  setSearch = value => this.setState({ search: value })
+
+  filteredEvents = () =>
+    Object.keys(this.state.events).filter(e => {
+      const event = this.state.events[e]
+
+      return this.state.search != ''
+        ? (event.name &&
+            event.name
+              .toLowerCase()
+              .includes(this.state.search.toLowerCase())) ||
+          (event.description &&
+            event.description
+              .toLowerCase()
+              .includes(this.state.search.toLowerCase()))
+        : true
+    })
+
+  countEventsFor = fn =>
+    this.filteredEvents().filter(e => fn(this.state.events[e])).length
+
+  eventsFor = (fn, category) =>
+    this.filteredEvents()
+      .filter(e => fn(this.state.events[e]))
+      .map(id =>
+        <EventCard
+          key={id}
+          event={this.state.events[id]}
+          channel={this.state.channel}
+          category={category}
+        />
+      )
 
   componentDidMount() {
-    this.channel = socket.channel('events', {})
+    this.state.channel = socket.channel('events', {})
 
-    this.channel
+    this.state.channel
       .join()
       .receive('ok', resp => {
         console.log('Joined successfully', resp)
@@ -55,20 +112,14 @@ export default class Esm extends Component {
         console.log('Unable to join', resp)
       })
 
-    this.channel.on('event', ({ id, event }) => {
+    this.state.channel.on('event', ({ id, event }) => {
+      console.log(id)
+      console.log(event)
       this.state.events[id] = event
       this.forceUpdate()
     })
 
-    this.channel.push('ready')
-  }
-
-  eventsFor(fn) {
-    const { events } = this.state
-
-    return Object.keys(events).map(id =>
-      <EventCard key={id} event={events[id]} />
-    )
+    this.state.channel.push('ready')
   }
 
   render() {
@@ -78,15 +129,18 @@ export default class Esm extends Component {
           <Search
             placeholder="Search title and description"
             style={{ width: 200 }}
-            onSearch={value => console.log(value)}
+            onSearch={this.setSearch}
           />
         </Header>
-        <Content>
+        <Content style={{ height: '100%' }}>
           <Tabs>
             {tabSpec.map(({ title, fn }) =>
-              <TabPane tab={title} key={title}>
-                <div style={{display: 'flex', flexWrap: 'wrap'}}>
-                  {this.eventsFor(fn)}
+              <TabPane
+                tab={title + ` (${this.countEventsFor(fn)})`}
+                key={title}
+              >
+                <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                  {this.eventsFor(fn, title)}
                 </div>
               </TabPane>
             )}

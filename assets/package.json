@@ -12,8 +12,11 @@
   "dependencies": {
     "antd": "^2.13.0",
     "babel-plugin-import": "^1.4.0",
+    "moment": "^2.18.1",
+    "moment-timezone": "^0.5.13",
     "phoenix": "file:../deps/phoenix",
-    "phoenix_html": "file:../deps/phoenix_html"
+    "phoenix_html": "file:../deps/phoenix_html",
+    "react-click-outside": "^2.3.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
