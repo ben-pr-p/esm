@@ -9,14 +9,44 @@ const ButtonGroup = Button.Group
 export default class EventCard extends Component {
   onSave = kv => this.props.channel.push(`edit-${this.props.event.id}`, kv)
 
-  reject = () => this.props.channel.push(`action-${this.props.event.id}`, {status: 'rejected'})
-  cancel = () => this.props.channel.push(`action-${this.props.event.id}`, {status: 'cancelled'})
-  confirm = () => this.props.channel.push(`action-${this.props.event.id}`, {status: 'confirmed'})
-  makeTentative = () => this.props.channel.push(`action-${this.props.event.id}`, {status: 'tentative'})
+  onTypeChange = val => this.props.channel.push(`edit-${this.props.event.id}`, ['type', val])
+  onTagsChange = vals => this.props.channel.push(`tags-${this.props.event.id}`, vals)
+  onCalendarChange = vals => this.props.channel.push(`calendars-${this.props.event.id}`, vals)
 
-  markCalled = () => this.props.channel.push(`action-${this.props.event.id}`, {action: 'called'})
-  markLogistics = () => this.props.channel.push(`action-${this.props.event.id}`, {action: 'logisticsed'})
-  markDebriefed = () => this.props.channel.push(`action-${this.props.event.id}`, {action: 'debriefed'})
+  reject = () =>
+    this.props.channel.push(`action-${this.props.event.id}`, {
+      status: 'rejected'
+    })
+
+  cancel = () =>
+    this.props.channel.push(`action-${this.props.event.id}`, {
+      status: 'cancelled'
+    })
+
+  confirm = () =>
+    this.props.channel.push(`action-${this.props.event.id}`, {
+      status: 'confirmed'
+    })
+
+  makeTentative = () =>
+    this.props.channel.push(`action-${this.props.event.id}`, {
+      status: 'tentative'
+    })
+
+  markCalled = () =>
+    this.props.channel.push(`action-${this.props.event.id}`, {
+      action: 'called'
+    })
+
+  markLogistics = () =>
+    this.props.channel.push(`action-${this.props.event.id}`, {
+      action: 'logisticsed'
+    })
+
+  markDebriefed = () =>
+    this.props.channel.push(`action-${this.props.event.id}`, {
+      action: 'debriefed'
+    })
 
   duplicate = () => this.props.channel.push(`duplicate-${this.props.event.id}`)
 
@@ -32,7 +62,8 @@ export default class EventCard extends Component {
       location,
       start_date,
       end_date,
-      host
+      host,
+      type
     } = event
 
     return (
@@ -45,6 +76,7 @@ export default class EventCard extends Component {
           <strong>Slug:</strong>{' '}
           <EditableText onSave={this.onSave} value={name} attr="name" />
         </div>
+
         <div
           className="field-group"
           style={{ margin: 10, minWidth: 250, width: '100%' }}
@@ -56,6 +88,53 @@ export default class EventCard extends Component {
             attr="description"
             textarea={true}
           />
+        </div>
+
+        <div
+          className="field-group"
+          style={{ margin: 10, minWidth: 250, width: '100%' }}
+        >
+          <strong>Type:</strong>{' '}
+          <Select
+            defaultValue={type}
+            style={{ width: 300 }}
+            onChange={this.onTypeChange}
+          >
+            {[
+              'Phonebank',
+              'Organizing meeting',
+              'Tabling or Clipboarding',
+              'Canvass',
+              'Rally, march, or protest',
+              'Other'
+            ].map(o =>
+              <Option value={o}>
+                {o}
+              </Option>
+            )}
+          </Select>
+        </div>
+
+        <div
+          className="field-group"
+          style={{ margin: 10, minWidth: 250, width: '100%' }}
+        >
+          <strong>Calendars:</strong>{' '}
+          <Select
+            mode="multiple"
+            style={{ width: '100%' }}
+            placeholder="Calendars"
+            onChange={this.onCalendarChange}
+            defaultValue={tags
+              .filter(t => t.includes('Calendar:'))
+              .map(t => t.split(':')[1].trim())}
+          >
+            {calendarOptions.map(c =>
+              <Option key={c}>
+                {c}
+              </Option>
+            )}
+          </Select>
         </div>
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
@@ -146,17 +225,26 @@ export default class EventCard extends Component {
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Tags:</strong>
           <Select
-            mode="tags"
+            mode="multiple"
             style={{ width: '100%' }}
             placeholder="Tags"
             onChange={this.onTagsChange}
-            defaultValue={tags}
-          >
-            {tags.map(t =>
-              <Option key={t}>
-                {t}
-              </Option>
+            defaultValue={tags.filter(
+              t =>
+                !t.includes('Event: Action') &&
+                !t.includes('Calendar') &&
+                !t.includes('Event Type:')
             )}
+          >
+            {window.tagOptions
+              .filter(
+                t => !t.includes('Event: Action') && !t.includes('Calendar')
+              )
+              .map(t =>
+                <Option key={t}>
+                  {t}
+                </Option>
+              )}
           </Select>
         </div>
 
@@ -253,6 +341,16 @@ export default class EventCard extends Component {
           ]}
 
           {category == 'Cancelled' && [
+            <Button
+              onClick={this.makeTentative}
+              style={{ marginLeft: 10 }}
+              type="primary"
+            >
+              Back to Tentative
+            </Button>
+          ]}
+
+          {category == 'Upcoming' && [
             <Button
               onClick={this.makeTentative}
               style={{ marginLeft: 10 }}

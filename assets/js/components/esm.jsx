@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
-import { Card, Input, Layout, Tabs } from 'antd'
+import { Card, Input, Layout, Select, Tabs } from 'antd'
 import socket from '../socket'
 import EventCard from './event-card'
 
 const { Header, Content } = Layout
 const { Search } = Input
 const { TabPane } = Tabs
+const { Option } = Select
 
 const ESM_TAG = 'Event: Should Contact Host'
 
@@ -35,7 +36,8 @@ const tabSpec = [
     fn: ev =>
       ev.status == 'confirmed' &&
       new Date(ev.end_date).getTime() > new Date().getTime() &&
-      (!ev.tags.includes(ESM_TAG) || ev.tags.includes('Event: Action: Logisticsed'))
+      (!ev.tags.includes(ESM_TAG) ||
+        ev.tags.includes('Event: Action: Logisticsed'))
   },
   {
     title: 'Needs Debrief',
@@ -64,10 +66,14 @@ export default class Esm extends Component {
   state = {
     events: {},
     channel: null,
-    search: ''
+    search: '',
+    state: null,
+    candidates: []
   }
 
   setSearch = value => this.setState({ search: value })
+  setStateFilter = state => this.setState({ state })
+  setCandidateFilter = candidates => this.setState({ candidates })
 
   filteredEvents = () =>
     Object.keys(this.state.events).filter(e => {
@@ -113,8 +119,6 @@ export default class Esm extends Component {
       })
 
     this.state.channel.on('event', ({ id, event }) => {
-      console.log(id)
-      console.log(event)
       this.state.events[id] = event
       this.forceUpdate()
     })
@@ -126,11 +130,52 @@ export default class Esm extends Component {
     return (
       <Layout style={{ width: '100%', height: '100%' }}>
         <Header>
-          <Search
-            placeholder="Search title and description"
-            style={{ width: 200 }}
-            onSearch={this.setSearch}
-          />
+          <div
+            style={{
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-around'
+            }}
+          >
+            <Search
+              placeholder="Search title and description"
+              style={{ width: 200 }}
+              onSearch={this.setSearch}
+            />
+
+            <Select
+              style={{
+                width: 300,
+                float: 'right',
+                marginTop: 'auto',
+                marginBottom: 'auto'
+              }}
+              mode="multiple"
+              defaultValue={[]}
+              onChange={this.setCandidateFilter}
+              placeholder="Calendar Filter"
+            >
+              {window.calendarOptions.map(c =>
+                <Option value={c}>
+                  {c}
+                </Option>
+              )}
+            </Select>
+
+            <Select
+              onChange={this.setStateFilter}
+              placeholder="State Filter"
+              style={{ width: 200 }}
+            >
+              <Option value="">{' '}</Option>
+              {window.states.map(st =>
+                <Option value={st}>
+                  {st}
+                </Option>
+              )}
+            </Select>
+          </div>
         </Header>
         <Content style={{ height: '100%' }}>
           <Tabs>

@@ -6,6 +6,8 @@ defmodule Admin.Application do
   def start(_type, _args) do
     import Supervisor.Spec
 
+    Cosmic.update()
+
     # Define workers and child supervisors to be supervised
     children = [
       # Start the endpoint when the application starts

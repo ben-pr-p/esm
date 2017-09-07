@@ -3,6 +3,11 @@ defmodule Admin.EventsChannel do
   alias Osdi.{Repo, Event}
   import Ecto.Query
 
+  @attrs ~w(
+    id start_date end_date featured_image_url location summary title name
+    type status description host type tags
+  )a
+
   def join("events", payload, socket) do
     if authorized?(payload) do
       {:ok, socket}
@@ -29,6 +34,57 @@ defmodule Admin.EventsChannel do
     push socket, "event", %{id: id, event: new_event}
     broadcast socket, "event", %{id: id, event: new_event}
     {:noreply, socket}
+  end
+
+  # Implement standard tags change
+  def handle_in("tags-" <> id, tags, socket) do
+    event = Repo.get(Event, id) |> Repo.preload(:tags)
+
+    calendar_tags =
+      event.tags
+      |> Enum.map(&(&1.name))
+      |> Enum.filter(&(String.contains?(&1, "Calendar: ")))
+
+    new_tags = Enum.concat tags, calendar_tags
+
+    Event.set_tags(event, new_tags)
+    new_event = edit_tags_and_fetch(event, new_tags)
+
+    push socket, "event", %{id: id, event: new_event}
+    broadcast socket, "event", %{id: id, event: new_event}
+    {:noreply, socket}
+  end
+
+  def handle_in("calendars-" <> id, calendars, socket) do
+    event = Repo.get(Event, id) |> Repo.preload(:tags)
+
+    as_tags = Enum.map calendars, &("Calendar: #{&1}")
+
+    regular_tags =
+      event.tags
+      |> Enum.map(&(&1.name))
+      |> Enum.reject(&(String.contains?(&1, "Calendar: ")))
+
+    new_tags = Enum.concat regular_tags, as_tags
+    new_event = edit_tags_and_fetch(event, new_tags)
+
+    push socket, "event", %{id: id, event: new_event}
+    broadcast socket, "event", %{id: id, event: new_event}
+    {:noreply, socket}
+  end
+
+  def edit_tags_and_fetch(event = %{id: id}, tags) do
+    Event.set_tags(event, tags)
+
+    (from e in Event,
+      where: e.id == ^id,
+      preload: [
+        :tags,
+        :location,
+        organizer: [:email_addresses, :phone_numbers]])
+    |> Repo.one()
+    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
+    |> for_web()
   end
 
   # Handle status changes
@@ -75,7 +131,7 @@ defmodule Admin.EventsChannel do
   defp to_map(event = %Event{tags: tags}) do
     event
     |> Map.from_struct()
-    |> Map.take(~w(id start_date end_date featured_image_url location summary title name type status description host)a)
+    |> Map.take(@attrs)
     |> Map.put(:tags, tags |> Enum.map(&(&1.name)))
   end
 
@@ -92,6 +148,7 @@ defmodule Admin.EventsChannel do
         :location,
         organizer: [:email_addresses, :phone_numbers]])
     |> Repo.one()
+    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end
 
@@ -142,7 +199,7 @@ defmodule Admin.EventsChannel do
 
   defp for_web(event) do
     event
-    |> Map.take(~w(id tags start_date end_date featured_image_url location summary title name type status description host)a)
+    |> Map.take(@attrs)
     |> (fn event = %{tags: tags} -> Map.put(event, :tags, tags |> Enum.map(&(&1.name))) end).()
   end
 
