@@ -24,20 +24,6 @@ config :logger, :console,
 
 config :cosmic, slug: "brand-new-congress"
 
-config :ueberauth, Ueberauth,
-  providers: [
-    google: {Ueberauth.Strategy.Google, [
-        approval_prompt: "force",
-        access_type: "offline",
-        default_scope: "email profile",
-        hd: System.get_env("HOSTED_DOMAIN"),
-      ]}
-  ]
-
-config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: System.get_env("GOOGLE_CLIENT_ID"),
-  client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
-
 config :guardian, Guardian,
   allowed_algos: ["HS512"], # optional
   verify_module: Guardian.JWT,  # optional
