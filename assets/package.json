@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npm run watch",
     "watch": "MIX_ENV=dev webpack-dev-server --inline --hot --stdin --colors --public localhost:8080",
-    "deploy": "MIX_ENV=prod webpack -p"
+    "deploy": "MIX_ENV=prod NODE_ENV=prod webpack -p"
   },
   "dependencies": {
     "antd": "^2.13.0",
@@ -25,6 +25,7 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
     "image-webpack-loader": "^3.3.1",
+    "less": "^2.7.2",
     "less-loader": "^4.0.5",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.13",
