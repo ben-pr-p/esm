@@ -68,18 +68,18 @@ export default class Esm extends Component {
     channel: null,
     search: '',
     state: null,
-    candidates: []
+    calendars: []
   }
 
   setSearch = value => this.setState({ search: value })
   setStateFilter = state => this.setState({ state })
-  setCandidateFilter = candidates => this.setState({ candidates })
+  setCalendarFilter = calendars => this.setState({ calendars })
 
   filteredEvents = () =>
     Object.keys(this.state.events).filter(e => {
       const event = this.state.events[e]
 
-      return this.state.search != ''
+      const searchOk = this.state.search != ''
         ? (event.name &&
             event.name
               .toLowerCase()
@@ -89,6 +89,16 @@ export default class Esm extends Component {
               .toLowerCase()
               .includes(this.state.search.toLowerCase()))
         : true
+
+      const stateOk = (this.state.state == null || this.state.state.trim() == '')
+        ? true
+        : event.location.region == this.state.state
+
+      const calendarOk = (this.state.calendars.length == 0)
+        ? true
+        : this.state.calendars.filter(c => event.tags.includes(`Calendar: ${c}`)).length > 0
+
+      return searchOk && stateOk && calendarOk
     })
 
   countEventsFor = fn =>
@@ -153,7 +163,7 @@ export default class Esm extends Component {
               }}
               mode="multiple"
               defaultValue={[]}
-              onChange={this.setCandidateFilter}
+              onChange={this.setCalendarFilter}
               placeholder="Calendar Filter"
             >
               {window.calendarOptions.map(c =>
@@ -168,7 +178,7 @@ export default class Esm extends Component {
               placeholder="State Filter"
               style={{ width: 200 }}
             >
-              <Option value="">{' '}</Option>
+              <Option value="">All States</Option>
               {window.states.map(st =>
                 <Option value={st}>
                   {st}
