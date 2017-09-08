@@ -12,6 +12,7 @@
   "dependencies": {
     "antd": "^2.13.0",
     "babel-plugin-import": "^1.4.0",
+    "babel-preset-stage-0": "^6.24.1",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.13",
     "phoenix": "file:../deps/phoenix",
