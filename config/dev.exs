@@ -24,7 +24,6 @@ config :osdi, Osdi.Repo,
   hostname: "localhost",
   types: GeoExample.PostgresTypes
 
-
 config :ueberauth, Ueberauth,
   providers: [
     google: {Ueberauth.Strategy.Google, [
