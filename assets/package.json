@@ -17,9 +17,7 @@
     "moment-timezone": "^0.5.13",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
-    "react-click-outside": "^2.3.1"
-  },
-  "devDependencies": {
+    "react-click-outside": "^2.3.1",
     "babel-cli": "^6.24.1",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.0.0",
@@ -41,7 +39,9 @@
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1",
     "url-loader": "^0.5.9",
-    "webpack": "^3.4.0",
+    "webpack": "^3.4.0"
+  },
+  "devDependencies": {
     "webpack-dev-server": "^2.6.1"
   }
 }
