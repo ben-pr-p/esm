@@ -1,4 +1,4 @@
-webpack -p
+MIX_ENV=prod NODE_ENV=prod webpack -p
 
 cd $phoenix_dir
 
