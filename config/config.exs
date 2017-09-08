@@ -22,14 +22,6 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :osdi, Osdi.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  database: "osdi_repo",
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  types: GeoExample.PostgresTypes
-
 config :cosmic, slug: "brand-new-congress"
 
 config :ueberauth, Ueberauth,

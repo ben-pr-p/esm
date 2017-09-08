@@ -16,6 +16,14 @@ config :admin, Admin.Endpoint,
     cd: Path.expand("../assets", __DIR__)
   ]]
 
+config :osdi, Osdi.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "osdi_repo",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  types: GeoExample.PostgresTypes
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

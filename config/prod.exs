@@ -21,6 +21,17 @@ config :admin, Admin.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
+config :osdi, Osdi.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  ssl: true,
+  types: GeoExample.PostgresTypes,
+  pool_size: 10,
+  database: System.get_env("RDS_DB_NAME"),
+  username: System.get_env("RDS_DB_USER"),
+  password: System.get_env("RDS_DB_PASSWORD"),
+  hostname: System.get_env("RDS_HOST"),
+  port: "5432"
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key
