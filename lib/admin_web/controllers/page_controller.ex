@@ -1,9 +1,17 @@
 defmodule Admin.PageController do
   use Admin, :controller
+
   alias Osdi.{Repo, Tag}
+  alias Guardian.Plug
+
   import Ecto.Query
 
-  def index(conn, _params) do
+  plug Plug.EnsureAuthenticated, [handler: __MODULE__]
+    when action in ~w(index)a
+
+  def index(conn, params) do
+    email = Plug.current_resource(conn)
+
     calendars =
       "candidates"
       |> Cosmic.get_type()
@@ -21,6 +29,13 @@ defmodule Admin.PageController do
       |> Enum.to_list()
       |> Poison.encode!()
 
-    render conn, "index.html", [calendars: calendars, tags: tags]
+    render conn, "index.html", [calendars: calendars, tags: tags, email: email]
+  end
+
+  def unauthenticated(conn, _) do
+    conn
+    |> put_status(302)
+    |> put_flash(:info, "Authentication required")
+    |> redirect(to: "/auth")
   end
 end

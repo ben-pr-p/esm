@@ -79,24 +79,29 @@ export default class Esm extends Component {
     Object.keys(this.state.events).filter(e => {
       const event = this.state.events[e]
 
-      const searchOk = this.state.search != ''
-        ? (event.name &&
-            event.name
-              .toLowerCase()
-              .includes(this.state.search.toLowerCase())) ||
-          (event.description &&
-            event.description
-              .toLowerCase()
-              .includes(this.state.search.toLowerCase()))
-        : true
+      const searchOk =
+        this.state.search != ''
+          ? (event.name &&
+              event.name
+                .toLowerCase()
+                .includes(this.state.search.toLowerCase())) ||
+            (event.description &&
+              event.description
+                .toLowerCase()
+                .includes(this.state.search.toLowerCase()))
+          : true
 
-      const stateOk = (this.state.state == null || this.state.state.trim() == '')
-        ? true
-        : event.location.region == this.state.state
+      const stateOk =
+        this.state.state == null || this.state.state.trim() == ''
+          ? true
+          : event.location.region == this.state.state
 
-      const calendarOk = (this.state.calendars.length == 0)
-        ? true
-        : this.state.calendars.filter(c => event.tags.includes(`Calendar: ${c}`)).length > 0
+      const calendarOk =
+        this.state.calendars.length == 0
+          ? true
+          : this.state.calendars.filter(c =>
+              event.tags.includes(`Calendar: ${c}`)
+            ).length > 0
 
       return searchOk && stateOk && calendarOk
     })
@@ -117,7 +122,10 @@ export default class Esm extends Component {
       )
 
   componentDidMount() {
-    this.state.channel = socket.channel('events', {})
+    const token = document
+      .querySelector('#guardian_token')
+      .getAttribute('content')
+    this.state.channel = socket.channel('events', { guardian_token: token })
 
     this.state.channel
       .join()
@@ -148,6 +156,9 @@ export default class Esm extends Component {
               justifyContent: 'space-around'
             }}
           >
+            <h1 style={{ color: 'white', textTransform: 'capitalize' }}>
+              Welcome {window.userEmail.split('@')[0]}!
+            </h1>
             <Search
               placeholder="Search title and description"
               style={{ width: 200 }}

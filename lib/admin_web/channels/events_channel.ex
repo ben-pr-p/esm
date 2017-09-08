@@ -2,18 +2,15 @@ defmodule Admin.EventsChannel do
   use Admin, :channel
   alias Osdi.{Repo, Event}
   import Ecto.Query
+  use Guardian.Channel
 
   @attrs ~w(
     id start_date end_date featured_image_url location summary title name
     type status description host type tags
   )a
 
-  def join("events", payload, socket) do
-    if authorized?(payload) do
-      {:ok, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
-    end
+  def join("events", _payload, socket) do
+    {:ok, socket}
   end
 
   # Starting sending events

@@ -20,7 +20,7 @@ defmodule Admin.Mixfile do
   def application do
     [
       mod: {Admin.Application, []},
-      extra_applications: [:logger, :runtime_tools, :osdi]
+      extra_applications: [:logger, :runtime_tools, :osdi, :ueberauth_google]
     ]
   end
 
@@ -40,7 +40,9 @@ defmodule Admin.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:osdi, git: "https://github.com/BrandNewCongress/osdi_ex.git"},
-      {:cosmic, git: "https://github.com/BrandNewCongress/cosmic_ex.git"}
+      {:cosmic, git: "https://github.com/BrandNewCongress/cosmic_ex.git"},
+      {:ueberauth_google, "~> 0.5"},
+      {:guardian, "~> 0.14"}
     ]
   end
 
