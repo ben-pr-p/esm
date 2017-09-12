@@ -1,6 +1,7 @@
 defmodule Admin.EventsChannel do
   use Admin, :channel
   alias Osdi.{Repo, Event}
+  alias Admin.{Webhooks}
   import Ecto.Query
   use Guardian.Channel
 
@@ -87,6 +88,8 @@ defmodule Admin.EventsChannel do
   # Handle status changes
   def handle_in("action-" <> id, %{"status" => status}, socket) do
     new_event = set_status(id, status)
+    Webhooks.on(status, %{event: new_event, team_member: current_resource(socket)})
+
     push socket, "event", %{id: id, event: new_event}
     broadcast socket, "event", %{id: id, event: new_event}
     {:noreply, socket}
@@ -105,11 +108,6 @@ defmodule Admin.EventsChannel do
     push socket, "event", %{id: new_id, event: new_event}
     broadcast socket, "event", %{id: new_id, event: new_event}
     {:noreply, socket}
-  end
-
-  # Add authorization logic here as required.
-  defp authorized?(_payload) do
-    true
   end
 
   defp send_events(socket) do
