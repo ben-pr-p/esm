@@ -24,6 +24,12 @@ config :osdi, Osdi.Repo,
   hostname: "localhost",
   types: GeoExample.PostgresTypes
 
+config :admin,
+  script_tag: ~s(<script src="http://localhost:8080/js/app.js"></script>)
+
+config :admin,
+  css_tag: ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
