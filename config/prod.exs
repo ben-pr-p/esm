@@ -22,6 +22,12 @@ config :admin, Admin.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
+config :admin,
+  script_tag: ~s(<script src="/js/app.js"></script>)
+
+config :admin,
+  css_tag: ~s(<link rel="stylesheet" type="text/css" href="/css/app.css" media="screen,projection" />)
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key

@@ -38,6 +38,12 @@ config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_CLIENT_ID"),
   client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
 
+config :admin,
+  script_tag: ~s(<script src="http://localhost:8080/js/app.js"></script>)
+
+config :admin,
+  css_tag: ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
