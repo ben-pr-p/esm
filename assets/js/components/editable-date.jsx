@@ -41,11 +41,6 @@ export default class EditableDate extends Component {
   render = () => {
     const as_moment = mtz.tz(this.props.value, this.props.time_zone)
 
-    if (this.state.editing) {
-      console.log(as_moment)
-      debugger
-    }
-
     return (
       <div onDoubleClick={this.editOn}>
         <Modal

@@ -9,9 +9,12 @@ const ButtonGroup = Button.Group
 export default class EventCard extends Component {
   onSave = kv => this.props.channel.push(`edit-${this.props.event.id}`, kv)
 
-  onTypeChange = val => this.props.channel.push(`edit-${this.props.event.id}`, ['type', val])
-  onTagsChange = vals => this.props.channel.push(`tags-${this.props.event.id}`, vals)
-  onCalendarChange = vals => this.props.channel.push(`calendars-${this.props.event.id}`, vals)
+  onTypeChange = val =>
+    this.props.channel.push(`edit-${this.props.event.id}`, ['type', val])
+  onTagsChange = vals =>
+    this.props.channel.push(`tags-${this.props.event.id}`, vals)
+  onCalendarChange = vals =>
+    this.props.channel.push(`calendars-${this.props.event.id}`, vals)
 
   reject = () =>
     this.props.channel.push(`action-${this.props.event.id}`, {
@@ -68,7 +71,7 @@ export default class EventCard extends Component {
 
     return (
       <Card
-        title={title}
+        title={<EditableText onSave={this.onSave} value={title} attr="title" />}
         style={{ width: '100%', margin: 25 }}
         bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}
       >
@@ -139,11 +142,21 @@ export default class EventCard extends Component {
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Starts at:</strong> <br />
-          <EditableDate value={start_date} time_zone={location.time_zone} onSave={this.onSave} attr="start_date" />
+          <EditableDate
+            value={start_date}
+            time_zone={location.time_zone}
+            onSave={this.onSave}
+            attr="start_date"
+          />
           <br />
           <br />
           <strong>Ends at:</strong> <br />
-          <EditableDate value={end_date} time_zone={location.time_zone} onSave={this.onSave} attr="end_date" />
+          <EditableDate
+            value={end_date}
+            time_zone={location.time_zone}
+            onSave={this.onSave}
+            attr="end_date"
+          />
           <br />
           <br />
           <strong>Time zone:</strong> <br />
@@ -355,6 +368,14 @@ export default class EventCard extends Component {
               Back to Tentative
             </Button>
           ]}
+
+          <Button
+            onClick={() => window.open(`/rsvps/${name}`)}
+            type="default"
+            style={{ marginLeft: 10 }}
+          >
+            Download RSVPs
+          </Button>
         </div>
       </Card>
     )
