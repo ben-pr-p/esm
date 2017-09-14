@@ -30,8 +30,10 @@ class EditableText extends Component {
                     ref={r => (this.ref = r)}
                   />
                 : <Input
+                    style={{width: 250}}
                     onChange={this.onChange}
                     defaultValue={this.props.value}
+                    onPressEnter={this.onSave(this.props.attr)}
                     ref={r => (this.ref = r)}
                   />}
               <Button
