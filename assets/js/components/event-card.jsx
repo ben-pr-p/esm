@@ -368,6 +368,14 @@ export default class EventCard extends Component {
               Back to Tentative
             </Button>
           ]}
+
+          <Button
+            onClick={() => window.open(`/rsvps/${name}`)}
+            type="default"
+            style={{ marginLeft: 10 }}
+          >
+            Download RSVPs
+          </Button>
         </div>
       </Card>
     )

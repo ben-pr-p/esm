@@ -1,7 +1,7 @@
 defmodule Admin.PageController do
   use Admin, :controller
 
-  alias Osdi.{Repo, Tag}
+  alias Osdi.{Repo, Tag, Event, Attendance}
   alias Guardian.Plug
 
   import Ecto.Query
@@ -37,5 +37,19 @@ defmodule Admin.PageController do
     |> put_status(302)
     |> put_flash(:info, "Authentication required")
     |> redirect(to: "/auth")
+  end
+
+  def rsvps(conn, %{"name" => name}) do
+    authorized_rsvp(conn, name)
+  end
+
+  defp authorized_rsvp(conn, name) do
+    csv_content = Rsvps.csv_for(name)
+    filename = [DateTime.utc_now() |> DateTime.to_iso8601(), name, "rsvps"] |> Enum.join("-")
+
+    conn
+    |> put_resp_content_type("text/csv")
+    |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}.csv\"")
+    |> send_resp(200, csv_content)
   end
 end

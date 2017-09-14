@@ -28,5 +28,6 @@ defmodule Admin.Router do
     post "/auth/:provider/callback", AuthController, :callback
 
     get "/esm", PageController, :index
+    get "/rsvps/:name", PageController, :rsvps
   end
 end
