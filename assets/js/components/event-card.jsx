@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Button, Card, Input, Layout, Tabs, Select } from 'antd'
 import EditableText from './editable-text'
-import moment from 'moment'
-import momentTimeZone from 'moment-timezone'
+import EditableDate from './editable-date'
+
 const { Option } = Select
 const ButtonGroup = Button.Group
 
@@ -139,15 +139,11 @@ export default class EventCard extends Component {
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Starts at:</strong> <br />
-          {momentTimeZone(start_date)
-            .tz(location.time_zone)
-            .format('dddd, MMMM Do YYYY, h:mm a')}
+          <EditableDate value={start_date} time_zone={location.time_zone} onSave={this.onSave} attr="start_date" />
           <br />
           <br />
           <strong>Ends at:</strong> <br />
-          {momentTimeZone(end_date)
-            .tz(location.time_zone)
-            .format('dddd, MMMM Do YYYY, h:mm a')}
+          <EditableDate value={end_date} time_zone={location.time_zone} onSave={this.onSave} attr="end_date" />
           <br />
           <br />
           <strong>Time zone:</strong> <br />
