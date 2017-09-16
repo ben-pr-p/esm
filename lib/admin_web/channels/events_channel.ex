@@ -118,6 +118,7 @@ defmodule Admin.EventsChannel do
         organizer: [:email_addresses, :phone_numbers]])
     |> Repo.all()
     |> Enum.map(&to_map/1)
+    |> Enum.map(&add_rsvp_download_url/1)
     |> Enum.each(fn event ->
          push socket, "event", %{id: event.id, event: event}
        end)
@@ -128,6 +129,10 @@ defmodule Admin.EventsChannel do
     |> Map.from_struct()
     |> Map.take(@attrs)
     |> Map.put(:tags, tags |> Enum.map(&(&1.name)))
+  end
+
+  defp add_rsvp_download_url(event) do
+    Map.put(event, :rsvp_download_url, "https://admin.justicedemocrats.com/rsvps/#{Event.rsvp_link_for(event.name)}")
   end
 
   defp apply_edit(id, [key, value]) do

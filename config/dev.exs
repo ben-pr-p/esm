@@ -44,6 +44,12 @@ config :admin,
 config :admin,
   css_tag: ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
 
+# Cipher
+config :cipher,
+  keyphrase: "testiekeyphraseforcipher",
+  ivphrase: "testieivphraseforcipher",
+  magic_token: "magictoken"
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

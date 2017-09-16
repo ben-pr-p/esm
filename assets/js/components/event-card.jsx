@@ -66,7 +66,8 @@ export default class EventCard extends Component {
       start_date,
       end_date,
       host,
-      type
+      type,
+      rsvp_download_url
     } = event
 
     return (
@@ -370,7 +371,7 @@ export default class EventCard extends Component {
           ]}
 
           <Button
-            onClick={() => window.open(`/rsvps/${name}`)}
+            onClick={() => window.open(`/rsvps/${rsvp_download_url}`)}
             type="default"
             style={{ marginLeft: 10 }}
           >

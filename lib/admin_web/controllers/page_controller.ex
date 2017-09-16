@@ -39,8 +39,16 @@ defmodule Admin.PageController do
     |> redirect(to: "/auth")
   end
 
-  def rsvps(conn, %{"name" => name}) do
-    authorized_rsvp(conn, name)
+  def rsvps(conn, %{"encrypted" => encrypted}) do
+    case Cipher.decrypt(encrypted) do
+      {:error, _message} -> alert_user(conn)
+      name -> authorized_rsvp(conn, name)
+    end
+  end
+
+  defp alert_user(conn) do
+    text conn,
+      "Hey there!\n\nUnfortunately, our systems could not associate this rsvp download link with an event.\nPlease contact events@justicedemocrats.com for help."
   end
 
   defp authorized_rsvp(conn, name) do
