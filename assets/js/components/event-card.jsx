@@ -371,7 +371,7 @@ export default class EventCard extends Component {
           ]}
 
           <Button
-            onClick={() => window.open(rsvp_download_url}
+            onClick={() => window.open(rsvp_download_url)}
             type="default"
             style={{ marginLeft: 10 }}
           >
