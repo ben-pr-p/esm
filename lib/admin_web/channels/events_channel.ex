@@ -132,7 +132,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp add_rsvp_download_url(event) do
-    Map.put(event, :rsvp_download_url, "https://admin.justicedemocrats.com/rsvps/#{Event.rsvp_link_for(event.name)}")
+    Map.put(event, :rsvp_download_url, "/rsvps/#{Event.rsvp_link_for(event.name)}")
   end
 
   defp apply_edit(id, [key, value]) do
