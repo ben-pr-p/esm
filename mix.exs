@@ -46,7 +46,8 @@ defmodule Admin.Mixfile do
       {:cosmic, git: "https://github.com/BrandNewCongress/cosmic_ex.git"},
       {:ueberauth_google, "~> 0.5"},
       {:guardian, "~> 0.14"},
-      {:distillery, "~> 1.0.0"}
+      {:distillery, "~> 1.0.0"},
+      {:cipher, ">= 1.3.3"}
     ]
   end
 
