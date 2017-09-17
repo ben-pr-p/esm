@@ -1,10 +1,21 @@
 import React, { Component } from 'react'
-import { Button, Card, Input, Layout, Tabs, Select } from 'antd'
+import {
+  Button,
+  Card,
+  Dropdown,
+  Icon,
+  Input,
+  Layout,
+  Menu,
+  Tabs,
+  Select,
+  message
+} from 'antd'
 import EditableText from './editable-text'
 import EditableDate from './editable-date'
+import clipboard from 'clipboard-js'
 
 const { Option } = Select
-const ButtonGroup = Button.Group
 
 export default class EventCard extends Component {
   onSave = kv => this.props.channel.push(`edit-${this.props.event.id}`, kv)
@@ -69,14 +80,19 @@ export default class EventCard extends Component {
       end_date,
       contact,
       type,
-      rsvp_download_url
+      rsvp_download_url,
+      attendances
     } = event
-
-    console.log(description)
 
     return (
       <Card
         title={<EditableText onSave={this.onSave} value={title} attr="title" />}
+        extra={
+          <div style={{ display: 'flex' }}>
+            {attendances.length} RSVPs
+            <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
+          </div>
+        }
         style={{ width: '100%', margin: 25 }}
         bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}
       >
@@ -141,11 +157,7 @@ export default class EventCard extends Component {
               'Canvass',
               'Rally, march, or protest',
               'Other'
-            ].map(o =>
-              <Option value={o}>
-                {o}
-              </Option>
-            )}
+            ].map(o => <Option value={o}>{o}</Option>)}
           </Select>
         </div>
 
@@ -163,11 +175,7 @@ export default class EventCard extends Component {
               .filter(t => t.includes('Calendar:'))
               .map(t => t.split(':')[1].trim())}
           >
-            {calendarOptions.map(c =>
-              <Option key={c}>
-                {c}
-              </Option>
-            )}
+            {calendarOptions.map(c => <Option key={c}>{c}</Option>)}
           </Select>
         </div>
 
@@ -280,135 +288,127 @@ export default class EventCard extends Component {
               .filter(
                 t => !t.includes('Event: Action') && !t.includes('Calendar')
               )
-              .map(t =>
-                <Option key={t}>
-                  {t}
-                </Option>
-              )}
+              .map(t => <Option key={t}>{t}</Option>)}
           </Select>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            marginLeft: 20
-          }}
-        >
-          {category == 'ESM Call #1' && [
-            <Button
-              onClick={this.reject}
-              style={{ marginLeft: 10 }}
-              type="danger"
-            >
-              Reject
-            </Button>,
-            <Button
-              onClick={this.markCalled}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Mark Called
-            </Button>
-          ]}
-
-          {category == 'Needs Approval' && [
-            <Button
-              onClick={this.reject}
-              style={{ marginLeft: 10 }}
-              type="danger"
-            >
-              Reject
-            </Button>,
-            <Button
-              onClick={this.confirm}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Confirm
-            </Button>
-          ]}
-
-          {category == 'Needs Logistics' && [
-            <Button
-              onClick={this.cancel}
-              style={{ marginLeft: 10 }}
-              type="danger"
-            >
-              Cancel
-            </Button>,
-            <Button
-              onClick={this.markLogistics}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Mark Did Logistics Call
-            </Button>
-          ]}
-
-          {category == 'Needs Debrief' && [
-            <Button onClick={this.duplicate} style={{ marginLeft: 10 }}>
-              Duplicate
-            </Button>,
-            <Button
-              onClick={this.markDebriefed}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Mark Debriefed
-            </Button>
-          ]}
-
-          {category == 'Past' && [
-            <Button
-              onClick={this.duplicate}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Duplicate
-            </Button>
-          ]}
-
-          {category == 'Rejected' && [
-            <Button
-              onClick={this.makeTentative}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Back to Tentative
-            </Button>
-          ]}
-
-          {category == 'Cancelled' && [
-            <Button
-              onClick={this.makeTentative}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Back to Tentative
-            </Button>
-          ]}
-
-          {category == 'Upcoming' && [
-            <Button
-              onClick={this.makeTentative}
-              style={{ marginLeft: 10 }}
-              type="primary"
-            >
-              Back to Tentative
-            </Button>
-          ]}
-
-          <Button
-            onClick={() => window.open(rsvp_download_url)}
-            type="default"
-            style={{ marginLeft: 10 }}
-          >
-            Download RSVPs
-          </Button>
         </div>
       </Card>
     )
+  }
+
+  renderButtons() {
+    const { category, event: { rsvp_download_url } } = this.props
+
+    return [
+      <Dropdown
+        overlay={
+          <Menu>
+            <Menu.Item>
+              <Button
+                style={{ width: '100%' }}
+                onClick={() => window.open(rsvp_download_url)}
+              >
+                Download RSVPs
+              </Button>
+            </Menu.Item>
+            <Menu.Item>
+              <Button
+                style={{ width: '100%' }}
+                onClick={() =>
+                  clipboard
+                    .copy(
+                      `https://admin.justicedemocrats.com${rsvp_download_url}`
+                    )
+                    .then(() =>
+                      message.success('RSVP download link copied to clipboard')
+                    )}
+              >
+                Copy RSVP Download Link
+              </Button>
+            </Menu.Item>
+            <Menu.Item>
+              <Button style={{ width: '100%' }} onClick={this.duplicate}>
+                Duplicate
+              </Button>
+            </Menu.Item>
+          </Menu>
+        }
+      >
+        <Button>
+          More <Icon type="down" />
+        </Button>
+      </Dropdown>
+    ]
+      .concat(
+        category == 'ESM Call #1'
+          ? [
+              <Button onClick={this.reject} type="danger">
+                Reject
+              </Button>,
+              <Button onClick={this.markCalled} type="primary">
+                Mark Called
+              </Button>
+            ]
+          : []
+      )
+      .concat(
+        category == 'Needs Approval'
+          ? [
+              <Button onClick={this.reject} type="danger">
+                Reject
+              </Button>,
+              <Button onClick={this.confirm} type="primary">
+                Confirm
+              </Button>
+            ]
+          : []
+      )
+      .concat(
+        category == 'Needs Logistics'
+          ? [
+              <Button onClick={this.cancel} type="danger">
+                Cancel
+              </Button>,
+              <Button onClick={this.markLogistics} type="primary">
+                Mark Did Logistics Call
+              </Button>
+            ]
+          : []
+      )
+      .concat(
+        category == 'Needs Debrief'
+          ? [
+              <Button onClick={this.markDebriefed} type="primary">
+                Mark Debriefed
+              </Button>
+            ]
+          : []
+      )
+      .concat(
+        category == 'Rejected'
+          ? [
+              <Button onClick={this.makeTentative} type="primary">
+                Back to Tentative
+              </Button>
+            ]
+          : []
+      )
+      .concat(
+        category == 'Cancelled'
+          ? [
+              <Button onClick={this.makeTentative} type="primary">
+                Back to Tentative
+              </Button>
+            ]
+          : []
+      )
+      .concat(
+        category == 'Upcoming'
+          ? [
+              <Button onClick={this.makeTentative} type="primary">
+                Back to Tentative
+              </Button>
+            ]
+          : []
+      )
   }
 }

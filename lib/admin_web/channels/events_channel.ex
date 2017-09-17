@@ -7,7 +7,7 @@ defmodule Admin.EventsChannel do
 
   @attrs ~w(
     id start_date end_date featured_image_url location summary title name
-    type status description contact type tags instructions
+    type status description contact type tags instructions attendances
   )a
 
   def join("events", _payload, socket) do
@@ -81,7 +81,7 @@ defmodule Admin.EventsChannel do
         :location,
         organizer: [:email_addresses, :phone_numbers]])
     |> Repo.one()
-    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end
 
@@ -115,6 +115,7 @@ defmodule Admin.EventsChannel do
       preload: [
         :tags,
         :location,
+        :attendances,
         organizer: [:email_addresses, :phone_numbers]])
     |> Repo.all()
     |> Enum.map(&to_map/1)
@@ -148,7 +149,7 @@ defmodule Admin.EventsChannel do
         :location,
         organizer: [:email_addresses, :phone_numbers]])
     |> Repo.one()
-    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end
 
@@ -165,7 +166,7 @@ defmodule Admin.EventsChannel do
     |> Ecto.Changeset.change()
     |> Ecto.Changeset.put_embed(:contact, contact_changeset)
     |> Repo.update!()
-    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end
 
@@ -193,7 +194,7 @@ defmodule Admin.EventsChannel do
     |> Ecto.Changeset.cast(%{location: new_location}, [])
     |> Ecto.Changeset.cast_assoc(:location)
     |> Repo.update!()
-    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end
 
@@ -208,7 +209,7 @@ defmodule Admin.EventsChannel do
 
     Event
     |> Repo.get(id)
-    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end
 
@@ -218,7 +219,7 @@ defmodule Admin.EventsChannel do
     Event.add_tags(%Osdi.Event{id: id}, [tag])
     Event
     |> Repo.get(id)
-    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end
 
