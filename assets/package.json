@@ -20,6 +20,7 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-react-hmre": "^1.1.1",
     "babel-preset-stage-0": "^6.24.1",
+    "clipboard-js": "^0.3.5",
     "copy-webpack-plugin": "^2.1.6",
     "css-loader": "^0.28.4",
     "extract-text-webpack-plugin": "^3.0.0",
