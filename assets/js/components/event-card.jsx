@@ -62,10 +62,12 @@ export default class EventCard extends Component {
       status,
       name,
       description,
+      summary,
+      instructions,
       location,
       start_date,
       end_date,
-      host,
+      contact,
       type,
       rsvp_download_url
     } = event
@@ -87,11 +89,37 @@ export default class EventCard extends Component {
           className="field-group"
           style={{ margin: 10, minWidth: 250, width: '100%' }}
         >
+          <strong>Summary:</strong>{' '}
+          <EditableText
+            onSave={this.onSave}
+            value={summary}
+            attr="summary"
+            textarea={true}
+          />
+        </div>
+
+        <div
+          className="field-group"
+          style={{ margin: 10, minWidth: 250, width: '100%' }}
+        >
           <strong>Description:</strong>{' '}
           <EditableText
             onSave={this.onSave}
             value={description}
             attr="description"
+            textarea={true}
+          />
+        </div>
+
+        <div
+          className="field-group"
+          style={{ margin: 10, minWidth: 250, width: '100%' }}
+        >
+          <strong>Instructions:</strong>{' '}
+          <EditableText
+            onSave={this.onSave}
+            value={instructions}
+            attr="instructions"
             textarea={true}
           />
         </div>
@@ -215,22 +243,22 @@ export default class EventCard extends Component {
           <strong>Name:</strong>{' '}
           <EditableText
             onSave={this.onSave}
-            value={host.name}
-            attr="host.name"
+            value={contact.name}
+            attr="contact.name"
           />
           <br />
           <strong>Phone Number:</strong>{' '}
           <EditableText
             onSave={this.onSave}
-            value={host.phone_number}
-            attr="host.phone_number"
+            value={contact.phone_number}
+            attr="contact.phone_number"
           />
           <br />
           <strong>Email Address:</strong>{' '}
           <EditableText
             onSave={this.onSave}
-            value={host.email_address}
-            attr="host.email_address"
+            value={contact.email_address}
+            attr="contact.email_address"
           />
         </div>
 

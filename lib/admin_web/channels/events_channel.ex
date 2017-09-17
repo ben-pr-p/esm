@@ -7,7 +7,7 @@ defmodule Admin.EventsChannel do
 
   @attrs ~w(
     id start_date end_date featured_image_url location summary title name
-    type status description host type tags
+    type status description contact type tags instructions
   )a
 
   def join("events", _payload, socket) do
@@ -20,12 +20,12 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
-  # Implement simple edit, host edit (embeded), or location edit (associative)
+  # Implement simple edit, contact edit (embeded), or location edit (associative)
   def handle_in("edit-" <> id, [key, value], socket) do
     new_event =
       case key do
         "location." <> _rest -> apply_location_edit(id, [key, value])
-        "host." <> _rest -> apply_host_edit(id, [key, value])
+        "contact." <> _rest -> apply_contact_edit(id, [key, value])
         _ -> apply_edit(id, [key, value])
       end
 
@@ -152,18 +152,18 @@ defmodule Admin.EventsChannel do
     |> for_web()
   end
 
-  defp apply_host_edit(id, [raw_key, value]) do
-    event = %{host: host} = Event |> Repo.get(id)
+  defp apply_contact_edit(id, [raw_key, value]) do
+    event = %{contact: contact} = Event |> Repo.get(id)
 
-    "host." <> key = raw_key
+    "contact." <> key = raw_key
     key = String.to_atom key
-    host_change = %{} |> Map.put(key, value)
+    contact_change = %{} |> Map.put(key, value)
 
-    host_changeset = Ecto.Changeset.change(host, host_change)
+    contact_changeset = Ecto.Changeset.change(contact, contact_change)
 
     event
     |> Ecto.Changeset.change()
-    |> Ecto.Changeset.put_embed(:host, host_changeset)
+    |> Ecto.Changeset.put_embed(:contact, contact_changeset)
     |> Repo.update!()
     |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
