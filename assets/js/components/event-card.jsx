@@ -70,6 +70,8 @@ export default class EventCard extends Component {
       rsvp_download_url
     } = event
 
+    console.log(description)
+
     return (
       <Card
         title={<EditableText onSave={this.onSave} value={title} attr="title" />}
