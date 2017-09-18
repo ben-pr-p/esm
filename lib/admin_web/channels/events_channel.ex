@@ -144,7 +144,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp add_browser_url(event) do
-    Map.put(event, :browser_url, "https://now.justicedemocrats.com/rsvps/#{event.name}")
+    Map.put(event, :browser_url, "https://now.justicedemocrats.com/events/#{event.name}")
   end
 
   defp apply_edit(id, [key, value]) do

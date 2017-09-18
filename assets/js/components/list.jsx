@@ -9,11 +9,13 @@ export default class List extends Component {
   columns = [
     'title',
     'browser_url',
-    'instructions',
     'type',
     'rsvp_download_url',
-    'address',
     'venue',
+    'address',
+    'city',
+    'state',
+    'zip',
     'host_name',
     'host_email',
     'host_phone',
@@ -24,7 +26,28 @@ export default class List extends Component {
     title: capitalize(attr),
     key: attr,
     dataIndex: attr,
-    render: (text, record, index) => <div
+    width: 200,
+    sorter: (a, b) =>
+      attr.includes('date')
+        ? mtz(a[attr], 'dd MM/DD, h:mm a') < mtz(b[attr], 'dd MM/DD, h:mm a')
+          ? -1
+          : 1
+        : typeof a[attr] == 'string'
+          ? a[attr] < b[attr] ? -1 : 1
+          : a[attr] - b[attr],
+    render: (text, record, index) => text // (
+    //   // <div
+    //   //   style={{
+    //   //     whiteSpace: 'no-wrap',
+    //   //     overflowX: 'scroll',
+    //   //     width: '100%',
+    //   //     height: 50,
+    //   //     display: 'flex',
+    //   //     alignItems: 'center'
+    //   //   }}
+    //   // >
+    //   // </div>
+    // )
   }))
 
   state = {
@@ -48,7 +71,6 @@ export default class List extends Component {
       })
 
     this.state.channel.on('event', data => {
-      console.log(data)
       this.state.events.push(preprocess(data.event))
       this.forceUpdate()
     })
@@ -60,8 +82,8 @@ export default class List extends Component {
     return (
       <LocaleProvider locale={enUS}>
         <Table
-          size="small"
-          scroll={{x: 3500}}
+          size="middle"
+          scroll={{ x: 3500 }}
           pagination={false}
           bordered={true}
           dataSource={this.state.events}
@@ -80,6 +102,7 @@ const capitalize = str =>
     .join(' ')
 
 const preprocess = ({
+  name,
   title,
   browser_url,
   description,
@@ -91,25 +114,33 @@ const preprocess = ({
   attendances,
   start_date,
   end_date
-}) => {
-  return {
-    title,
-    browser_url,
-    description,
-    instructions,
-    type,
-    rsvp_download_url,
-    address: location.address_lines[0],
-    venue: location.venue,
-    host_name: contact.name,
-    host_email: contact.email,
-    host_phone: contact.phone,
-    rsvps: attendances.length,
-    start_date: mtz(start_date)
-      .tz(location.time_zone)
-      .format('dddd, MMMM Do YYYY, h:mm a'),
-    end_date: mtz(end_date)
-      .tz(location.time_zone)
-      .format('dddd, MMMM Do YYYY, h:mm a')
-  }
-}
+}) => ({
+  key: name,
+  title,
+  description,
+  instructions,
+  type,
+  rsvp_download_url: linkify(rsvp_download_url),
+  browser_url: linkify(browser_url),
+  address: location.address_lines[0],
+  venue: location.venue,
+  host_name: contact.name,
+  host_email: contact.email_address,
+  host_phone: contact.phone_number,
+  rsvps: attendances.length,
+  city: location.locality,
+  state: location.region,
+  zip: location.postal_code,
+  start_date: mtz(start_date)
+    .tz(location.time_zone)
+    .format('dd, MM/DD, h:mm a'),
+  end_date: mtz(end_date)
+    .tz(location.time_zone)
+    .format('dd MM/DD, h:mm a')
+})
+
+const linkify = href => (
+  <a target="_blank" href={href}>
+    {href}
+  </a>
+)

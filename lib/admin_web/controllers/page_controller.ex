@@ -9,6 +9,10 @@ defmodule Admin.PageController do
   plug Plug.EnsureAuthenticated, [handler: __MODULE__]
     when action in ~w(esm list)a
 
+  def events(conn, params) do
+    render conn, "index.html"
+  end
+
   def esm(conn, params) do
     email = Plug.current_resource(conn)
 
