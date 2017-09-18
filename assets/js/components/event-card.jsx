@@ -84,6 +84,8 @@ export default class EventCard extends Component {
       attendances
     } = event
 
+    const browser_url = `https://now.justicedemocrats.com/events/${name}`
+
     return (
       <Card
         title={<EditableText onSave={this.onSave} value={title} attr="title" />}
@@ -99,6 +101,15 @@ export default class EventCard extends Component {
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Slug:</strong>{' '}
           <EditableText onSave={this.onSave} value={name} attr="name" />
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Link:</strong>
+          <div>
+            <a target="_blank" href={browser_url}>
+              {browser_url}
+            </a>
+          </div>
         </div>
 
         <div
