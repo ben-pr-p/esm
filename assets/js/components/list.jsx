@@ -8,6 +8,7 @@ import mtz from 'moment-timezone'
 export default class List extends Component {
   columns = [
     'title',
+    'candidate',
     'browser_url',
     'type',
     'rsvp_download_url',
@@ -21,7 +22,7 @@ export default class List extends Component {
     'host_phone',
     'rsvps',
     'start_date',
-    'end_date'
+    'end_date',
   ].map(attr => ({
     title: capitalize(attr),
     key: attr,
@@ -113,7 +114,8 @@ const preprocess = ({
   contact,
   attendances,
   start_date,
-  end_date
+  end_date,
+  tags
 }) => ({
   key: name,
   title,
@@ -136,7 +138,14 @@ const preprocess = ({
     .format('dd, MM/DD, h:mm a'),
   end_date: mtz(end_date)
     .tz(location.time_zone)
-    .format('dd MM/DD, h:mm a')
+    .format('dd MM/DD, h:mm a'),
+  candidate:
+    tags.filter(
+      t =>
+        t.startsWith('Calendar: ') &&
+        !t.includes('Brand New Congress') &&
+        !t.includes('Justice Democrats')
+    )[0] || 'General'
 })
 
 const linkify = href => (
