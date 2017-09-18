@@ -7,9 +7,9 @@ defmodule Admin.PageController do
   import Ecto.Query
 
   plug Plug.EnsureAuthenticated, [handler: __MODULE__]
-    when action in ~w(index)a
+    when action in ~w(esm list)a
 
-  def index(conn, params) do
+  def esm(conn, params) do
     email = Plug.current_resource(conn)
 
     calendars =
@@ -29,7 +29,11 @@ defmodule Admin.PageController do
       |> Enum.to_list()
       |> Poison.encode!()
 
-    render conn, "index.html", [calendars: calendars, tags: tags, email: email]
+    render conn, "esm.html", [calendars: calendars, tags: tags, email: email]
+  end
+
+  def list(conn, params) do
+    render conn, "list.html"
   end
 
   def unauthenticated(conn, _) do

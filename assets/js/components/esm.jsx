@@ -73,6 +73,7 @@ export default class Esm extends Component {
     const token = document
       .querySelector('#guardian_token')
       .getAttribute('content')
+
     this.state.channel = socket.channel('events', { guardian_token: token })
 
     this.state.channel
@@ -89,7 +90,7 @@ export default class Esm extends Component {
       this.forceUpdate()
     })
 
-    this.state.channel.push('ready')
+    this.state.channel.push('ready', {page: 'esm'})
   }
 
   render() {

@@ -21,7 +21,5 @@
     <main class="main" role="main">
       <%= render @view_module, @view_template, assigns %>
     </main>
-
-    <%= {:safe, js_script_tag() } %>
   </body>
 </html>

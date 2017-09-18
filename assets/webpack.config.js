@@ -20,7 +20,8 @@ module.exports = env => {
     context: __dirname,
 
     entry: {
-      app: ['js/app.js', 'stylus/app.styl']
+      esm: ['js/esm.js', 'stylus/app.styl'],
+      list: ['js/list.js', 'stylus/app.styl']
     },
 
     output: {

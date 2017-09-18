@@ -12,3 +12,4 @@
     'WI', 'WY'
   ]
 </script>
+<%= {:safe, js_script_tag("esm.js") } %>

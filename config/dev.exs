@@ -25,7 +25,7 @@ config :osdi, Osdi.Repo,
   types: GeoExample.PostgresTypes
 
 config :admin,
-  script_tag: ~s(<script src="http://localhost:8080/js/app.js"></script>)
+  script_tag_base: ~s(http://localhost:8080/js/)
 
 config :admin,
   css_tag: ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
