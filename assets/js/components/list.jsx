@@ -22,7 +22,7 @@ export default class List extends Component {
     'host_phone',
     'rsvps',
     'start_date',
-    'end_date',
+    'end_date'
   ].map(attr => ({
     title: capitalize(attr),
     key: attr,
@@ -140,12 +140,14 @@ const preprocess = ({
     .tz(location.time_zone)
     .format('dd MM/DD, h:mm a'),
   candidate:
-    tags.filter(
-      t =>
-        t.startsWith('Calendar: ') &&
-        !t.includes('Brand New Congress') &&
-        !t.includes('Justice Democrats')
-    )[0] || 'General'
+    tags
+      .filter(
+        t =>
+          t.startsWith('Calendar: ') &&
+          !t.includes('Brand New Congress') &&
+          !t.includes('Justice Democrats')
+      )
+      .tags.map(t => t.split(':')[1].trim())[0] || 'General'
 })
 
 const linkify = href => (
