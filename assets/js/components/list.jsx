@@ -147,7 +147,7 @@ const preprocess = ({
           !t.includes('Brand New Congress') &&
           !t.includes('Justice Democrats')
       )
-      .tags.map(t => t.split(':')[1].trim())[0] || 'General'
+      .map(t => t.split(':')[1].trim())[0] || 'General'
 })
 
 const linkify = href => (
