@@ -1,11 +1,10 @@
 defmodule Admin.LayoutView do
   use Admin, :view
 
-  def js_script_tag do
-    case Application.get_env(:admin, :script_tag) do
-      something -> something
-      nil -> ~s(<script src="/js/app.js"></script>)
-    end
+  def js_script_tag(filename) do
+    base = Application.get_env(:admin, :script_tag_base) || "/js/"
+    src = base <> filename
+    ~s(<script src="#{src}"></script>)
   end
 
   def css_link_tag do

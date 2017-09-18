@@ -15,8 +15,13 @@ defmodule Admin.EventsChannel do
   end
 
   # Starting sending events
-  def handle_in("ready", _payload, socket) do
-    send_events(socket)
+  def handle_in("ready", %{"page" => "esm"}, socket) do
+    send_esm_events(socket)
+    {:noreply, socket}
+  end
+
+  def handle_in("ready", %{"page" => "list"}, socket) do
+    send_list_events(socket)
     {:noreply, socket}
   end
 
@@ -71,20 +76,6 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
-  def edit_tags_and_fetch(event = %{id: id}, tags) do
-    Event.set_tags(event, tags)
-
-    (from e in Event,
-      where: e.id == ^id,
-      preload: [
-        :tags,
-        :location,
-        organizer: [:email_addresses, :phone_numbers]])
-    |> Repo.one()
-    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
-    |> for_web()
-  end
-
   # Handle status changes
   def handle_in("action-" <> id, %{"status" => status}, socket) do
     new_event = set_status(id, status)
@@ -110,7 +101,7 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
-  defp send_events(socket) do
+  defp send_esm_events(socket) do
     (from e in Event,
       preload: [
         :tags,
@@ -120,6 +111,22 @@ defmodule Admin.EventsChannel do
     |> Repo.all()
     |> Enum.map(&to_map/1)
     |> Enum.map(&add_rsvp_download_url/1)
+    |> Enum.map(&add_browser_url/1)
+    |> Enum.each(fn event ->
+         push socket, "event", %{id: event.id, event: event}
+       end)
+  end
+
+  defp send_list_events(socket) do
+    (from e in Event,
+      where: e.status == "confirmed" and e.end_date > ^NaiveDateTime.utc_now(),
+      preload: [
+        :tags, :location, :attendances,
+        organizer: [:email_addresses, :phone_numbers]])
+    |> Repo.all()
+    |> Enum.map(&to_map/1)
+    |> Enum.map(&add_rsvp_download_url/1)
+    |> Enum.map(&add_browser_url/1)
     |> Enum.each(fn event ->
          push socket, "event", %{id: event.id, event: event}
        end)
@@ -134,6 +141,10 @@ defmodule Admin.EventsChannel do
 
   defp add_rsvp_download_url(event) do
     Map.put(event, :rsvp_download_url, "/rsvps/#{Event.rsvp_link_for(event.name)}")
+  end
+
+  defp add_browser_url(event) do
+    Map.put(event, :browser_url, "https://now.justicedemocrats.com/events/#{event.name}")
   end
 
   defp apply_edit(id, [key, value]) do
@@ -194,6 +205,20 @@ defmodule Admin.EventsChannel do
     |> Ecto.Changeset.cast(%{location: new_location}, [])
     |> Ecto.Changeset.cast_assoc(:location)
     |> Repo.update!()
+    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
+    |> for_web()
+  end
+
+  def edit_tags_and_fetch(event = %{id: id}, tags) do
+    Event.set_tags(event, tags)
+
+    (from e in Event,
+      where: e.id == ^id,
+      preload: [
+        :tags,
+        :location,
+        organizer: [:email_addresses, :phone_numbers]])
+    |> Repo.one()
     |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
   end

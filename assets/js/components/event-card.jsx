@@ -81,10 +81,9 @@ export default class EventCard extends Component {
       contact,
       type,
       rsvp_download_url,
-      attendances
+      attendances,
+      browser_url,
     } = event
-
-    const browser_url = `https://now.justicedemocrats.com/events/${name}`
 
     return (
       <Card
