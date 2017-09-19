@@ -3,6 +3,8 @@ defmodule Admin.Webhooks do
 
   def on("confirmed", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_publish" => hook}} = Cosmic.get("event-webhooks")
+    IO.inspect event
+    IO.inspect team_member
     IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 

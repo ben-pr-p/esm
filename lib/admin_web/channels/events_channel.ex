@@ -164,7 +164,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp add_rsvp_download_url(event) do
-    Map.put(event, :rsvp_download_url, "/rsvps/#{Event.rsvp_link_for(event.name)}")
+    Map.put(event, :rsvp_download_url, "https://admin.justicedemocrats.com/rsvps/#{Event.rsvp_link_for(event.name)}")
   end
 
   defp add_browser_url(event) do
@@ -173,7 +173,7 @@ defmodule Admin.EventsChannel do
 
   defp add_organizer_edit_url(event) do
     organizer_edit_hash = Cipher.encrypt("#{event.organizer_id}")
-    Map.put(event, :organizer_edit_url, "/my-events/#{organizer_edit_hash}")
+    Map.put(event, :organizer_edit_url, "https://admin.justicedemocrats.com/my-events/#{organizer_edit_hash}")
   end
 
   defp apply_edit(id, [key, value]) do
@@ -254,6 +254,7 @@ defmodule Admin.EventsChannel do
 
   defp for_web(event) do
     event
+    |> event_pipeline()
     |> Map.take(@attrs)
     |> (fn event = %{tags: tags} -> Map.put(event, :tags, tags |> Enum.map(&(&1.name))) end).()
   end
