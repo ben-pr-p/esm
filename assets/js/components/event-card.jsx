@@ -345,9 +345,7 @@ export default class EventCard extends Component {
                 style={{ width: '100%' }}
                 onClick={() =>
                   clipboard
-                    .copy(
-                      `https://admin.justicedemocrats.com${rsvp_download_url}`
-                    )
+                    .copy(rsvp_download_url)
                     .then(() =>
                       message.success('RSVP download link copied to clipboard')
                     )}
@@ -360,9 +358,7 @@ export default class EventCard extends Component {
                 style={{ width: '100%' }}
                 onClick={() =>
                   clipboard
-                    .copy(
-                      `https://admin.justicedemocrats.com${organizer_edit_url}`
-                    )
+                    .copy(organizer_edit_url)
                     .then(() =>
                       message.success('Organizer edit link copied to clipboard')
                     )}
