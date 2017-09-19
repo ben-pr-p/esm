@@ -7,6 +7,7 @@ import {
   Input,
   Layout,
   Menu,
+  Modal,
   Tabs,
   Select,
   message
@@ -16,6 +17,7 @@ import EditableDate from './editable-date'
 import clipboard from 'clipboard-js'
 import mtz from 'moment-timezone'
 
+const { TextArea } = Input
 const { Option } = Select
 
 export default class EventCard extends Component {
@@ -28,10 +30,15 @@ export default class EventCard extends Component {
   onCalendarChange = vals =>
     this.props.channel.push(`calendars-${this.props.event.id}`, vals)
 
-  reject = () =>
+  reject = () => this.setState({ rejecting: true })
+
+  rejectWithMessage = () =>
     this.props.channel.push(`action-${this.props.event.id}`, {
-      status: 'rejected'
+      status: 'rejected',
+      message: this.state.rejectionMessage
     })
+
+  setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
 
   cancel = () =>
     this.props.channel.push(`action-${this.props.event.id}`, {
@@ -64,6 +71,11 @@ export default class EventCard extends Component {
     })
 
   duplicate = () => this.props.channel.push(`duplicate-${this.props.event.id}`)
+
+  state = {
+    rejecting: false,
+    rejectionMessage: ''
+  }
 
   render() {
     const { event, category } = this.props
@@ -98,6 +110,23 @@ export default class EventCard extends Component {
         style={{ width: '100%', margin: 25 }}
         bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}
       >
+        <Modal
+          visible={this.state.rejecting}
+          title="Why are you rejecting the event?"
+          okText="Reject and Send"
+          onCancel={() => this.setState({ rejecting: false })}
+          onOk={this.rejectWithMessage}
+        >
+          <p>
+            Check for typos – this rejection message will be sent directly to
+            the event host.
+          </p>
+          <TextArea
+            rows={5}
+            onChange={this.setRejectionMessage}
+            value={this.state.rejectionMessage}
+          />
+        </Modal>
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Slug:</strong>{' '}
           <EditableText onSave={this.onSave} value={name} attr="name" />
@@ -213,7 +242,7 @@ export default class EventCard extends Component {
           <br />
           <strong>Time zone:</strong> <br />
           <Select
-            style={{width: 150}}
+            style={{ width: 150 }}
             value={location.time_zone}
             onChange={tz => this.onSave(['location.time_zone', tz])}
             attr="location.time_zone"

@@ -91,9 +91,12 @@ defmodule Admin.EventsChannel do
   end
 
   # Handle status changes
-  def handle_in("action-" <> id, %{"status" => status}, socket) do
+  def handle_in("action-" <> id, payload = %{"status" => status}, socket) do
     new_event = set_status(id, status)
-    Webhooks.on(status, %{event: new_event, team_member: current_resource(socket)})
+
+    Webhooks.on(status,
+      %{event: new_event, team_member: current_resource(socket),
+        reason: payload["message"]})
 
     push socket, "event", %{id: id, event: new_event}
     broadcast socket, "event", %{id: id, event: new_event}
