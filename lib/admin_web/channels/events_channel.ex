@@ -10,8 +10,11 @@ defmodule Admin.EventsChannel do
     type status description contact type tags instructions attendances
   )a
 
-  def join("events", _payload, socket) do
-    {:ok, socket}
+  def join("events", %{"organizer_token" => token}, socket) do
+    case Cipher.decrypt(token) do
+      {:error, message} -> {:error, message}
+      organizer_id -> {:ok, assign(socket, :organizer_id, organizer_id)}
+    end
   end
 
   # Starting sending events
@@ -22,6 +25,11 @@ defmodule Admin.EventsChannel do
 
   def handle_in("ready", %{"page" => "list"}, socket) do
     send_list_events(socket)
+    {:noreply, socket}
+  end
+
+  def handle_in("ready", %{"page" => "my-events" }, socket) do
+    send_my_events(socket)
     {:noreply, socket}
   end
 
@@ -122,6 +130,23 @@ defmodule Admin.EventsChannel do
       where: e.status == "confirmed" and e.end_date > ^NaiveDateTime.utc_now(),
       preload: [
         :tags, :location, :attendances,
+        organizer: [:email_addresses, :phone_numbers]])
+    |> Repo.all()
+    |> Enum.map(&to_map/1)
+    |> Enum.map(&add_rsvp_download_url/1)
+    |> Enum.map(&add_browser_url/1)
+    |> Enum.each(fn event ->
+         push socket, "event", %{id: event.id, event: event}
+       end)
+  end
+
+  defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
+    (from e in Event,
+      where: e.organizer_id == ^organizer_id,
+      preload: [
+        :tags,
+        :location,
+        :attendances,
         organizer: [:email_addresses, :phone_numbers]])
     |> Repo.all()
     |> Enum.map(&to_map/1)
