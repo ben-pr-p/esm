@@ -14,6 +14,7 @@ import {
 import EditableText from './editable-text'
 import EditableDate from './editable-date'
 import clipboard from 'clipboard-js'
+import mtz from 'moment-timezone'
 
 const { Option } = Select
 
@@ -211,11 +212,23 @@ export default class EventCard extends Component {
           <br />
           <br />
           <strong>Time zone:</strong> <br />
-          <EditableText
-            onSave={this.onSave}
+          <Select
+            style={{width: 150}}
             value={location.time_zone}
+            onChange={tz => this.onSave(['location.time_zone', tz])}
             attr="location.time_zone"
-          />
+          >
+            {[
+              'America/New_York',
+              'America/Chicago',
+              'America/Salt_Lake_City',
+              'America/Phoenix',
+              'America/Los_Angeles',
+              'America/Anchorage',
+              'America/Adak',
+              'America/Honolulu'
+            ].map(o => <Option value={o}>{o}</Option>)}
+          </Select>
         </div>
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
@@ -310,7 +323,10 @@ export default class EventCard extends Component {
   }
 
   renderButtons() {
-    const { category, event: { rsvp_download_url, organizer_edit_url } } = this.props
+    const {
+      category,
+      event: { rsvp_download_url, organizer_edit_url }
+    } = this.props
 
     return [
       <Dropdown
