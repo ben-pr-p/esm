@@ -31,6 +31,8 @@ defmodule Admin.Router do
     get "/events/esm", PageController, :esm
     get "/events/list", PageController, :list
 
+    get "/my-events/:token", PageController, :my_events
+
     get "/rsvps/:encrypted", PageController, :rsvps
   end
 end

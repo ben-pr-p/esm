@@ -82,7 +82,7 @@ export default class EventCard extends Component {
       type,
       rsvp_download_url,
       attendances,
-      browser_url,
+      browser_url
     } = event
 
     return (
@@ -171,23 +171,25 @@ export default class EventCard extends Component {
           </Select>
         </div>
 
-        <div
-          className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}
-        >
-          <strong>Calendars:</strong>{' '}
-          <Select
-            mode="multiple"
-            style={{ width: '100%' }}
-            placeholder="Calendars"
-            onChange={this.onCalendarChange}
-            defaultValue={tags
-              .filter(t => t.includes('Calendar:'))
-              .map(t => t.split(':')[1].trim())}
+        {!this.props.hostEdit && (
+          <div
+            className="field-group"
+            style={{ margin: 10, minWidth: 250, width: '100%' }}
           >
-            {calendarOptions.map(c => <Option key={c}>{c}</Option>)}
-          </Select>
-        </div>
+            <strong>Calendars:</strong>{' '}
+            <Select
+              mode="multiple"
+              style={{ width: '100%' }}
+              placeholder="Calendars"
+              onChange={this.onCalendarChange}
+              defaultValue={tags
+                .filter(t => t.includes('Calendar:'))
+                .map(t => t.split(':')[1].trim())}
+            >
+              {calendarOptions.map(c => <Option key={c}>{c}</Option>)}
+            </Select>
+          </div>
+        )}
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Starts at:</strong> <br />
@@ -280,27 +282,29 @@ export default class EventCard extends Component {
           />
         </div>
 
-        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-          <strong>Tags:</strong>
-          <Select
-            mode="multiple"
-            style={{ width: '100%' }}
-            placeholder="Tags"
-            onChange={this.onTagsChange}
-            defaultValue={tags.filter(
-              t =>
-                !t.includes('Event: Action') &&
-                !t.includes('Calendar') &&
-                !t.includes('Event Type:')
-            )}
-          >
-            {window.tagOptions
-              .filter(
-                t => !t.includes('Event: Action') && !t.includes('Calendar')
-              )
-              .map(t => <Option key={t}>{t}</Option>)}
-          </Select>
-        </div>
+        {!this.props.hostEdit && (
+          <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+            <strong>Tags:</strong>
+            <Select
+              mode="multiple"
+              style={{ width: '100%' }}
+              placeholder="Tags"
+              onChange={this.onTagsChange}
+              defaultValue={tags.filter(
+                t =>
+                  !t.includes('Event: Action') &&
+                  !t.includes('Calendar') &&
+                  !t.includes('Event Type:')
+              )}
+            >
+              {window.tagOptions
+                .filter(
+                  t => !t.includes('Event: Action') && !t.includes('Calendar')
+                )
+                .map(t => <Option key={t}>{t}</Option>)}
+            </Select>
+          </div>
+        )}
       </Card>
     )
   }
