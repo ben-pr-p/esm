@@ -41,7 +41,8 @@ defmodule Admin.PageController do
   end
 
   def my_events(conn, %{"token" => token}) do
-    case Cipher.decrypt(token) do
+    IO.inspect token
+    case Cipher.decrypt(token) |> IO.inspect do
       {:error, _message} -> alert_user_edit(conn)
       organizer_id -> render conn, "my-events.html", [organizer_token: token]
     end

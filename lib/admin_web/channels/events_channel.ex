@@ -4,6 +4,7 @@ defmodule Admin.EventsChannel do
   alias Admin.{Webhooks}
   import Ecto.Query
   use Guardian.Channel
+  import Guardian.Phoenix.Socket
 
   @attrs ~w(
     id start_date end_date featured_image_url location summary title name
@@ -15,6 +16,10 @@ defmodule Admin.EventsChannel do
       {:error, message} -> {:error, message}
       organizer_id -> {:ok, assign(socket, :organizer_id, organizer_id)}
     end
+  end
+
+  def join("events", payload, socket) do
+    {:ok, socket}
   end
 
   # Starting sending events
