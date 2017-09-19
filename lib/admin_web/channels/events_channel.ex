@@ -139,7 +139,7 @@ defmodule Admin.EventsChannel do
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
     (from e in Event,
-      where: e.organizer_id == ^organizer_id and end_date > ^NaiveDateTime.utc_now(),
+      where: e.organizer_id == ^organizer_id and e.end_date > ^NaiveDateTime.utc_now(),
       preload: [:tags, :location, :attendances])
     |> Repo.all()
     |> Enum.map(&event_pipeline/1)
