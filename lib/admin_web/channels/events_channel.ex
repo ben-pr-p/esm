@@ -4,6 +4,7 @@ defmodule Admin.EventsChannel do
   alias Admin.{Webhooks}
   import Ecto.Query
   use Guardian.Channel
+  import Guardian.Phoenix.Socket
 
   @attrs ~w(
     id start_date end_date featured_image_url location summary title name
@@ -138,7 +139,7 @@ defmodule Admin.EventsChannel do
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
     (from e in Event,
-      where: e.organizer_id == ^organizer_id,
+      where: e.organizer_id == ^organizer_id and end_date > ^NaiveDateTime.utc_now(),
       preload: [:tags, :location, :attendances])
     |> Repo.all()
     |> Enum.map(&event_pipeline/1)
