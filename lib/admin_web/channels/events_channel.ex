@@ -9,16 +9,17 @@ defmodule Admin.EventsChannel do
   @attrs ~w(
     id start_date end_date featured_image_url location summary title name
     type status description contact type tags instructions attendances
+    rsvp_download_url browser_url organizer_edit_url
   )a
 
   def join("events", %{"organizer_token" => token}, socket) do
-    case Cipher.decrypt(token) do
+    case token |> URI.encode_www_form() |> Cipher.decrypt() do
       {:error, message} -> {:error, message}
       organizer_id -> {:ok, assign(socket, :organizer_id, organizer_id)}
     end
   end
 
-  def join("events", payload, socket) do
+  def join("events", _payload, socket) do
     {:ok, socket}
   end
 
@@ -115,16 +116,10 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_esm_events(socket) do
-    (from e in Event,
-      preload: [
-        :tags,
-        :location,
-        :attendances,
-        organizer: [:email_addresses, :phone_numbers]])
+    (from e in Event, preload: [:tags, :location, :attendances])
     |> Repo.all()
+    |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
-    |> Enum.map(&add_rsvp_download_url/1)
-    |> Enum.map(&add_browser_url/1)
     |> Enum.each(fn event ->
          push socket, "event", %{id: event.id, event: event}
        end)
@@ -133,13 +128,10 @@ defmodule Admin.EventsChannel do
   defp send_list_events(socket) do
     (from e in Event,
       where: e.status == "confirmed" and e.end_date > ^NaiveDateTime.utc_now(),
-      preload: [
-        :tags, :location, :attendances,
-        organizer: [:email_addresses, :phone_numbers]])
+      preload: [:tags, :location, :attendances])
     |> Repo.all()
+    |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
-    |> Enum.map(&add_rsvp_download_url/1)
-    |> Enum.map(&add_browser_url/1)
     |> Enum.each(fn event ->
          push socket, "event", %{id: event.id, event: event}
        end)
@@ -148,18 +140,20 @@ defmodule Admin.EventsChannel do
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
     (from e in Event,
       where: e.organizer_id == ^organizer_id,
-      preload: [
-        :tags,
-        :location,
-        :attendances,
-        organizer: [:email_addresses, :phone_numbers]])
+      preload: [:tags, :location, :attendances])
     |> Repo.all()
+    |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
-    |> Enum.map(&add_rsvp_download_url/1)
-    |> Enum.map(&add_browser_url/1)
     |> Enum.each(fn event ->
          push socket, "event", %{id: event.id, event: event}
        end)
+  end
+
+  defp event_pipeline(event) do
+    event
+    |> add_rsvp_download_url()
+    |> add_browser_url()
+    |> add_organizer_edit_url()
   end
 
   defp to_map(event = %Event{tags: tags}) do
@@ -175,6 +169,11 @@ defmodule Admin.EventsChannel do
 
   defp add_browser_url(event) do
     Map.put(event, :browser_url, "https://now.justicedemocrats.com/events/#{event.name}")
+  end
+
+  defp add_organizer_edit_url(event) do
+    organizer_edit_hash = Cipher.encrypt("#{event.organizer_id}")
+    Map.put(event, :organizer_edit_url, "/my-events/#{organizer_edit_hash}")
   end
 
   defp apply_edit(id, [key, value]) do

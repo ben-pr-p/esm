@@ -11,10 +11,9 @@ defmodule Rsvps do
       |> Map.get(:attendances)
       |> Enum.map(&extract_person/1)
 
-    csv_content =
-      ["Name,Email,Phone"]
-      |> Enum.concat(csv_content)
-      |> Enum.join("\n")
+    ["Name,Email,Phone"]
+    |> Enum.concat(csv_content)
+    |> Enum.join("\n")
   end
 
   defp extract_person(%{person:

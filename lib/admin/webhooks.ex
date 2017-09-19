@@ -3,12 +3,12 @@ defmodule Admin.Webhooks do
 
   def on("confirmed", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_publish" => hook}} = Cosmic.get("event-webhooks")
-    IO.inspect HTTPotion.post(hook, bodify(%{event: event}))
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def on("rejected", %{event: event, reason: reason, team_member: team_member}) do
     %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get("event-webhooks")
-    IO.inspect HTTPotion.post(hook, bodify(%{event: event, reason: reason}))
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
   end
 
   def on("cancelled", %{event: event, team_member: team_member}) do
