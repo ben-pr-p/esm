@@ -60,6 +60,11 @@ export default class EventCard extends Component {
       action: 'called'
     })
 
+  markCalledAndConfirm = () => {
+    this.markCalled()
+    this.confirm()
+  }
+
   markLogistics = () =>
     this.props.channel.push(`action-${this.props.event.id}`, {
       action: 'logisticsed'
@@ -127,6 +132,7 @@ export default class EventCard extends Component {
             value={this.state.rejectionMessage}
           />
         </Modal>
+
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Slug:</strong>{' '}
           <EditableText onSave={this.onSave} value={name} attr="name" />
@@ -333,10 +339,7 @@ export default class EventCard extends Component {
               placeholder="Tags"
               onChange={this.onTagsChange}
               defaultValue={tags.filter(
-                t =>
-                  !t.includes('Event: Action') &&
-                  !t.includes('Calendar') &&
-                  !t.includes('Event Type:')
+                t => !t.includes('Calendar') && !t.includes('Event Type:')
               )}
             >
               {window.tagOptions
@@ -414,8 +417,11 @@ export default class EventCard extends Component {
               <Button onClick={this.reject} type="danger">
                 Reject
               </Button>,
-              <Button onClick={this.markCalled} type="primary">
+              <Button onClick={this.markCalled} type="default">
                 Mark Called
+              </Button>,
+              <Button onClick={this.markCalledAndConfirm} type="primary">
+                Mark Called and Confirm Event
               </Button>
             ]
           : []
