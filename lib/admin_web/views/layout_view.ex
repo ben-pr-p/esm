@@ -9,8 +9,8 @@ defmodule Admin.LayoutView do
 
   def css_link_tag do
     case Application.get_env(:admin, :css_tag) do
-      something -> something
       nil -> ~s(<link rel="stylesheet" type="text/css" href="/css/app.css" media="screen,projection" />)
+      something -> something
     end
   end
 end

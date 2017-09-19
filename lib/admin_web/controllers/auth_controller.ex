@@ -3,7 +3,7 @@ defmodule Admin.AuthController do
   plug Ueberauth
 
   alias Guardian.Plug
-  alias Admin.{Developer, Repo}
+  alias Admin.{Repo}
 
   def callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
     case authenticate(auth) do

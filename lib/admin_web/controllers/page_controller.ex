@@ -1,7 +1,7 @@
 defmodule Admin.PageController do
   use Admin, :controller
 
-  alias Osdi.{Repo, Tag, Event, Attendance}
+  alias Osdi.{Repo, Tag}
   alias Guardian.Plug
 
   import Ecto.Query
@@ -9,11 +9,11 @@ defmodule Admin.PageController do
   plug Plug.EnsureAuthenticated, [handler: __MODULE__]
     when action in ~w(esm list)a
 
-  def events(conn, params) do
+  def events(conn, _params) do
     render conn, "index.html"
   end
 
-  def esm(conn, params) do
+  def esm(conn, _params) do
     email = Plug.current_resource(conn)
 
     calendars =
@@ -36,14 +36,14 @@ defmodule Admin.PageController do
     render conn, "esm.html", [calendars: calendars, tags: tags, email: email]
   end
 
-  def list(conn, params) do
+  def list(conn, _params) do
     render conn, "list.html"
   end
 
   def my_events(conn, %{"token" => token}) do
-    case Cipher.decrypt(token) do
+    case token |> URI.encode_www_form() |> Cipher.decrypt() do
       {:error, _message} -> alert_user_edit(conn)
-      organizer_id -> render conn, "my-events.html", [organizer_token: token]
+      _organizer_id -> render conn, "my-events.html", [organizer_token: token]
     end
   end
 
@@ -55,7 +55,7 @@ defmodule Admin.PageController do
   end
 
   def rsvps(conn, %{"encrypted" => encrypted}) do
-    case Cipher.decrypt(encrypted) do
+    case encrypted |> URI.encode_www_form() |> Cipher.decrypt() do
       {:error, _message} -> alert_user_rsvp(conn)
       name -> authorized_rsvp(conn, name)
     end

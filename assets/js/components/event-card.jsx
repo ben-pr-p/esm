@@ -310,7 +310,7 @@ export default class EventCard extends Component {
   }
 
   renderButtons() {
-    const { category, event: { rsvp_download_url } } = this.props
+    const { category, event: { rsvp_download_url, organizer_edit_url } } = this.props
 
     return [
       <Dropdown
@@ -337,6 +337,21 @@ export default class EventCard extends Component {
                     )}
               >
                 Copy RSVP Download Link
+              </Button>
+            </Menu.Item>
+            <Menu.Item>
+              <Button
+                style={{ width: '100%' }}
+                onClick={() =>
+                  clipboard
+                    .copy(
+                      `https://admin.justicedemocrats.com${organizer_edit_url}`
+                    )
+                    .then(() =>
+                      message.success('Organizer edit link copied to clipboard')
+                    )}
+              >
+                Copy Organizer Edit Link
               </Button>
             </Menu.Item>
             <Menu.Item>
