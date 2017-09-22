@@ -1,6 +1,6 @@
 defmodule Admin.EventsChannel do
   use Admin, :channel
-  alias Osdi.{Repo, Event}
+  alias Osdi.{Repo, Event, EventEdit}
   alias Admin.{Webhooks}
   import Ecto.Query
   use Guardian.Channel
@@ -48,6 +48,8 @@ defmodule Admin.EventsChannel do
         _ -> apply_edit(id, [key, value])
       end
 
+    insert_edit(%{event_id: id, edit: Map.new([{key, value}]), actor: current_resource(socket)})
+
     push socket, "event", %{id: id, event: new_event}
     broadcast socket, "event", %{id: id, event: new_event}
     {:noreply, socket}
@@ -55,6 +57,8 @@ defmodule Admin.EventsChannel do
 
   # Implement standard tags change
   def handle_in("tags-" <> id, tags, socket) do
+    insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
+
     event = Repo.get(Event, id) |> Repo.preload(:tags)
 
     calendar_tags =
@@ -73,6 +77,8 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("calendars-" <> id, calendars, socket) do
+    insert_edit(%{event_id: id, edit: Map.new([{"calendars", calendars}]), actor: current_resource(socket)})
+
     event = Repo.get(Event, id) |> Repo.preload(:tags)
 
     as_tags = Enum.map calendars, &("Calendar: #{&1}")
@@ -92,6 +98,7 @@ defmodule Admin.EventsChannel do
 
   # Handle status changes
   def handle_in("action-" <> id, payload = %{"status" => status}, socket) do
+    insert_edit(%{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
     new_event = set_status(id, status)
 
     Webhooks.on(status,
@@ -255,7 +262,7 @@ defmodule Admin.EventsChannel do
     |> for_web()
   end
 
-  defp for_web(event) do
+  def for_web(event) do
     event
     |> event_pipeline()
     |> Map.take(@attrs)
@@ -307,5 +314,11 @@ defmodule Admin.EventsChannel do
     |> Repo.get(new_id)
     |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
+  end
+
+  defp insert_edit(%{event_id: event_id, edit: edit, actor: actor}) do
+    {:ok, id} = Ecto.Type.cast(:id, event_id)
+    Repo.insert(%EventEdit{event_id: id, edit: edit, actor: actor})
+    Admin.EditAgent.record_edit(event_id)
   end
 end
