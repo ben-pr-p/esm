@@ -1,6 +1,6 @@
 defmodule Admin.EventsChannel do
   use Admin, :channel
-  alias Osdi.{Repo, Event}
+  alias Osdi.{Repo, Event, EventEdit}
   alias Admin.{Webhooks}
   import Ecto.Query
   use Guardian.Channel
@@ -41,6 +41,8 @@ defmodule Admin.EventsChannel do
 
   # Implement simple edit, contact edit (embeded), or location edit (associative)
   def handle_in("edit-" <> id, [key, value], socket) do
+    Repo.insert(%EventEdit{event_id: id, edit: Map.new([{key, value}]), actor: current_resource(socket)})
+
     new_event =
       case key do
         "location." <> _rest -> apply_location_edit(id, [key, value])
@@ -55,6 +57,8 @@ defmodule Admin.EventsChannel do
 
   # Implement standard tags change
   def handle_in("tags-" <> id, tags, socket) do
+    Repo.insert(%EventEdit{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
+
     event = Repo.get(Event, id) |> Repo.preload(:tags)
 
     calendar_tags =
@@ -73,6 +77,8 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("calendars-" <> id, calendars, socket) do
+    Repo.insert(%EventEdit{event_id: id, edit: Map.new([{"calendars", calendars}]), actor: current_resource(socket)})
+
     event = Repo.get(Event, id) |> Repo.preload(:tags)
 
     as_tags = Enum.map calendars, &("Calendar: #{&1}")
@@ -92,6 +98,7 @@ defmodule Admin.EventsChannel do
 
   # Handle status changes
   def handle_in("action-" <> id, payload = %{"status" => status}, socket) do
+    Repo.insert(%EventEdit{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
     new_event = set_status(id, status)
 
     Webhooks.on(status,
@@ -307,5 +314,11 @@ defmodule Admin.EventsChannel do
     |> Repo.get(new_id)
     |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
     |> for_web()
+  end
+
+  defp insert_edit() do
+  end
+
+  defp queue_hook() do
   end
 end

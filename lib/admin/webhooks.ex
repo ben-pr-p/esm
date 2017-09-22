@@ -21,6 +21,11 @@ defmodule Admin.Webhooks do
     IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
+  def on("edit", %{event: event, team_member: team_member, edits: edits}) do
+    %{"metadata" => %{"event_edited" => hook}} = Cosmic.get("event-webhooks")
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, edits: edits}))
+  end
+
   def on(other, %{event: event, team_member: _team_member}) do
     Logger.info "Untracked status change: #{other}, for event: #{inspect(event)}"
   end
