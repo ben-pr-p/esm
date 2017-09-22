@@ -12,6 +12,8 @@ defmodule Admin.Application do
     children = [
       # Start the endpoint when the application starts
       supervisor(Admin.Endpoint, []),
+      worker(Admin.Scheduler, []),
+      worker(Admin.EditAgent, [])
       # Start your own worker by calling: Admin.Worker.start_link(arg1, arg2, arg3)
       # worker(Admin.Worker, [arg1, arg2, arg3]),
     ]

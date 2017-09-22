@@ -41,14 +41,14 @@ defmodule Admin.EventsChannel do
 
   # Implement simple edit, contact edit (embeded), or location edit (associative)
   def handle_in("edit-" <> id, [key, value], socket) do
-    Repo.insert(%EventEdit{event_id: id, edit: Map.new([{key, value}]), actor: current_resource(socket)})
-
     new_event =
       case key do
         "location." <> _rest -> apply_location_edit(id, [key, value])
         "contact." <> _rest -> apply_contact_edit(id, [key, value])
         _ -> apply_edit(id, [key, value])
       end
+
+    insert_edit(%{event_id: id, edit: Map.new([{key, value}]), actor: current_resource(socket)})
 
     push socket, "event", %{id: id, event: new_event}
     broadcast socket, "event", %{id: id, event: new_event}
@@ -57,7 +57,7 @@ defmodule Admin.EventsChannel do
 
   # Implement standard tags change
   def handle_in("tags-" <> id, tags, socket) do
-    Repo.insert(%EventEdit{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
+    insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
 
     event = Repo.get(Event, id) |> Repo.preload(:tags)
 
@@ -77,7 +77,7 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("calendars-" <> id, calendars, socket) do
-    Repo.insert(%EventEdit{event_id: id, edit: Map.new([{"calendars", calendars}]), actor: current_resource(socket)})
+    insert_edit(%{event_id: id, edit: Map.new([{"calendars", calendars}]), actor: current_resource(socket)})
 
     event = Repo.get(Event, id) |> Repo.preload(:tags)
 
@@ -98,7 +98,7 @@ defmodule Admin.EventsChannel do
 
   # Handle status changes
   def handle_in("action-" <> id, payload = %{"status" => status}, socket) do
-    Repo.insert(%EventEdit{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
+    insert_edit(%{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
     new_event = set_status(id, status)
 
     Webhooks.on(status,
@@ -262,7 +262,7 @@ defmodule Admin.EventsChannel do
     |> for_web()
   end
 
-  defp for_web(event) do
+  def for_web(event) do
     event
     |> event_pipeline()
     |> Map.take(@attrs)
@@ -316,9 +316,9 @@ defmodule Admin.EventsChannel do
     |> for_web()
   end
 
-  defp insert_edit() do
-  end
-
-  defp queue_hook() do
+  defp insert_edit(%{event_id: event_id, edit: edit, actor: actor}) do
+    {:ok, id} = Ecto.Type.cast(:id, event_id)
+    Repo.insert(%EventEdit{event_id: id, edit: edit, actor: actor})
+    Admin.EditAgent.record_edit(event_id)
   end
 end
