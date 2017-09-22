@@ -11,7 +11,7 @@ defmodule Admin.AuthController do
         conn = Plug.sign_in(conn, user)
 
         conn
-        |> redirect(to: "/esm")
+        |> redirect(to: "/events")
       {:error, email} when is_binary(email) ->
         json conn, %{error: "Use your JD email #{email}!"}
     end
