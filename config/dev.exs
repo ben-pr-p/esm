@@ -36,6 +36,9 @@ config :cipher,
   ivphrase: "testieivphraseforcipher",
   magic_token: "magictoken"
 
+config :maps, key: System.get_env("GOOGLE_MAPS_KEY")
+
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
