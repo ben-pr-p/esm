@@ -32,4 +32,47 @@ defmodule Admin.AddressJob do
       _other -> address
     end
   end
+
+  def fill_missing_fields do
+    (from a in Address,
+      where: is_nil(a.postal_code)
+        or is_nil(a.locality)
+        or is_nil(a.region)
+        or is_nil(a.postal_code)
+        or is_nil(a.country))
+    |> Repo.all()
+    |> inspect_length()
+    |> Enum.take(1)
+    # |> IO.inspect()
+    |> Enum.map(&fill_missings_in_struct/1)
+    |> inspect_length()
+  end
+
+  defp fill_missings_in_struct(address) do
+    [address_lines, locality, region, postal_code, country] =
+      ~w(address_lines locality region postal_code country)a
+    |> Enum.map(fn key -> Map.get(address, key) || "" end)
+
+    to_geocode = "#{address_lines |> List.first()}, #{locality}, #{region}, #{country}, #{postal_code}"
+    IO.inspect to_geocode
+
+    replacements = Maps.fill_address(to_geocode) || %{}
+
+    :timer.sleep(1000)
+
+    changes =
+      ~w(address_lines locality region postal_code country)a
+      |> Enum.filter(fn key -> Map.get(address, key) == nil end)
+      |> Enum.map(fn key -> {key, Map.get(replacements, Atom.to_string(key))} end)
+      |> Enum.into(%{})
+
+    address
+    |> Ecto.Changeset.change(changes)
+    |> Repo.update!()
+  end
+
+  defp inspect_length(array) do
+    IO.inspect length(array)
+    array
+  end
 end
