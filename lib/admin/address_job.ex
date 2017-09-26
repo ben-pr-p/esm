@@ -53,6 +53,7 @@ defmodule Admin.AddressJob do
       ~w(address_lines locality region postal_code country)a
     |> Enum.map(fn key -> Map.get(address, key) || "" end)
 
+    IO.inspect address
     to_geocode = "#{address_lines |> List.first()}, #{locality}, #{region}, #{country}, #{postal_code}"
     IO.inspect to_geocode
 
@@ -65,6 +66,7 @@ defmodule Admin.AddressJob do
       |> Enum.filter(fn key -> Map.get(address, key) == nil end)
       |> Enum.map(fn key -> {key, Map.get(replacements, Atom.to_string(key))} end)
       |> Enum.into(%{})
+      |> IO.inspect
 
     address
     |> Ecto.Changeset.change(changes)
