@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import {
   Button,
   Card,
+  Checkbox,
   Dropdown,
   Icon,
   Input,
@@ -268,6 +269,14 @@ export default class EventCard extends Component {
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Location</strong>
+          <br />
+          <Checkbox
+            checked={location.public}
+            onChange={e => this.onSave(['location.public', e.target.checked])}
+          >
+            Address Public?
+          </Checkbox>
+          <br />
           <br />
           <strong>Venue:</strong>{' '}
           <EditableText
