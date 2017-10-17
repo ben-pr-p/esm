@@ -21,16 +21,24 @@ defmodule Rsvps do
       email_addresses: email_addresses, phone_numbers: phone_numbers}}) do
 
     primary_email =
-      email_addresses
-      |> Enum.filter(&(&1.primary))
-      |> Enum.map(&(&1.address))
-      |> List.first()
+      if length(email_addresses) > 1 do
+        email_addresses
+        |> Enum.filter(&(&1.primary))
+        |> Enum.map(&(&1.address))
+        |> List.first()
+      else
+        List.first(email_addresses) |> Map.get(:address)
+      end
 
     primary_phone =
-      phone_numbers
-      |> Enum.filter(&(&1.primary))
-      |> Enum.map(&(&1.number))
-      |> List.first()
+      if length(phone_numbers) > 1 do
+        phone_numbers
+        |> Enum.filter(&(&1.primary))
+        |> Enum.map(&(&1.number))
+        |> List.first()
+      else
+        List.first(phone_numbers) |> Map.get(:number)
+      end
 
     full_name = Enum.join [given_name, family_name], " "
     Enum.join [full_name, primary_email, primary_phone], ","
