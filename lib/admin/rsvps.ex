@@ -11,13 +11,13 @@ defmodule Rsvps do
       |> Map.get(:attendances)
       |> Enum.map(&extract_person/1)
 
-    ["Name,Email,Phone"]
+    ["Name,Email,Phone,Ref Code"]
     |> Enum.concat(csv_content)
     |> Enum.join("\n")
   end
 
   defp extract_person(%{person:
-    %{given_name: given_name, family_name: family_name,
+    %{given_name: given_name, family_name: family_name, referrer_data: referrer_data,
       email_addresses: email_addresses, phone_numbers: phone_numbers}}) do
 
     primary_email =
@@ -41,6 +41,6 @@ defmodule Rsvps do
       end
 
     full_name = Enum.join [given_name, family_name], " "
-    Enum.join [full_name, primary_email, primary_phone], ","
+    Enum.join [full_name, primary_email, primary_phone, referrer_data.source], ","
   end
 end

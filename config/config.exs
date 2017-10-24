@@ -14,8 +14,7 @@ config :admin, Admin.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "bfsqn9AcIMywYeFfFrwwtpRis6Jda9AQdRrc20qyXzQlB4oBV/FA+Isy4jDAB77n",
   render_errors: [view: Admin.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Admin.PubSub,
-           adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: Admin.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
 config :logger, :console,
