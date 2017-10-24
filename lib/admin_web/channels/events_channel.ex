@@ -126,11 +126,11 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_esm_events(socket) do
-    (from e in Event, preload: [:tags, :location, :attendances]) |> Repo.all()
+    (from e in Event, preload: [:tags, :location, :attendances])
+    |> Repo.all()
     |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
     |> Enum.each(fn event ->
-         IO.puts "Sending event #{event.id}"
          push socket, "event", %{id: event.id, event: event}
        end)
   end
