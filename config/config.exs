@@ -22,9 +22,6 @@ config :logger, :console,
 
 config :cosmic, slug: "brand-new-congress"
 
-# optional
-# optional
-# optional
 config :guardian, Guardian,
   allowed_algos: ["HS512"],
   verify_module: Guardian.JWT,
