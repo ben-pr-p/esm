@@ -17,8 +17,9 @@ defmodule Rsvps do
   end
 
   defp extract_person(%{person:
-    %{given_name: given_name, family_name: family_name, referrer_data: referrer_data,
-      email_addresses: email_addresses, phone_numbers: phone_numbers}}) do
+    %{given_name: given_name, family_name: family_name,
+      email_addresses: email_addresses, phone_numbers: phone_numbers},
+      referrer_data: %{source: source}}) do
 
     primary_email =
       if length(email_addresses) > 1 do
@@ -41,6 +42,6 @@ defmodule Rsvps do
       end
 
     full_name = Enum.join [given_name, family_name], " "
-    Enum.join [full_name, primary_email, primary_phone, referrer_data.source], ","
+    Enum.join [full_name, primary_email, primary_phone, source], ","
   end
 end
