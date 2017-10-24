@@ -25,13 +25,13 @@ defmodule Admin.ChannelCase do
     end
   end
 
-
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Admin.Repo)
+
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Admin.Repo, {:shared, self()})
     end
+
     :ok
   end
-
 end

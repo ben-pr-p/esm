@@ -12,21 +12,27 @@ defmodule Admin.AddressJob do
       end
 
     num_updated =
-      (from a in Address, where: a.updated_at > ^last_updated)
+      from(a in Address, where: a.updated_at > ^last_updated)
       |> Repo.all()
       |> Enum.map(&fetch_and_update_coordinates/1)
       |> length()
 
-    Logger.info "Updated #{num_updated} coordinates"
+    Logger.info("Updated #{num_updated} coordinates")
   end
 
   defp fetch_and_update_coordinates(address = %Address{}) do
-    %{address_lines: address_lines, locality: locality, region: region,
-      postal_code: postal_code, country: country} = address
+    %{
+      address_lines: address_lines,
+      locality: locality,
+      region: region,
+      postal_code: postal_code,
+      country: country
+    } = address
 
-    address_lines_as_string = Enum.join address_lines, ", "
+    address_lines_as_string = Enum.join(address_lines, ", ")
 
     for_google = "#{address_lines_as_string}, #{locality}, #{region}, #{postal_code}, #{country}"
+
     case Maps.geocode(for_google) do
       {latitude, longitude} -> Address.update_coordinates(address, {latitude, longitude})
       _other -> address
@@ -34,16 +40,15 @@ defmodule Admin.AddressJob do
   end
 
   def fill_missing_fields do
-    (from a in Address,
-      where: is_nil(a.postal_code)
-        or is_nil(a.locality)
-        or is_nil(a.region)
-        or is_nil(a.postal_code)
-        or is_nil(a.country))
+    # |> IO.inspect()
+    from(
+      a in Address,
+      where: is_nil(a.postal_code) or is_nil(a.locality) or is_nil(a.region) or
+        is_nil(a.postal_code) or is_nil(a.country)
+    )
     |> Repo.all()
     |> inspect_length()
     |> Enum.take(1)
-    # |> IO.inspect()
     |> Enum.map(&fill_missings_in_struct/1)
     |> inspect_length()
   end
@@ -51,11 +56,14 @@ defmodule Admin.AddressJob do
   defp fill_missings_in_struct(address) do
     [address_lines, locality, region, postal_code, country] =
       ~w(address_lines locality region postal_code country)a
-    |> Enum.map(fn key -> Map.get(address, key) || "" end)
+      |> Enum.map(fn key -> Map.get(address, key) || "" end)
 
-    IO.inspect address
-    to_geocode = "#{address_lines |> List.first()}, #{locality}, #{region}, #{country}, #{postal_code}"
-    IO.inspect to_geocode
+    IO.inspect(address)
+
+    to_geocode =
+      "#{address_lines |> List.first()}, #{locality}, #{region}, #{country}, #{postal_code}"
+
+    IO.inspect(to_geocode)
 
     replacements = Maps.fill_address(to_geocode) || %{}
 
@@ -66,7 +74,7 @@ defmodule Admin.AddressJob do
       |> Enum.filter(fn key -> Map.get(address, key) == nil end)
       |> Enum.map(fn key -> {key, Map.get(replacements, Atom.to_string(key))} end)
       |> Enum.into(%{})
-      |> IO.inspect
+      |> IO.inspect()
 
     address
     |> Ecto.Changeset.change(changes)
@@ -74,7 +82,7 @@ defmodule Admin.AddressJob do
   end
 
   defp inspect_length(array) do
-    IO.inspect length(array)
+    IO.inspect(length(array))
     array
   end
 end

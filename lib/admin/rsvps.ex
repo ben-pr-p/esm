@@ -4,7 +4,9 @@ defmodule Rsvps do
 
   def csv_for(name) do
     csv_content =
-      (from e in Event, where: e.name == ^name, preload: [attendances: [person: [:email_addresses, :phone_numbers]]])
+      from(e in Event, where: e.name == ^name, preload: [
+        attendances: [person: [:email_addresses, :phone_numbers]]
+      ])
       |> Repo.all()
       |> Enum.take(1)
       |> List.first()
@@ -16,16 +18,20 @@ defmodule Rsvps do
     |> Enum.join("\n")
   end
 
-  defp extract_person(%{person:
-    %{given_name: given_name, family_name: family_name,
-      email_addresses: email_addresses, phone_numbers: phone_numbers},
-      referrer_data: %{source: source}}) do
-
+  defp extract_person(%{
+         person: %{
+           given_name: given_name,
+           family_name: family_name,
+           email_addresses: email_addresses,
+           phone_numbers: phone_numbers
+         },
+         referrer_data: %{source: source}
+       }) do
     primary_email =
       if length(email_addresses) > 1 do
         email_addresses
-        |> Enum.filter(&(&1.primary))
-        |> Enum.map(&(&1.address))
+        |> Enum.filter(& &1.primary)
+        |> Enum.map(& &1.address)
         |> List.first()
       else
         List.first(email_addresses) |> Map.get(:address)
@@ -34,14 +40,14 @@ defmodule Rsvps do
     primary_phone =
       if length(phone_numbers) > 1 do
         phone_numbers
-        |> Enum.filter(&(&1.primary))
-        |> Enum.map(&(&1.number))
+        |> Enum.filter(& &1.primary)
+        |> Enum.map(& &1.number)
         |> List.first()
       else
         List.first(phone_numbers) |> Map.get(:number)
       end
 
-    full_name = Enum.join [given_name, family_name], " "
-    Enum.join [full_name, primary_email, primary_phone, source], ","
+    full_name = Enum.join([given_name, family_name], " ")
+    Enum.join([full_name, primary_email, primary_phone, source], ",")
   end
 end

@@ -1,6 +1,6 @@
 defmodule Admin.AuthController do
   use Admin, :controller
-  plug Ueberauth
+  plug(Ueberauth)
 
   alias Guardian.Plug
   alias Admin.{Repo}
@@ -12,18 +12,19 @@ defmodule Admin.AuthController do
 
         conn
         |> redirect(to: "/events")
+
       {:error, email} when is_binary(email) ->
-        json conn, %{error: "Use your JD email #{email}!"}
+        json(conn, %{error: "Use your JD email #{email}!"})
     end
   end
 
   def index(conn, _params) do
-    redirect conn, to: "/auth/google"
+    redirect(conn, to: "/auth/google")
   end
 
   def delete(conn, _params) do
     conn
-    |> Plug.sign_out
+    |> Plug.sign_out()
     |> put_flash(:info, "Signed out")
     |> redirect(to: "/")
   end
@@ -34,6 +35,7 @@ defmodule Admin.AuthController do
     case String.match?(email, ~r/@justicedemocrats.com$/) do
       true ->
         {:ok, %{email: email, google_id: uid}}
+
       _ ->
         {:error, email}
     end

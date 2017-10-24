@@ -3,7 +3,10 @@ defmodule Duplicate do
   import Ecto.Query
 
   def by_name(name, new_month, new_day) do
-    event = Repo.all(from e in Event, where: e.name == ^name) |> Repo.preload([:creator, :organizer, :modified_by, :tags, :location]) |> List.first()
+    event =
+      Repo.all(from(e in Event, where: e.name == ^name))
+      |> Repo.preload([:creator, :organizer, :modified_by, :tags, :location])
+      |> List.first()
 
     start_date = Map.put(event.start_date, :day, new_day)
     end_date = Map.put(event.end_date, :day, new_day)

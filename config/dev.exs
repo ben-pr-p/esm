@@ -12,9 +12,21 @@ config :admin, Admin.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: ["node_modules/.bin/webpack-dev-server", "--inline", "--colors", "--hot", "--stdin", "--host", "localhost", "--port", "8080", "--public", "localhost:8080",
-    cd: Path.expand("../assets", __DIR__)
-  ]]
+    node: [
+      "node_modules/.bin/webpack-dev-server",
+      "--inline",
+      "--colors",
+      "--hot",
+      "--stdin",
+      "--host",
+      "localhost",
+      "--port",
+      "8080",
+      "--public",
+      "localhost:8080",
+      cd: Path.expand("../assets", __DIR__)
+    ]
+  ]
 
 config :osdi, Osdi.Repo,
   adapter: Ecto.Adapters.Postgres,
@@ -24,8 +36,7 @@ config :osdi, Osdi.Repo,
   hostname: "localhost",
   types: GeoExample.PostgresTypes
 
-config :admin,
-  script_tag_base: ~s(http://localhost:8080/js/)
+config :admin, script_tag_base: ~s(http://localhost:8080/js/)
 
 config :admin,
   css_tag: ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
@@ -37,7 +48,6 @@ config :cipher,
   magic_token: "magictoken"
 
 config :maps, key: System.get_env("GOOGLE_MAPS_KEY")
-
 
 # ## SSL Support
 #
