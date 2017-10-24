@@ -34,7 +34,7 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
-  def handle_in("ready", %{"page" => "my-events" }, socket) do
+  def handle_in("ready", %{"page" => "my-events"}, socket) do
     send_my_events(socket)
     {:noreply, socket}
   end
@@ -50,8 +50,8 @@ defmodule Admin.EventsChannel do
 
     insert_edit(%{event_id: id, edit: Map.new([{key, value}]), actor: current_resource(socket)})
 
-    push socket, "event", %{id: id, event: new_event}
-    broadcast socket, "event", %{id: id, event: new_event}
+    push(socket, "event", %{id: id, event: new_event})
+    broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
   end
 
@@ -63,36 +63,40 @@ defmodule Admin.EventsChannel do
 
     calendar_tags =
       event.tags
-      |> Enum.map(&(&1.name))
-      |> Enum.filter(&(String.contains?(&1, "Calendar: ")))
+      |> Enum.map(& &1.name)
+      |> Enum.filter(&String.contains?(&1, "Calendar: "))
 
-    new_tags = Enum.concat tags, calendar_tags
+    new_tags = Enum.concat(tags, calendar_tags)
 
     Event.set_tags(event, new_tags)
     new_event = edit_tags_and_fetch(event, new_tags)
 
-    push socket, "event", %{id: id, event: new_event}
-    broadcast socket, "event", %{id: id, event: new_event}
+    push(socket, "event", %{id: id, event: new_event})
+    broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
   end
 
   def handle_in("calendars-" <> id, calendars, socket) do
-    insert_edit(%{event_id: id, edit: Map.new([{"calendars", calendars}]), actor: current_resource(socket)})
+    insert_edit(%{
+      event_id: id,
+      edit: Map.new([{"calendars", calendars}]),
+      actor: current_resource(socket)
+    })
 
     event = Repo.get(Event, id) |> Repo.preload(:tags)
 
-    as_tags = Enum.map calendars, &("Calendar: #{&1}")
+    as_tags = Enum.map(calendars, &"Calendar: #{&1}")
 
     regular_tags =
       event.tags
-      |> Enum.map(&(&1.name))
-      |> Enum.reject(&(String.contains?(&1, "Calendar: ")))
+      |> Enum.map(& &1.name)
+      |> Enum.reject(&String.contains?(&1, "Calendar: "))
 
-    new_tags = Enum.concat regular_tags, as_tags
+    new_tags = Enum.concat(regular_tags, as_tags)
     new_event = edit_tags_and_fetch(event, new_tags)
 
-    push socket, "event", %{id: id, event: new_event}
-    broadcast socket, "event", %{id: id, event: new_event}
+    push(socket, "event", %{id: id, event: new_event})
+    broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
   end
 
@@ -101,61 +105,67 @@ defmodule Admin.EventsChannel do
     insert_edit(%{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
     new_event = set_status(id, status)
 
-    Webhooks.on(status,
-      %{event: new_event, team_member: current_resource(socket),
-        reason: payload["message"]})
+    Webhooks.on(status, %{
+      event: new_event,
+      team_member: current_resource(socket),
+      reason: payload["message"]
+    })
 
-    push socket, "event", %{id: id, event: new_event}
-    broadcast socket, "event", %{id: id, event: new_event}
+    push(socket, "event", %{id: id, event: new_event})
+    broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
   end
 
   # Handle action registers
   def handle_in("action-" <> id, %{"action" => action}, socket) do
     new_event = mark_action(id, action)
-    push socket, "event", %{id: id, event: new_event}
-    broadcast socket, "event", %{id: id, event: new_event}
+    push(socket, "event", %{id: id, event: new_event})
+    broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
   end
 
   def handle_in("duplicate-" <> id, _payload, socket) do
     new_event = %{id: new_id} = duplicate(id)
-    push socket, "event", %{id: new_id, event: new_event}
-    broadcast socket, "event", %{id: new_id, event: new_event}
+    push(socket, "event", %{id: new_id, event: new_event})
+    broadcast(socket, "event", %{id: new_id, event: new_event})
     {:noreply, socket}
   end
 
   defp send_esm_events(socket) do
-    (from e in Event, preload: [:tags, :location, :attendances])
+    from(e in Event, preload: [:tags, :location, :attendances])
     |> Repo.all()
     |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
     |> Enum.each(fn event ->
-         push socket, "event", %{id: event.id, event: event}
+         push(socket, "event", %{id: event.id, event: event})
        end)
   end
 
   defp send_list_events(socket) do
-    (from e in Event,
+    from(
+      e in Event,
       where: e.status == "confirmed" and e.end_date > ^NaiveDateTime.utc_now(),
-      preload: [:tags, :location, :attendances])
+      preload: [:tags, :location, :attendances]
+    )
     |> Repo.all()
     |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
     |> Enum.each(fn event ->
-         push socket, "event", %{id: event.id, event: event}
+         push(socket, "event", %{id: event.id, event: event})
        end)
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
-    (from e in Event,
+    from(
+      e in Event,
       where: e.organizer_id == ^organizer_id and e.end_date > ^NaiveDateTime.utc_now(),
-      preload: [:tags, :location, :attendances])
+      preload: [:tags, :location, :attendances]
+    )
     |> Repo.all()
     |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
     |> Enum.each(fn event ->
-         push socket, "event", %{id: event.id, event: event}
+         push(socket, "event", %{id: event.id, event: event})
        end)
   end
 
@@ -170,11 +180,15 @@ defmodule Admin.EventsChannel do
     event
     |> Map.from_struct()
     |> Map.take(@attrs)
-    |> Map.put(:tags, tags |> Enum.map(&(&1.name)))
+    |> Map.put(:tags, tags |> Enum.map(& &1.name))
   end
 
   defp add_rsvp_download_url(event) do
-    Map.put(event, :rsvp_download_url, "https://admin.justicedemocrats.com/rsvps/#{Event.rsvp_link_for(event.name)}")
+    Map.put(
+      event,
+      :rsvp_download_url,
+      "https://admin.justicedemocrats.com/rsvps/#{Event.rsvp_link_for(event.name)}"
+    )
   end
 
   defp add_browser_url(event) do
@@ -183,23 +197,32 @@ defmodule Admin.EventsChannel do
 
   defp add_organizer_edit_url(event) do
     organizer_edit_hash = Cipher.encrypt("#{event.organizer_id}")
-    Map.put(event, :organizer_edit_url, "https://admin.justicedemocrats.com/my-events/#{organizer_edit_hash}")
+
+    Map.put(
+      event,
+      :organizer_edit_url,
+      "https://admin.justicedemocrats.com/my-events/#{organizer_edit_hash}"
+    )
   end
 
   defp apply_edit(id, [key, value]) do
     set_list = %{} |> Map.put(key |> String.to_atom(), value) |> Enum.into([])
 
-    (from e in Event, where: e.id == ^id)
+    from(e in Event, where: e.id == ^id)
     |> Repo.update_all(set: set_list)
 
-    (from e in Event,
+    from(
+      e in Event,
       where: e.id == ^id,
-      preload: [
-        :tags,
-        :location,
-        organizer: [:email_addresses, :phone_numbers]])
+      preload: [:tags, :location, organizer: [:email_addresses, :phone_numbers]]
+    )
     |> Repo.one()
-    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([
+         :tags,
+         :location,
+         :attendances,
+         organizer: [:phone_numbers, :email_addresses]
+       ])
     |> for_web()
   end
 
@@ -207,7 +230,7 @@ defmodule Admin.EventsChannel do
     event = %{contact: contact} = Event |> Repo.get(id)
 
     "contact." <> key = raw_key
-    key = String.to_atom key
+    key = String.to_atom(key)
     contact_change = %{} |> Map.put(key, value)
 
     contact_changeset = Ecto.Changeset.change(contact, contact_change)
@@ -216,17 +239,24 @@ defmodule Admin.EventsChannel do
     |> Ecto.Changeset.change()
     |> Ecto.Changeset.put_embed(:contact, contact_changeset)
     |> Repo.update!()
-    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([
+         :tags,
+         :location,
+         :attendances,
+         organizer: [:phone_numbers, :email_addresses]
+       ])
     |> for_web()
   end
 
   defp apply_location_edit(id, [raw_key, raw_value]) do
-    event = %{location: location} =
+    event =
+      %{location: location} =
       Event
       |> Repo.get(id)
       |> Repo.preload(:location)
 
-    process = if raw_key == "location.address_lines[0]" do
+    process =
+      if raw_key == "location.address_lines[0]" do
         fn {_key, val} -> {:address_lines, [val]} end
       else
         fn {"location." <> key, val} -> {key |> String.to_atom(), val} end
@@ -244,21 +274,30 @@ defmodule Admin.EventsChannel do
     |> Ecto.Changeset.cast(%{location: new_location}, [])
     |> Ecto.Changeset.cast_assoc(:location)
     |> Repo.update!()
-    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([
+         :tags,
+         :location,
+         :attendances,
+         organizer: [:phone_numbers, :email_addresses]
+       ])
     |> for_web()
   end
 
   def edit_tags_and_fetch(event = %{id: id}, tags) do
     Event.set_tags(event, tags)
 
-    (from e in Event,
+    from(
+      e in Event,
       where: e.id == ^id,
-      preload: [
-        :tags,
-        :location,
-        organizer: [:email_addresses, :phone_numbers]])
+      preload: [:tags, :location, organizer: [:email_addresses, :phone_numbers]]
+    )
     |> Repo.one()
-    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([
+         :tags,
+         :location,
+         :attendances,
+         organizer: [:phone_numbers, :email_addresses]
+       ])
     |> for_web()
   end
 
@@ -266,15 +305,20 @@ defmodule Admin.EventsChannel do
     event
     |> event_pipeline()
     |> Map.take(@attrs)
-    |> (fn event = %{tags: tags} -> Map.put(event, :tags, tags |> Enum.map(&(&1.name))) end).()
+    |> (fn event = %{tags: tags} -> Map.put(event, :tags, tags |> Enum.map(& &1.name)) end).()
   end
 
   defp set_status(id, status) do
-    Repo.update_all((from e in Event, where: e.id == ^id), set: [status: status])
+    Repo.update_all(from(e in Event, where: e.id == ^id), set: [status: status])
 
     Event
     |> Repo.get(id)
-    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([
+         :tags,
+         :location,
+         :attendances,
+         organizer: [:phone_numbers, :email_addresses]
+       ])
     |> for_web()
   end
 
@@ -282,9 +326,15 @@ defmodule Admin.EventsChannel do
     tag = "Event: Action: #{String.capitalize(action)}"
 
     Event.add_tags(%Osdi.Event{id: id}, [tag])
+
     Event
     |> Repo.get(id)
-    |> Repo.preload([:tags, :location, :attendances, organizer: [:phone_numbers, :email_addresses]])
+    |> Repo.preload([
+         :tags,
+         :location,
+         :attendances,
+         organizer: [:phone_numbers, :email_addresses]
+       ])
     |> for_web()
   end
 
@@ -292,7 +342,13 @@ defmodule Admin.EventsChannel do
     dup =
       Event
       |> Repo.get(id)
-      |> Repo.preload([:tags, :location, :creator, :modified_by, organizer: [:phone_numbers, :email_addresses]])
+      |> Repo.preload([
+           :tags,
+           :location,
+           :creator,
+           :modified_by,
+           organizer: [:phone_numbers, :email_addresses]
+         ])
 
     dup =
       dup

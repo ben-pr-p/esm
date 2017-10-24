@@ -6,11 +6,14 @@ defmodule Admin.PageController do
 
   import Ecto.Query
 
-  plug Plug.EnsureAuthenticated, [handler: __MODULE__]
+  plug(
+    Plug.EnsureAuthenticated,
+    [handler: __MODULE__]
     when action in ~w(esm list)a
+  )
 
   def events(conn, _params) do
-    render conn, "index.html"
+    render(conn, "index.html")
   end
 
   def esm(conn, _params) do
@@ -20,30 +23,27 @@ defmodule Admin.PageController do
       "candidates"
       |> Cosmic.get_type()
       |> Enum.filter(&(not is_nil(&1["metadata"]["district"])))
-      |> Enum.map(&(&1["title"]))
+      |> Enum.map(& &1["title"])
       |> Enum.concat(["Brand New Congress", "Justice Democrats"])
       |> Poison.encode!()
 
-
     tags =
-      (from e in "event_taggings",
-        join: t in Tag, on: e.tag_id == t.id,
-        select: t.name)
+      from(e in "event_taggings", join: t in Tag, on: e.tag_id == t.id, select: t.name)
       |> Repo.all()
       |> Enum.to_list()
       |> Poison.encode!()
 
-    render conn, "esm.html", [calendars: calendars, tags: tags, email: email]
+    render(conn, "esm.html", calendars: calendars, tags: tags, email: email)
   end
 
   def list(conn, _params) do
-    render conn, "list.html"
+    render(conn, "list.html")
   end
 
   def my_events(conn, %{"token" => token}) do
     case token |> URI.encode_www_form() |> Cipher.decrypt() do
       {:error, _message} -> alert_user_edit(conn)
-      _organizer_id -> render conn, "my-events.html", [organizer_token: token]
+      _organizer_id -> render(conn, "my-events.html", organizer_token: token)
     end
   end
 
@@ -62,13 +62,17 @@ defmodule Admin.PageController do
   end
 
   defp alert_user_rsvp(conn) do
-    text conn,
+    text(
+      conn,
       "Hey there!\n\nUnfortunately, our systems could not associate this rsvp download link with an event.\nPlease contact events@justicedemocrats.com for help."
+    )
   end
 
   defp alert_user_edit(conn) do
-    text conn,
+    text(
+      conn,
       "Hey there!\n\nUnfortunately, our systems could not associate this token with a particular event host.\nPlease contact events@justicedemocrats.com for help."
+    )
   end
 
   defp authorized_rsvp(conn, name) do

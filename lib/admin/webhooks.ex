@@ -35,7 +35,7 @@ defmodule Admin.Webhooks do
   end
 
   def exec(other, %{event: event, team_member: _team_member}) do
-    Logger.info "Untracked status change: #{other}, for event: #{inspect(event)}"
+    Logger.info("Untracked status change: #{other}, for event: #{inspect(event)}")
   end
 
   defp bodify(body), do: [body: Poison.encode!(body)]
@@ -46,16 +46,31 @@ defmodule Admin.Webhooks do
   end
 
   def get_date_line(event) do
-    humanize_date(event.start_date, event.location.time_zone) <> "from " <>
-    humanize_time(event.start_date, event.location.time_zone) <> " - " <>
-    humanize_time(event.end_date, event.location.time_zone)
+    humanize_date(event.start_date, event.location.time_zone) <>
+      "from " <>
+      humanize_time(event.start_date, event.location.time_zone) <>
+      " - " <> humanize_time(event.end_date, event.location.time_zone)
   end
 
   defp humanize_date(dt, time_zone) do
     %DateTime{month: month, day: day} = get_zoned_dt(dt, time_zone)
 
-    month = ["January", "February", "March", "April", "May", "June", "July",
-             "August", "September", "October", "November", "December"] |> Enum.at(month - 1)
+    month =
+      [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
+      |> Enum.at(month - 1)
 
     "#{month}, #{day} "
   end
@@ -74,5 +89,4 @@ defmodule Admin.Webhooks do
     dt
     |> Timex.Timezone.convert(time_zone |> Timex.Timezone.get(Timex.now()))
   end
-
 end

@@ -12,9 +12,21 @@ config :admin, Admin.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: ["node_modules/.bin/webpack-dev-server", "--inline", "--colors", "--hot", "--stdin", "--host", "localhost", "--port", "8080", "--public", "localhost:8080",
-    cd: Path.expand("../assets", __DIR__)
-  ]]
+    node: [
+      "node_modules/.bin/webpack-dev-server",
+      "--inline",
+      "--colors",
+      "--hot",
+      "--stdin",
+      "--host",
+      "localhost",
+      "--port",
+      "8080",
+      "--public",
+      "localhost:8080",
+      cd: Path.expand("../assets", __DIR__)
+    ]
+  ]
 
 config :osdi, Osdi.Repo,
   adapter: Ecto.Adapters.Postgres,
@@ -26,20 +38,22 @@ config :osdi, Osdi.Repo,
 
 config :ueberauth, Ueberauth,
   providers: [
-    google: {Ueberauth.Strategy.Google, [
+    google: {
+      Ueberauth.Strategy.Google,
+      [
         approval_prompt: "force",
         access_type: "offline",
         default_scope: "email profile",
-        hd: System.get_env("HOSTED_DOMAIN"),
-      ]}
+        hd: System.get_env("HOSTED_DOMAIN")
+      ]
+    }
   ]
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_CLIENT_ID"),
   client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
 
-config :admin,
-  script_tag_base: ~s(http://localhost:8080/js/)
+config :admin, script_tag_base: ~s(http://localhost:8080/js/)
 
 config :admin,
   css_tag: ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
@@ -51,7 +65,6 @@ config :cipher,
   magic_token: "magictoken"
 
 config :maps, key: System.get_env("GOOGLE_MAPS_KEY")
-
 
 # ## SSL Support
 #

@@ -6,9 +6,9 @@ defmodule Admin.Mixfile do
       app: :admin,
       version: "0.1.10",
       elixir: "~> 1.5",
-      elixirc_paths: elixirc_paths(Mix.env),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers,
-      start_permanent: Mix.env == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
+      start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
     ]
@@ -21,7 +21,12 @@ defmodule Admin.Mixfile do
     [
       mod: {Admin.Application, []},
       extra_applications: [
-        :logger, :runtime_tools, :osdi, :ueberauth_google, :osdi, :guardian,
+        :logger,
+        :runtime_tools,
+        :osdi,
+        :ueberauth_google,
+        :osdi,
+        :guardian,
         :ueberauth_google
       ]
     ]
@@ -29,7 +34,7 @@ defmodule Admin.Mixfile do
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_),     do: ["lib"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
   #
@@ -61,7 +66,12 @@ defmodule Admin.Mixfile do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      "webpacker.setup": ["deps.get", "webpacker.frontend", "ecto.create", "run priv/repo/seeds.exs"]
+      "webpacker.setup": [
+        "deps.get",
+        "webpacker.frontend",
+        "ecto.create",
+        "run priv/repo/seeds.exs"
+      ]
     ]
   end
 end
