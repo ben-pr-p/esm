@@ -130,7 +130,7 @@ defmodule Admin.EventsChannel do
     |> Enum.map(&event_pipeline/1)
     |> Enum.map(&to_map/1)
     |> Enum.each(fn event ->
-         IO.puts "Sending event #{id}"
+         IO.puts "Sending event #{event.id}"
          push socket, "event", %{id: event.id, event: event}
        end)
   end
