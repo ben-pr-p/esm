@@ -44,7 +44,10 @@ defmodule Rsvps do
         |> Enum.map(& &1.number)
         |> List.first()
       else
-        List.first(phone_numbers) |> Map.get(:number)
+        case List.first(phone_numbers) do
+          nil -> ""
+          pn -> pn.number
+        end
       end
 
     full_name = Enum.join([given_name, family_name], " ")
