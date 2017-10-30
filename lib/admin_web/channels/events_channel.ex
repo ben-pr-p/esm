@@ -118,6 +118,7 @@ defmodule Admin.EventsChannel do
 
   # Handle action registers
   def handle_in("action-" <> id, %{"action" => action}, socket) do
+    insert_edit(%{event_id: id, edit: %{"action" => action}, actor: current_resource(socket)})
     new_event = mark_action(id, action)
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
