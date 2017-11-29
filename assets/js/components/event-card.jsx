@@ -107,8 +107,8 @@ export default class EventCard extends Component {
     const isVolEvent =
       tags.filter(t => t.includes('Should Contact Host')).length > 0
 
-    const isDirectPublish = true
-    // tags.filter(t => t.includes('Source: Direct Publish')).length > 0
+    const isDirectPublish =
+      tags.filter(t => t.includes('Source: Direct Publish')).length > 0
 
     return (
       <Card
@@ -145,7 +145,11 @@ export default class EventCard extends Component {
         </Modal>
 
         <div>
-          {isDirectPublish && <Button disabled={true} style={{cursor: 'none', color: 'green'}}>Direct Published</Button>}
+          {isDirectPublish && (
+            <Button disabled={true} style={{ cursor: 'none', color: 'green' }}>
+              Direct Published
+            </Button>
+          )}
         </div>
 
         <br />
