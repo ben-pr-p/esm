@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Card, Input, Layout, LocaleProvider, Select, Tabs } from 'antd'
-import enUS from 'antd/lib/locale-provider/en_US';
+import enUS from 'antd/lib/locale-provider/en_US'
 import socket from '../socket'
 import EventCard from './event-card'
 import tabSpec from './tab-spec'
@@ -60,14 +60,19 @@ export default class Esm extends Component {
   eventsFor = (fn, category) =>
     this.filteredEvents()
       .filter(e => fn(this.state.events[e]))
-      .map(id =>
+      .sort(
+        (a, b) =>
+          new Date(this.state.events[a].start_date) -
+          new Date(this.state.events[b].start_date)
+      )
+      .map(id => (
         <EventCard
           key={id}
           event={this.state.events[id]}
           channel={this.state.channel}
           category={category}
         />
-      )
+      ))
 
   componentDidMount() {
     const token = document
@@ -90,7 +95,7 @@ export default class Esm extends Component {
       this.forceUpdate()
     })
 
-    this.state.channel.push('ready', {page: 'esm'})
+    this.state.channel.push('ready', { page: 'esm' })
   }
 
   render() {
@@ -127,11 +132,9 @@ export default class Esm extends Component {
                 onChange={this.setCalendarFilter}
                 placeholder="Calendar Filter"
               >
-                {window.calendarOptions.map(c =>
-                  <Option value={c}>
-                    {c}
-                  </Option>
-                )}
+                {window.calendarOptions.map(c => (
+                  <Option value={c}>{c}</Option>
+                ))}
               </Select>
 
               <Select
@@ -140,17 +143,13 @@ export default class Esm extends Component {
                 style={{ width: 200 }}
               >
                 <Option value="">All States</Option>
-                {window.states.map(st =>
-                  <Option value={st}>
-                    {st}
-                  </Option>
-                )}
+                {window.states.map(st => <Option value={st}>{st}</Option>)}
               </Select>
             </div>
           </Header>
           <Content style={{ height: '100%' }}>
             <Tabs>
-              {tabSpec.map(({ title, fn }) =>
+              {tabSpec.map(({ title, fn }) => (
                 <TabPane
                   tab={title + ` (${this.countEventsFor(fn)})`}
                   key={title}
@@ -159,7 +158,7 @@ export default class Esm extends Component {
                     {this.eventsFor(fn, title)}
                   </div>
                 </TabPane>
-              )}
+              ))}
             </Tabs>
           </Content>
         </Layout>
