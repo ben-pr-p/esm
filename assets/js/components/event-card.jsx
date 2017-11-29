@@ -104,6 +104,9 @@ export default class EventCard extends Component {
       browser_url
     } = event
 
+    const isVolEvent =
+      tags.filter(t => t.includes('Should Contact Host')).length > 0
+
     return (
       <Card
         title={<EditableText onSave={this.onSave} value={title} attr="title" />}
@@ -113,7 +116,11 @@ export default class EventCard extends Component {
             <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
           </div>
         }
-        style={{ width: '100%', margin: 25 }}
+        style={{
+          width: '100%',
+          margin: 25,
+          backgroundColor: isVolEvent ? '#ffffcc' : 'none'
+        }}
         bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}
       >
         <Modal
@@ -397,7 +404,8 @@ export default class EventCard extends Component {
                     .copy(rsvp_download_url)
                     .then(() =>
                       message.success('RSVP download link copied to clipboard')
-                    )}
+                    )
+                }
               >
                 Copy RSVP Download Link
               </Button>
@@ -410,7 +418,8 @@ export default class EventCard extends Component {
                     .copy(organizer_edit_url)
                     .then(() =>
                       message.success('Organizer edit link copied to clipboard')
-                    )}
+                    )
+                }
               >
                 Copy Organizer Edit Link
               </Button>
