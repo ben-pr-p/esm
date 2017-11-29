@@ -107,6 +107,9 @@ export default class EventCard extends Component {
     const isVolEvent =
       tags.filter(t => t.includes('Should Contact Host')).length > 0
 
+    const isDirectPublish = true
+    // tags.filter(t => t.includes('Source: Direct Publish')).length > 0
+
     return (
       <Card
         title={<EditableText onSave={this.onSave} value={title} attr="title" />}
@@ -140,6 +143,13 @@ export default class EventCard extends Component {
             value={this.state.rejectionMessage}
           />
         </Modal>
+
+        <div>
+          {isDirectPublish && <Button disabled={true} style={{cursor: 'none', color: 'green'}}>Direct Published</Button>}
+        </div>
+
+        <br />
+        <br />
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Slug:</strong>{' '}
