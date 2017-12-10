@@ -48,7 +48,9 @@ export default class Esm extends Component {
         this.state.calendars.length == 0
           ? true
           : this.state.calendars.filter(c =>
-              event.tags.includes(`Calendar: ${c}`)
+              event.tags
+                .map(t => t.toLowerCase())
+                .includes(`Calendar: ${c}`.toLowercase())
             ).length > 0
 
       return searchOk && stateOk && calendarOk
@@ -132,9 +134,9 @@ export default class Esm extends Component {
                 onChange={this.setCalendarFilter}
                 placeholder="Calendar Filter"
               >
-                {window.calendarOptions.map(c => (
-                  <Option value={c}>{c}</Option>
-                ))}
+                {window.calendarOptions
+                  .sort()
+                  .map(c => <Option value={c.toLowerCase()}>{c}</Option>)}
               </Select>
 
               <Select

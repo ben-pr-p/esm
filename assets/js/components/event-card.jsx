@@ -105,7 +105,7 @@ export default class EventCard extends Component {
     } = event
 
     const isVolEvent =
-      tags.filter(t => t.includes('Should Contact Host')).length > 0
+      tags.filter(t => t.includes('Source: Direct Publish')).length == 0
 
     const isDirectPublish =
       tags.filter(t => t.includes('Source: Direct Publish')).length > 0
