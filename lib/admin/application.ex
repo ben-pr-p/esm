@@ -14,6 +14,7 @@ defmodule Admin.Application do
       supervisor(Admin.Endpoint, []),
       worker(Admin.Scheduler, []),
       worker(Admin.EditAgent, []),
+      worker(Admin.CheckoutAgent, []),
       worker(Mongo, [
         [
           name: :mongo,

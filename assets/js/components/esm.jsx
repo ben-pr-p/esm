@@ -71,6 +71,7 @@ export default class Esm extends Component {
         <EventCard
           key={id}
           event={this.state.events[id]}
+          id={id}
           channel={this.state.channel}
           category={category}
         />
@@ -99,6 +100,16 @@ export default class Esm extends Component {
     this.state.channel.on('event', ({ id, event }) => {
       this.state.events[id] = event
       event.tags.forEach(t => window.tagOptions.push(t))
+      this.forceUpdate()
+    })
+
+    this.state.channel.on('checkout', ({id, actor}) => {
+      this.state.events[id].checked_out_by = actor
+      this.forceUpdate()
+    })
+
+    this.state.channel.on('checkin', ({id}) => {
+      this.state.events[id].checked_out_by = undefined
       this.forceUpdate()
     })
 

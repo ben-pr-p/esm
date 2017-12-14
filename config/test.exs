@@ -12,13 +12,5 @@ config :cipher,
   ivphrase: "testieivphraseforcipher",
   magic_token: "magictoken"
 
-config :osdi, Osdi.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  database: "osdi_repo",
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  types: GeoExample.PostgresTypes
-
 # Print only warnings and errors during test
 config :logger, level: :warn

@@ -37,10 +37,10 @@ config :guardian, Guardian,
 
 config :admin, Admin.Scheduler,
   jobs: [
-    {"*/5 * * * *", {Admin.EditAgent, :send_and_clear, []}},
-    {"*/5 * * * *", {Admin.AddressJob, :update_coordinates, []}}
+    {"*/5 * * * *", {Admin.EditAgent, :send_and_clear, []}}
   ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
+import_config "prod.secret.exs"

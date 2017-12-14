@@ -23,24 +23,39 @@ export default [
   },
   {
     title: 'Upcoming',
-    fn: ev =>
-      ev.status == 'confirmed' &&
-      new Date(ev.end_date).getTime() > new Date().getTime() &&
-      (!ev.tags.includes(ESM_TAG) ||
-        ev.tags.includes('Event: Action: Logisticsed'))
+    fn: ev => {
+      const match_date = ev.end_date || ev.start_date
+
+      return (
+        ev.status == 'confirmed' &&
+        new Date(match_date).getTime() > new Date().getTime() &&
+        (!ev.tags.includes(ESM_TAG) ||
+          ev.tags.includes('Event: Action: Logisticsed'))
+      )
+    }
   },
   {
     title: 'Needs Debrief',
-    fn: ev =>
-      ev.status == 'confirmed' &&
-      new Date(ev.end_date).getTime() < new Date().getTime() &&
-      !ev.tags.includes('Event: Action: Debriefed')
+    fn: ev => {
+      const match_date = ev.end_date || ev.start_date
+
+      return (
+        ev.status == 'confirmed' &&
+        new Date(match_date).getTime() < new Date().getTime() &&
+        !ev.tags.includes('Event: Action: Debriefed')
+      )
+    }
   },
   {
     title: 'Past',
-    fn: ev =>
-      new Date(ev.end_date).getTime() < new Date().getTime() &&
-      ev.tags.includes('Event: Action: Debriefed')
+    fn: ev => {
+      const match_date = ev.end_date || ev.start_date
+
+      return (
+        new Date(match_date).getTime() < new Date().getTime() &&
+        ev.tags.includes('Event: Action: Debriefed')
+      )
+    }
   },
   {
     title: 'Rejected',

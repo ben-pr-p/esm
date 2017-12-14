@@ -2,6 +2,7 @@ defmodule Admin.EventsChannel do
   use Admin, :channel
   alias Admin.{Webhooks}
   use Guardian.Channel
+  alias Admin.{CheckoutAgent}
   import Guardian.Phoenix.Socket
 
   @attrs ~w(
@@ -39,6 +40,21 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  # Relay checking out
+  def handle_in("checkout-" <> id, _, socket) do
+    actor = current_resource(socket)
+    CheckoutAgent.register(id, actor)
+    broadcast(socket, "checkout", %{id: id, actor: actor})
+    {:noreply, socket}
+  end
+
+  # Relay checking in
+  def handle_in("checkin-" <> id, _, socket) do
+    CheckoutAgent.free(id)
+    broadcast(socket, "checkin", %{id: id})
+    {:noreply, socket}
+  end
+
   # Implement simple edit, contact edit (embeded), or location edit (associative)
   def handle_in("edit-" <> id, [key, value], socket) do
     new_event =
@@ -59,13 +75,13 @@ defmodule Admin.EventsChannel do
   def handle_in("tags-" <> id, tags, socket) do
     insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
 
-    event = Proxy.get("event/#{id}")
+    %{body: event} = Proxy.get("events/#{id}")
     calendar_tags = Enum.filter(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(tags, calendar_tags)
 
     Event.set_tags(event, new_tags)
-    new_event = edit_tags_and_fetch(event, new_tags)
+    new_event = edit_tags_and_fetch(id, new_tags)
 
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
@@ -79,13 +95,13 @@ defmodule Admin.EventsChannel do
       actor: current_resource(socket)
     })
 
-    event = Proxy.get("event/#{id}")
+    %{body: event} = Proxy.get("events/#{id}")
 
     as_tags = Enum.map(calendars, &"Calendar: #{&1}")
     regular_tags = Enum.reject(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(regular_tags, as_tags)
-    new_event = edit_tags_and_fetch(event, new_tags)
+    new_event = edit_tags_and_fetch(id, new_tags)
 
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
@@ -126,34 +142,45 @@ defmodule Admin.EventsChannel do
 
   defp send_esm_events(socket) do
     Proxy.stream("events")
-    |> Enum.each(fn event ->
+    |> Stream.map(&async_rsvp_count_fetch/1)
+    |> Stream.map(&Task.await/1)
+    |> Stream.map(&event_pipeline/1)
+    |> Stream.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
          push(socket, "event", %{id: id, event: event})
        end)
+    |> Stream.run()
   end
 
   defp send_list_events(socket) do
     Proxy.stream("events")
-    |> Enum.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
-    |> Enum.each(fn event ->
+    |> Stream.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
+    |> Stream.map(&async_rsvp_count_fetch/1)
+    |> Stream.map(&Task.await/1)
+    |> Stream.map(&event_pipeline/1)
+    |> Stream.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
          push(socket, "event", %{id: event.id, event: event})
        end)
+    |> Stream.run()
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
     Proxy.stream("events")
-    |> Enum.filter(&(&1.organizer_id == organizer_id))
-    |> Enum.each(fn event ->
+    |> Stream.filter(&(&1.organizer_id == organizer_id))
+    |> Stream.map(&async_rsvp_count_fetch/1)
+    |> Stream.map(&Task.await/1)
+    |> Stream.map(&event_pipeline/1)
+    |> Stream.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-         push(socket, "event", %{id: event.id, event: event})
+         push(socket, "event", %{id: id, event: event})
        end)
+    |> Stream.run()
   end
 
   defp event_pipeline(event) do
     event
     |> add_rsvp_download_url()
-    |> add_browser_url()
     |> add_organizer_edit_url()
   end
 
@@ -165,15 +192,14 @@ defmodule Admin.EventsChannel do
   end
 
   defp add_rsvp_download_url(event) do
+    id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+    encrypted_id = Cipher.encrypt(id)
+
     Map.put(
       event,
       :rsvp_download_url,
-      "https://admin.justicedemocrats.com/rsvps/#{Event.rsvp_link_for(event.name)}"
+      "https://admin.justicedemocrats.com/rsvps/#{encrypted_id}"
     )
-  end
-
-  defp add_browser_url(event) do
-    Map.put(event, :browser_url, "https://now.justicedemocrats.com/events/#{event.name}")
   end
 
   defp add_organizer_edit_url(event) do
@@ -188,15 +214,17 @@ defmodule Admin.EventsChannel do
 
   defp apply_edit(id, [key, value]) do
     change = Map.put(%{}, key, value)
-    Proxy.put("event/#{id}", body: change)
-    Proxy.get("event/#{id}")
+    Proxy.post("events/#{id}", body: change)
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
   defp apply_contact_edit(id, [raw_key, value]) do
     "contact." <> key = raw_key
     contact_change = Map.put(%{}, key, value)
-    Proxy.put("event/#{id}", body: %{contact: contact_change})
-    Proxy.get("event/#{id}")
+    Proxy.post("events/#{id}", body: %{contact: contact_change})
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
   defp apply_location_edit(id, [raw_key, raw_value]) do
@@ -207,29 +235,32 @@ defmodule Admin.EventsChannel do
       end
 
     location_change = Map.put(%{}, key, value)
-    Proxy.put("event/#{id}", body: %{location: location_change})
-    Proxy.get("event/#{id}")
+    Proxy.post("events/#{id}", body: %{location: location_change})
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
-  def edit_tags_and_fetch(event = %{id: id}, tags) do
-    Proxy.put("event/#{id}", body: %{tags: tags})
-    Proxy.get("event/#{id}")
+  def edit_tags_and_fetch(id, tags) do
+    Proxy.post("events/#{id}", body: %{tags: tags})
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
   defp set_status(id, status) do
-    Proxy.put("event/#{id}", body: %{status: status})
+    Proxy.post("events/#{id}", body: %{status: status})
   end
 
   defp mark_action(id, action) do
-    %{tags: current_tags} = Proxy.get("event/#{id}")
+    %{body: %{tags: current_tags}} = Proxy.get("events/#{id}")
     tag = "Event: Action: #{String.capitalize(action)}"
     new_tags = Enum.concat(current_tags, tag)
-    Proxy.put("event/#{id}", body: %{tags: new_tags})
-    Proxy.get("event/#{id}")
+    Proxy.post("events/#{id}", body: %{tags: new_tags})
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
   defp duplicate(id) do
-    old = Proxy.get("event/#{id}")
+    %{body: old} = Proxy.get("events/#{id}")
 
     to_create =
       old
@@ -250,5 +281,13 @@ defmodule Admin.EventsChannel do
     })
 
     Admin.EditAgent.record_edit(event_id)
+  end
+
+  defp async_rsvp_count_fetch(event) do
+    Task.async(fn ->
+      id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+      %{body: %{count: num_rsvps}} = Proxy.get("events/#{id}/rsvp-count")
+      Map.put(event, :attendance_count, num_rsvps)
+    end)
   end
 end

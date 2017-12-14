@@ -49,7 +49,7 @@ defmodule Admin.PageController do
   def rsvps(conn, %{"encrypted" => encrypted}) do
     case encrypted |> URI.encode_www_form() |> Cipher.decrypt() do
       {:error, _message} -> alert_user_rsvp(conn)
-      name -> authorized_rsvp(conn, name)
+      id -> authorized_rsvp(conn, id)
     end
   end
 
@@ -67,9 +67,9 @@ defmodule Admin.PageController do
     )
   end
 
-  defp authorized_rsvp(conn, name) do
-    csv_content = Rsvps.csv_for(name)
-    filename = [DateTime.utc_now() |> DateTime.to_iso8601(), name, "rsvps"] |> Enum.join("-")
+  defp authorized_rsvp(conn, id) do
+    csv_content = Rsvps.csv_for(id)
+    filename = [DateTime.utc_now() |> DateTime.to_iso8601(), id, "rsvps"] |> Enum.join("-")
 
     conn
     |> put_resp_content_type("text/csv")

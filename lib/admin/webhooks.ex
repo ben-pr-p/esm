@@ -6,7 +6,6 @@ defmodule Admin.Webhooks do
 
     hook
     |> exec(Map.put(body, :event, processed))
-    |> IO.inspect()
   end
 
   def exec("confirmed", %{event: event, team_member: team_member}) do

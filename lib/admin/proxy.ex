@@ -20,6 +20,10 @@ defmodule Proxy do
     Poison.encode!(map)
   end
 
+  defp process_request_headers(hdrs) do
+    Enum.into(hdrs, ["Accept": "application/json", "Content-Type": "application/json"])
+  end
+
   def process_request_body(text) do
     text
   end

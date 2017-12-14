@@ -10,8 +10,19 @@ class EditableText extends Component {
   }
 
   onChange = e => this.setState({ newVal: e.target.value })
-  editOn = () => this.setState({ editing: true })
-  handleClickOutside = () => this.setState({ editing: false })
+
+  editOn = () => {
+    this.props.checkout()
+    this.setState({ editing: true })
+  }
+
+  handleClickOutside = () => {
+    if (this.state.editing) {
+      this.props.checkin()
+      this.setState({ editing: false })
+    }
+  }
+
   onSave = attr => () => {
     this.setState({ editing: false })
     this.props.onSave([ attr, this.state.newVal ])

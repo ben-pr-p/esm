@@ -52,7 +52,8 @@ defmodule Admin.Mixfile do
       {:cipher, ">= 1.3.3"},
       {:quantum, ">= 2.1.0"},
       {:httpotion, "~> 3.0.2"},
-      {:mongodb, "~> 0.4.3"}
+      {:mongodb, "~> 0.4.3"},
+      {:timex, "~> 3.1"}
     ]
   end
 
