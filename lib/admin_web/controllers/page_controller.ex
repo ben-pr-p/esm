@@ -4,8 +4,6 @@ defmodule Admin.PageController do
   alias Osdi.{Repo, Tag}
   alias Guardian.Plug
 
-  import Ecto.Query
-
   plug(
     Plug.EnsureAuthenticated,
     [handler: __MODULE__]
@@ -27,13 +25,7 @@ defmodule Admin.PageController do
       |> Enum.concat(["Brand New Congress", "Justice Democrats"])
       |> Poison.encode!()
 
-    tags =
-      from(e in "event_taggings", join: t in Tag, on: e.tag_id == t.id, select: t.name)
-      |> Repo.all()
-      |> Enum.to_list()
-      |> Poison.encode!()
-
-    render(conn, "esm.html", calendars: calendars, tags: tags, email: email)
+    render(conn, "esm.html", calendars: calendars, email: email)
   end
 
   def list(conn, _params) do

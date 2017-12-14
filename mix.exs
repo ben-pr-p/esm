@@ -23,11 +23,8 @@ defmodule Admin.Mixfile do
       extra_applications: [
         :logger,
         :runtime_tools,
-        :osdi,
         :ueberauth_google,
-        :osdi,
-        :guardian,
-        :ueberauth_google
+        :guardian
       ]
     ]
   end
@@ -47,14 +44,15 @@ defmodule Admin.Mixfile do
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      {:osdi, git: "https://github.com/BrandNewCongress/osdi_ex.git"},
       {:cosmic, git: "https://github.com/BrandNewCongress/cosmic_ex.git"},
       {:maps, git: "https://github.com/justicedemocrats/maps_ex.git"},
       {:ueberauth_google, "~> 0.5"},
       {:guardian, "~> 0.14"},
       {:distillery, "~> 1.0.0"},
       {:cipher, ">= 1.3.3"},
-      {:quantum, ">= 2.1.0"}
+      {:quantum, ">= 2.1.0"},
+      {:httpotion, "~> 3.0.2"},
+      {:mongodb, "~> 0.4.3"}
     ]
   end
 

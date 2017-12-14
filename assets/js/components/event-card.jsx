@@ -100,9 +100,11 @@ export default class EventCard extends Component {
       contact,
       type,
       rsvp_download_url,
-      attendances,
+      attendance_count,
       browser_url
     } = event
+
+    console.log(event)
 
     const isVolEvent =
       tags.filter(t => t.includes('Source: Direct Publish')).length == 0
@@ -115,7 +117,7 @@ export default class EventCard extends Component {
         title={<EditableText onSave={this.onSave} value={title} attr="title" />}
         extra={
           <div style={{ display: 'flex' }}>
-            {attendances.length} RSVPs
+            {attendance_count} RSVPs
             <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
           </div>
         }

@@ -76,6 +76,10 @@ export default class Esm extends Component {
         />
       ))
 
+  componentWillMount() {
+    window.tagOptions = []
+  }
+
   componentDidMount() {
     const token = document
       .querySelector('#guardian_token')
@@ -94,6 +98,7 @@ export default class Esm extends Component {
 
     this.state.channel.on('event', ({ id, event }) => {
       this.state.events[id] = event
+      event.tags.forEach(t => window.tagOptions.push(t))
       this.forceUpdate()
     })
 
