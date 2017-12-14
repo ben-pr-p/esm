@@ -16,14 +16,14 @@ defmodule Proxy do
     Keyword.put(opts, :query, query)
   end
 
-  # def process_request_body(map) when is_map(map) do
-  #   Poison.encode!(map)
-  # end
-  #
-  # def process_request_body(text) do
-  #   text
-  # end
-  #
+  def process_request_body(map) when is_map(map) do
+    Poison.encode!(map)
+  end
+
+  def process_request_body(text) do
+    text
+  end
+
   defp process_response_body(raw) do
     case Poison.Parser.parse(raw, keys: :atoms) do
       {:ok, map} -> map
