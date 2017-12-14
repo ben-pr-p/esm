@@ -28,14 +28,6 @@ config :admin, Admin.Endpoint,
     ]
   ]
 
-config :osdi, Osdi.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  database: "osdi_repo",
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  types: GeoExample.PostgresTypes
-
 config :ueberauth, Ueberauth,
   providers: [
     google: {
