@@ -66,7 +66,7 @@ export default class EditableDate extends Component {
           <br/>
           <strong> Time: </strong>
           <TimePicker
-            defaultOpenValue={as_moment}
+            defaultOpenValue={as_moment || moment()}
             onChange={this.onTimeChange}
             use12Hours={true}
           />

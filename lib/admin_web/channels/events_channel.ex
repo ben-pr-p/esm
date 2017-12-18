@@ -79,8 +79,6 @@ defmodule Admin.EventsChannel do
     calendar_tags = Enum.filter(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(tags, calendar_tags)
-
-    Event.set_tags(event, new_tags)
     new_event = edit_tags_and_fetch(id, new_tags)
 
     push(socket, "event", %{id: id, event: new_event})
@@ -142,14 +140,13 @@ defmodule Admin.EventsChannel do
 
   defp send_esm_events(socket) do
     Proxy.stream("events")
-    |> Stream.map(&async_rsvp_count_fetch/1)
-    |> Stream.map(&Task.await/1)
-    |> Stream.map(&event_pipeline/1)
-    |> Stream.each(fn event ->
+    |> Enum.map(&async_rsvp_count_fetch/1)
+    |> Enum.map(fn task -> Task.await(task, 20_000) end)
+    |> Enum.map(&event_pipeline/1)
+    |> Enum.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
          push(socket, "event", %{id: id, event: event})
        end)
-    |> Stream.run()
   end
 
   defp send_list_events(socket) do
@@ -248,12 +245,14 @@ defmodule Admin.EventsChannel do
 
   defp set_status(id, status) do
     Proxy.post("events/#{id}", body: %{status: status})
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
   defp mark_action(id, action) do
     %{body: %{tags: current_tags}} = Proxy.get("events/#{id}")
     tag = "Event: Action: #{String.capitalize(action)}"
-    new_tags = Enum.concat(current_tags, tag)
+    new_tags = Enum.concat(current_tags, [tag])
     Proxy.post("events/#{id}", body: %{tags: new_tags})
     %{body: event} = Proxy.get("events/#{id}")
     event
