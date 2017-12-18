@@ -25,6 +25,6 @@ npm-debug.log
 # secrets files as long as you replace their contents by environment
 # variables.
 
+# config/prod.secret.exs
 cosmic_cache
-config/prod.secret.exs
 /priv/static
