@@ -1,56 +1,29 @@
 defmodule Rsvps do
-  import Ecto.Query
-  alias Osdi.{Event, Repo}
+  def csv_for(id) do
+    all_attendances = Proxy.stream("events/#{id}/rsvps")
+    people_ids = Enum.map(all_attendances, & &1.person)
 
-  def csv_for(name) do
+    people_fetch_tasks = Enum.map(people_ids, &Task.async(fn ->
+      %{body: body} = Proxy.get("people/#{&1}")
+      body
+    end))
+    people = Enum.map(people_fetch_tasks, &Task.await/1)
+
     csv_content =
-      from(e in Event, where: e.name == ^name, preload: [
-        attendances: [person: [:email_addresses, :phone_numbers]]
-      ])
-      |> Repo.all()
-      |> Enum.take(1)
-      |> List.first()
-      |> Map.get(:attendances)
-      |> Enum.map(&extract_person/1)
+      Enum.map(people, fn p ->
+        Enum.join(
+          [
+            Enum.join([p.given_name, p.family_name], " "),
+            List.first(p.email_addresses) |> Map.get(:address),
+            List.first(p.phone_numbers) |> Map.get(:number),
+            ""
+          ],
+          ","
+        )
+      end)
 
     ["Name,Email,Phone,Ref Code"]
     |> Enum.concat(csv_content)
     |> Enum.join("\n")
-  end
-
-  defp extract_person(%{
-         person: %{
-           given_name: given_name,
-           family_name: family_name,
-           email_addresses: email_addresses,
-           phone_numbers: phone_numbers
-         },
-         referrer_data: %{source: source}
-       }) do
-    primary_email =
-      if length(email_addresses) > 1 do
-        email_addresses
-        |> Enum.filter(& &1.primary)
-        |> Enum.map(& &1.address)
-        |> List.first()
-      else
-        List.first(email_addresses) |> Map.get(:address)
-      end
-
-    primary_phone =
-      if length(phone_numbers) > 1 do
-        phone_numbers
-        |> Enum.filter(& &1.primary)
-        |> Enum.map(& &1.number)
-        |> List.first()
-      else
-        case List.first(phone_numbers) do
-          nil -> ""
-          pn -> pn.number
-        end
-      end
-
-    full_name = Enum.join([given_name, family_name], " ")
-    Enum.join([full_name, primary_email, primary_phone, source], ",")
   end
 end

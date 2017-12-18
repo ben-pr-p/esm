@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Modal, DatePicker, TimePicker } from 'antd'
 import moment from 'moment'
-import mtz from 'moment-timezone'
 
 const friendly = {
   start_date: 'Starting Date and Time',
@@ -24,8 +23,17 @@ export default class EditableDate extends Component {
   onTimeChange = newTime => this.setState({newTime})
 
   onChange = e => this.setState({ newVal: e.target.value })
-  editOn = () => this.setState({ editing: true })
-  handleClickOutside = () => this.setState({ editing: false })
+
+  editOn = () => {
+    this.props.checkout()
+    this.setState({ editing: true })
+  }
+
+  handleClickOutside = () => {
+    this.props.checkin()
+    this.setState({ editing: false })
+  }
+
   onSave = attr => () => {
     this.setState({ editing: false })
 
@@ -39,7 +47,7 @@ export default class EditableDate extends Component {
   }
 
   render = () => {
-    const as_moment = mtz.tz(this.props.value, this.props.time_zone)
+    const as_moment = this.props.value ? moment(this.props.value) : null
 
     return (
       <div onDoubleClick={this.editOn}>
@@ -64,9 +72,7 @@ export default class EditableDate extends Component {
           />
         </Modal>
 
-        {mtz(this.props.value)
-          .tz(this.props.time_zone)
-          .format('dddd, MMMM Do YYYY, h:mm a')}
+        {as_moment ? as_moment.format('dddd, MMMM Do YYYY, h:mm a') : 'None'}
       </div>
     )
   }

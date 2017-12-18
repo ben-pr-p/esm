@@ -1,9 +1,8 @@
 defmodule Admin.EventsChannel do
   use Admin, :channel
-  alias Osdi.{Repo, Event, EventEdit}
   alias Admin.{Webhooks}
-  import Ecto.Query
   use Guardian.Channel
+  alias Admin.{CheckoutAgent}
   import Guardian.Phoenix.Socket
 
   @attrs ~w(
@@ -11,6 +10,8 @@ defmodule Admin.EventsChannel do
     type status description contact type tags instructions attendances
     rsvp_download_url browser_url organizer_edit_url
   )a
+
+  @instance Application.get_env(:admin, :instance, "jd")
 
   def join("events", %{"organizer_token" => token}, socket) do
     case token |> URI.encode_www_form() |> Cipher.decrypt() do
@@ -39,6 +40,21 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  # Relay checking out
+  def handle_in("checkout-" <> id, _, socket) do
+    actor = current_resource(socket)
+    CheckoutAgent.register(id, actor)
+    broadcast(socket, "checkout", %{id: id, actor: actor})
+    {:noreply, socket}
+  end
+
+  # Relay checking in
+  def handle_in("checkin-" <> id, _, socket) do
+    CheckoutAgent.free(id)
+    broadcast(socket, "checkin", %{id: id})
+    {:noreply, socket}
+  end
+
   # Implement simple edit, contact edit (embeded), or location edit (associative)
   def handle_in("edit-" <> id, [key, value], socket) do
     new_event =
@@ -59,17 +75,13 @@ defmodule Admin.EventsChannel do
   def handle_in("tags-" <> id, tags, socket) do
     insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
 
-    event = Repo.get(Event, id) |> Repo.preload(:tags)
-
-    calendar_tags =
-      event.tags
-      |> Enum.map(& &1.name)
-      |> Enum.filter(&String.contains?(&1, "Calendar: "))
+    %{body: event} = Proxy.get("events/#{id}")
+    calendar_tags = Enum.filter(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(tags, calendar_tags)
 
     Event.set_tags(event, new_tags)
-    new_event = edit_tags_and_fetch(event, new_tags)
+    new_event = edit_tags_and_fetch(id, new_tags)
 
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
@@ -83,17 +95,13 @@ defmodule Admin.EventsChannel do
       actor: current_resource(socket)
     })
 
-    event = Repo.get(Event, id) |> Repo.preload(:tags)
+    %{body: event} = Proxy.get("events/#{id}")
 
     as_tags = Enum.map(calendars, &"Calendar: #{&1}")
-
-    regular_tags =
-      event.tags
-      |> Enum.map(& &1.name)
-      |> Enum.reject(&String.contains?(&1, "Calendar: "))
+    regular_tags = Enum.reject(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(regular_tags, as_tags)
-    new_event = edit_tags_and_fetch(event, new_tags)
+    new_event = edit_tags_and_fetch(id, new_tags)
 
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
@@ -133,51 +141,50 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_esm_events(socket) do
-    from(e in Event, preload: [:tags, :location, :attendances])
-    |> Repo.all()
-    |> Enum.map(&event_pipeline/1)
-    |> Enum.map(&to_map/1)
-    |> Enum.each(fn event ->
-         push(socket, "event", %{id: event.id, event: event})
+    Proxy.stream("events")
+    |> Stream.map(&async_rsvp_count_fetch/1)
+    |> Stream.map(&Task.await/1)
+    |> Stream.map(&event_pipeline/1)
+    |> Stream.each(fn event ->
+         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+         push(socket, "event", %{id: id, event: event})
        end)
+    |> Stream.run()
   end
 
   defp send_list_events(socket) do
-    from(
-      e in Event,
-      where: e.status == "confirmed" and e.end_date > ^NaiveDateTime.utc_now(),
-      preload: [:tags, :location, :attendances]
-    )
-    |> Repo.all()
-    |> Enum.map(&event_pipeline/1)
-    |> Enum.map(&to_map/1)
-    |> Enum.each(fn event ->
+    Proxy.stream("events")
+    |> Stream.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
+    |> Stream.map(&async_rsvp_count_fetch/1)
+    |> Stream.map(&Task.await/1)
+    |> Stream.map(&event_pipeline/1)
+    |> Stream.each(fn event ->
+         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
          push(socket, "event", %{id: event.id, event: event})
        end)
+    |> Stream.run()
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
-    from(
-      e in Event,
-      where: e.organizer_id == ^organizer_id and e.end_date > ^NaiveDateTime.utc_now(),
-      preload: [:tags, :location, :attendances]
-    )
-    |> Repo.all()
-    |> Enum.map(&event_pipeline/1)
-    |> Enum.map(&to_map/1)
-    |> Enum.each(fn event ->
-         push(socket, "event", %{id: event.id, event: event})
+    Proxy.stream("events")
+    |> Stream.filter(&(&1.organizer_id == organizer_id))
+    |> Stream.map(&async_rsvp_count_fetch/1)
+    |> Stream.map(&Task.await/1)
+    |> Stream.map(&event_pipeline/1)
+    |> Stream.each(fn event ->
+         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+         push(socket, "event", %{id: id, event: event})
        end)
+    |> Stream.run()
   end
 
   defp event_pipeline(event) do
     event
     |> add_rsvp_download_url()
-    |> add_browser_url()
     |> add_organizer_edit_url()
   end
 
-  defp to_map(event = %Event{tags: tags}) do
+  defp to_map(event = %{tags: tags}) do
     event
     |> Map.from_struct()
     |> Map.take(@attrs)
@@ -185,15 +192,14 @@ defmodule Admin.EventsChannel do
   end
 
   defp add_rsvp_download_url(event) do
+    id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+    encrypted_id = Cipher.encrypt(id)
+
     Map.put(
       event,
       :rsvp_download_url,
-      "https://admin.justicedemocrats.com/rsvps/#{Event.rsvp_link_for(event.name)}"
+      "https://admin.justicedemocrats.com/rsvps/#{encrypted_id}"
     )
-  end
-
-  defp add_browser_url(event) do
-    Map.put(event, :browser_url, "https://now.justicedemocrats.com/events/#{event.name}")
   end
 
   defp add_organizer_edit_url(event) do
@@ -207,175 +213,81 @@ defmodule Admin.EventsChannel do
   end
 
   defp apply_edit(id, [key, value]) do
-    set_list = %{} |> Map.put(key |> String.to_atom(), value) |> Enum.into([])
-
-    from(e in Event, where: e.id == ^id)
-    |> Repo.update_all(set: set_list)
-
-    from(
-      e in Event,
-      where: e.id == ^id,
-      preload: [:tags, :location, organizer: [:email_addresses, :phone_numbers]]
-    )
-    |> Repo.one()
-    |> Repo.preload([
-         :tags,
-         :location,
-         :attendances,
-         organizer: [:phone_numbers, :email_addresses]
-       ])
-    |> for_web()
+    change = Map.put(%{}, key, value)
+    Proxy.post("events/#{id}", body: change)
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
   defp apply_contact_edit(id, [raw_key, value]) do
-    event = %{contact: contact} = Event |> Repo.get(id)
-
     "contact." <> key = raw_key
-    key = String.to_atom(key)
-    contact_change = %{} |> Map.put(key, value)
-
-    contact_changeset = Ecto.Changeset.change(contact, contact_change)
-
+    contact_change = Map.put(%{}, key, value)
+    Proxy.post("events/#{id}", body: %{contact: contact_change})
+    %{body: event} = Proxy.get("events/#{id}")
     event
-    |> Ecto.Changeset.change()
-    |> Ecto.Changeset.put_embed(:contact, contact_changeset)
-    |> Repo.update!()
-    |> Repo.preload([
-         :tags,
-         :location,
-         :attendances,
-         organizer: [:phone_numbers, :email_addresses]
-       ])
-    |> for_web()
   end
 
   defp apply_location_edit(id, [raw_key, raw_value]) do
-    event =
-      %{location: location} =
-      Event
-      |> Repo.get(id)
-      |> Repo.preload(:location)
-
-    process =
-      if raw_key == "location.address_lines[0]" do
-        fn {_key, val} -> {:address_lines, [val]} end
-      else
-        fn {"location." <> key, val} -> {key |> String.to_atom(), val} end
+    {key, value} =
+      case raw_key do
+        "location.address_lines[0]" -> {:address_lines, [raw_value]}
+        "location." <> key -> {key, raw_value}
       end
 
-    {key, value} = process.({raw_key, raw_value})
-
-    new_location =
-      location
-      |> Map.from_struct()
-      |> Map.drop(~w(__struct__ __meta__)a)
-      |> Map.put(key, value)
-
+    location_change = Map.put(%{}, key, value)
+    Proxy.post("events/#{id}", body: %{location: location_change})
+    %{body: event} = Proxy.get("events/#{id}")
     event
-    |> Ecto.Changeset.cast(%{location: new_location}, [])
-    |> Ecto.Changeset.cast_assoc(:location)
-    |> Repo.update!()
-    |> Repo.preload([
-         :tags,
-         :location,
-         :attendances,
-         organizer: [:phone_numbers, :email_addresses]
-       ])
-    |> for_web()
   end
 
-  def edit_tags_and_fetch(event = %{id: id}, tags) do
-    Event.set_tags(event, tags)
-
-    from(
-      e in Event,
-      where: e.id == ^id,
-      preload: [:tags, :location, organizer: [:email_addresses, :phone_numbers]]
-    )
-    |> Repo.one()
-    |> Repo.preload([
-         :tags,
-         :location,
-         :attendances,
-         organizer: [:phone_numbers, :email_addresses]
-       ])
-    |> for_web()
-  end
-
-  def for_web(event) do
+  def edit_tags_and_fetch(id, tags) do
+    Proxy.post("events/#{id}", body: %{tags: tags})
+    %{body: event} = Proxy.get("events/#{id}")
     event
-    |> event_pipeline()
-    |> Map.take(@attrs)
-    |> (fn event = %{tags: tags} -> Map.put(event, :tags, tags |> Enum.map(& &1.name)) end).()
   end
 
   defp set_status(id, status) do
-    Repo.update_all(from(e in Event, where: e.id == ^id), set: [status: status])
-
-    Event
-    |> Repo.get(id)
-    |> Repo.preload([
-         :tags,
-         :location,
-         :attendances,
-         organizer: [:phone_numbers, :email_addresses]
-       ])
-    |> for_web()
+    Proxy.post("events/#{id}", body: %{status: status})
   end
 
   defp mark_action(id, action) do
+    %{body: %{tags: current_tags}} = Proxy.get("events/#{id}")
     tag = "Event: Action: #{String.capitalize(action)}"
-
-    Event.add_tags(%Osdi.Event{id: id}, [tag])
-
-    Event
-    |> Repo.get(id)
-    |> Repo.preload([
-         :tags,
-         :location,
-         :attendances,
-         organizer: [:phone_numbers, :email_addresses]
-       ])
-    |> for_web()
+    new_tags = Enum.concat(current_tags, tag)
+    Proxy.post("events/#{id}", body: %{tags: new_tags})
+    %{body: event} = Proxy.get("events/#{id}")
+    event
   end
 
   defp duplicate(id) do
-    dup =
-      Event
-      |> Repo.get(id)
-      |> Repo.preload([
-           :tags,
-           :location,
-           :creator,
-           :modified_by,
-           organizer: [:phone_numbers, :email_addresses]
-         ])
+    %{body: old} = Proxy.get("events/#{id}")
 
-    dup =
-      dup
-      |> Map.put(:start_date, dup.start_date |> Timex.shift(days: 7))
-      |> Map.put(:end_date, dup.end_date |> Timex.shift(days: 7))
+    to_create =
+      old
+      |> Map.put(:start_date, old.start_date |> Timex.shift(days: 7))
+      |> Map.put(:end_date, old.end_date |> Timex.shift(days: 7))
       |> Map.put(:status, "tentative")
+      |> Map.drop([:identifiers])
 
-    dup =
-      dup
-      |> Map.put(:name, Event.slug_for(dup.title, dup.start_date))
-      |> Map.drop([:__struct__, :__meta__, :id, :attendances])
-
-    %{id: new_id} =
-      Event
-      |> struct(dup)
-      |> Repo.insert!()
-
-    Event
-    |> Repo.get(new_id)
-    |> Repo.preload([:tags, :location, organizer: [:phone_numbers, :email_addresses]])
-    |> for_web()
+    new = Proxy.post("event", body: to_create)
   end
 
   defp insert_edit(%{event_id: event_id, edit: edit, actor: actor}) do
-    {:ok, id} = Ecto.Type.cast(:id, event_id)
-    Repo.insert(%EventEdit{event_id: id, edit: edit, actor: actor})
+    Mongo.insert_one(:mongo, "esm_actions_#{@instance}", %{
+      event_id: event_id,
+      edit: edit,
+      actor: actor,
+      edited_at: Timex.now()
+    })
+
     Admin.EditAgent.record_edit(event_id)
+  end
+
+  defp async_rsvp_count_fetch(event) do
+    Task.async(fn ->
+      id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+      %{body: %{count: num_rsvps}} = Proxy.get("events/#{id}/rsvp-count")
+      Map.put(event, :attendance_count, num_rsvps)
+    end)
   end
 end

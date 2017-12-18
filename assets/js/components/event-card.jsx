@@ -22,19 +22,21 @@ const { TextArea } = Input
 const { Option } = Select
 
 export default class EventCard extends Component {
-  onSave = kv => this.props.channel.push(`edit-${this.props.event.id}`, kv)
+  onSave = kv => {
+    this.props.channel.push(`edit-${this.props.id}`, kv)
+    this.setState({ saving: true })
+  }
 
   onTypeChange = val =>
-    this.props.channel.push(`edit-${this.props.event.id}`, ['type', val])
-  onTagsChange = vals =>
-    this.props.channel.push(`tags-${this.props.event.id}`, vals)
+    this.props.channel.push(`edit-${this.props.id}`, ['type', val])
+  onTagsChange = vals => this.props.channel.push(`tags-${this.props.id}`, vals)
   onCalendarChange = vals =>
-    this.props.channel.push(`calendars-${this.props.event.id}`, vals)
+    this.props.channel.push(`calendars-${this.props.id}`, vals)
 
   reject = () => this.setState({ rejecting: true })
 
   rejectWithMessage = () =>
-    this.props.channel.push(`action-${this.props.event.id}`, {
+    this.props.channel.push(`action-${this.props.id}`, {
       status: 'rejected',
       message: this.state.rejectionMessage
     })
@@ -42,22 +44,22 @@ export default class EventCard extends Component {
   setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
 
   cancel = () =>
-    this.props.channel.push(`action-${this.props.event.id}`, {
+    this.props.channel.push(`action-${this.props.id}`, {
       status: 'cancelled'
     })
 
   confirm = () =>
-    this.props.channel.push(`action-${this.props.event.id}`, {
+    this.props.channel.push(`action-${this.props.id}`, {
       status: 'confirmed'
     })
 
   makeTentative = () =>
-    this.props.channel.push(`action-${this.props.event.id}`, {
+    this.props.channel.push(`action-${this.props.id}`, {
       status: 'tentative'
     })
 
   markCalled = () =>
-    this.props.channel.push(`action-${this.props.event.id}`, {
+    this.props.channel.push(`action-${this.props.id}`, {
       action: 'called'
     })
 
@@ -67,20 +69,27 @@ export default class EventCard extends Component {
   }
 
   markLogistics = () =>
-    this.props.channel.push(`action-${this.props.event.id}`, {
+    this.props.channel.push(`action-${this.props.id}`, {
       action: 'logisticsed'
     })
 
   markDebriefed = () =>
-    this.props.channel.push(`action-${this.props.event.id}`, {
+    this.props.channel.push(`action-${this.props.id}`, {
       action: 'debriefed'
     })
 
-  duplicate = () => this.props.channel.push(`duplicate-${this.props.event.id}`)
+  duplicate = () => this.props.channel.push(`duplicate-${this.props.id}`)
+
+  checkout = () => this.props.channel.push(`checkout-${this.props.id}`)
+  checkin = () => this.props.channel.push(`checkin-${this.props.id}`)
 
   state = {
     rejecting: false,
     rejectionMessage: ''
+  }
+
+  componentWillReceiveProps(_nextProps) {
+    this.state.saving = false
   }
 
   render() {
@@ -100,9 +109,12 @@ export default class EventCard extends Component {
       contact,
       type,
       rsvp_download_url,
-      attendances,
-      browser_url
+      attendance_count,
+      browser_url,
+      checked_out_by
     } = event
+
+    const disabled = checked_out_by !== undefined && checked_out_by !== null
 
     const isVolEvent =
       tags.filter(t => t.includes('Source: Direct Publish')).length == 0
@@ -112,18 +124,36 @@ export default class EventCard extends Component {
 
     return (
       <Card
-        title={<EditableText onSave={this.onSave} value={title} attr="title" />}
+        title={
+          <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
+            onSave={this.onSave}
+            value={title}
+            attr="title"
+          />
+        }
         extra={
           <div style={{ display: 'flex' }}>
-            {attendances.length} RSVPs
-            <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
+            {this.state.saving ? (
+              <div>
+                {' '}
+                <Icon type="loading" /> Saving{' '}
+              </div>
+            ) : disabled ? (
+              <div>
+                <Icon type="lock" /> Being edited by {checked_out_by}
+              </div>
+            ) : (
+              [
+                <span> {attendance_count} RSVPs </span>,
+                <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
+              ]
+            )}
           </div>
         }
-        style={{
-          width: '100%',
-          margin: 25,
-          backgroundColor: isVolEvent ? '#ffffcc' : 'none'
-        }}
+        style={{ width: '100%', margin: 25 }}
         bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}
       >
         <Modal
@@ -156,11 +186,6 @@ export default class EventCard extends Component {
         <br />
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-          <strong>Slug:</strong>{' '}
-          <EditableText onSave={this.onSave} value={name} attr="name" />
-        </div>
-
-        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Link:</strong>
           <div>
             <a target="_blank" href={browser_url}>
@@ -173,21 +198,11 @@ export default class EventCard extends Component {
           className="field-group"
           style={{ margin: 10, minWidth: 250, width: '100%' }}
         >
-          <strong>Summary:</strong>{' '}
-          <EditableText
-            onSave={this.onSave}
-            value={summary}
-            attr="summary"
-            textarea={true}
-          />
-        </div>
-
-        <div
-          className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}
-        >
           <strong>Description:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={description}
             attr="description"
@@ -201,6 +216,9 @@ export default class EventCard extends Component {
         >
           <strong>Instructions:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={instructions}
             attr="instructions"
@@ -252,6 +270,9 @@ export default class EventCard extends Component {
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Starts at:</strong> <br />
           <EditableDate
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             value={start_date}
             time_zone={location.time_zone}
             onSave={this.onSave}
@@ -261,6 +282,9 @@ export default class EventCard extends Component {
           <br />
           <strong>Ends at:</strong> <br />
           <EditableDate
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             value={end_date}
             time_zone={location.time_zone}
             onSave={this.onSave}
@@ -268,24 +292,6 @@ export default class EventCard extends Component {
           />
           <br />
           <br />
-          <strong>Time zone:</strong> <br />
-          <Select
-            style={{ width: 150 }}
-            value={location.time_zone}
-            onChange={tz => this.onSave(['location.time_zone', tz])}
-            attr="location.time_zone"
-          >
-            {[
-              'America/New_York',
-              'America/Chicago',
-              'America/Salt_Lake_City',
-              'America/Phoenix',
-              'America/Los_Angeles',
-              'America/Anchorage',
-              'America/Adak',
-              'America/Honolulu'
-            ].map(o => <Option value={o}>{o}</Option>)}
-          </Select>
         </div>
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
@@ -301,6 +307,9 @@ export default class EventCard extends Component {
           <br />
           <strong>Venue:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={location.venue}
             attr="location.venue"
@@ -308,6 +317,9 @@ export default class EventCard extends Component {
           <br />
           <strong>Address:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={location.address_lines[0]}
             attr="location.address_lines[0]"
@@ -315,6 +327,9 @@ export default class EventCard extends Component {
           <br />
           <strong>City:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={location.locality}
             attr="location.locality"
@@ -322,6 +337,9 @@ export default class EventCard extends Component {
           <br />
           <strong>State:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={location.region}
             attr="location.region"
@@ -329,6 +347,9 @@ export default class EventCard extends Component {
           <br />
           <strong>Zip:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={location.postal_code}
             attr="location.postal_code"
@@ -340,6 +361,9 @@ export default class EventCard extends Component {
           <br />
           <strong>Name:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={contact.name}
             attr="contact.name"
@@ -347,6 +371,9 @@ export default class EventCard extends Component {
           <br />
           <strong>Phone Number:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={contact.phone_number}
             attr="contact.phone_number"
@@ -362,6 +389,9 @@ export default class EventCard extends Component {
           <br />
           <strong>Email Address:</strong>{' '}
           <EditableText
+            disabled={disabled}
+            checkout={this.checkout}
+            checkin={this.checkin}
             onSave={this.onSave}
             value={contact.email_address}
             attr="contact.email_address"

@@ -1,8 +1,8 @@
 defmodule Admin.EditAgent do
   use Agent
-  alias Osdi.{EventEdit, Event, Repo}
   alias Admin.{Webhooks, EventsChannel}
-  import Ecto.Query
+
+  @instance Application.get_env(:admin, :instance, "jd")
 
   def start_link do
     Agent.start_link(fn -> %{} end, name: __MODULE__)
@@ -40,11 +40,11 @@ defmodule Admin.EditAgent do
   end
 
   defp fetch_edits({id, %{starting_at: starting_at, ending_at: ending_at}}) do
-    {id, EventEdit.edits_for_within(id, starting_at, ending_at)}
+    {id, edits_for_within(id, starting_at, ending_at)}
   end
 
   defp send_edits({id, edits}) do
-    event = fetch_for_web(id)
+    event = Proxy.get("event/#{id}")
     Webhooks.on("edit", %{event: event, edits: edits})
   end
 
@@ -60,9 +60,13 @@ defmodule Admin.EditAgent do
     clear(sent_ids)
   end
 
-  def fetch_for_web(id) do
-    from(e in Event, where: e.id == ^id, preload: [:tags, :location, :attendances])
-    |> Repo.one()
-    |> EventsChannel.for_web()
+  def edits_for_within(id, starting_at, ending_at) do
+    Mongo.find(:mongo, "esm_actions_#{@instance}", %{
+      "event_id" => id,
+      "$and" => [
+        ending_at: %{"$gt" => starting_at},
+        ending_at: %{"$lt" => ending_at}
+      ]
+    })
   end
 end

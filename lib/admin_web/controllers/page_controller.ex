@@ -4,8 +4,6 @@ defmodule Admin.PageController do
   alias Osdi.{Repo, Tag}
   alias Guardian.Plug
 
-  import Ecto.Query
-
   plug(
     Plug.EnsureAuthenticated,
     [handler: __MODULE__]
@@ -27,13 +25,7 @@ defmodule Admin.PageController do
       |> Enum.concat(["Brand New Congress", "Justice Democrats"])
       |> Poison.encode!()
 
-    tags =
-      from(e in "event_taggings", join: t in Tag, on: e.tag_id == t.id, select: t.name)
-      |> Repo.all()
-      |> Enum.to_list()
-      |> Poison.encode!()
-
-    render(conn, "esm.html", calendars: calendars, tags: tags, email: email)
+    render(conn, "esm.html", calendars: calendars, email: email)
   end
 
   def list(conn, _params) do
@@ -57,7 +49,7 @@ defmodule Admin.PageController do
   def rsvps(conn, %{"encrypted" => encrypted}) do
     case encrypted |> URI.encode_www_form() |> Cipher.decrypt() do
       {:error, _message} -> alert_user_rsvp(conn)
-      name -> authorized_rsvp(conn, name)
+      id -> authorized_rsvp(conn, id)
     end
   end
 
@@ -75,9 +67,9 @@ defmodule Admin.PageController do
     )
   end
 
-  defp authorized_rsvp(conn, name) do
-    csv_content = Rsvps.csv_for(name)
-    filename = [DateTime.utc_now() |> DateTime.to_iso8601(), name, "rsvps"] |> Enum.join("-")
+  defp authorized_rsvp(conn, id) do
+    csv_content = Rsvps.csv_for(id)
+    filename = [DateTime.utc_now() |> DateTime.to_iso8601(), id, "rsvps"] |> Enum.join("-")
 
     conn
     |> put_resp_content_type("text/csv")
