@@ -6,7 +6,7 @@
 use Mix.Config
 
 # General application configuration
-config :admin, ecto_repos: [Osdi.Repo]
+# config :admin, ecto_repos: [Osdi.Repo]
 
 # Configures the endpoint
 config :admin, Admin.Endpoint,
@@ -40,7 +40,9 @@ config :admin, Admin.Scheduler,
     {"*/5 * * * *", {Admin.EditAgent, :send_and_clear, []}}
   ]
 
-config :admin, cosmic_info_slug: "jd-esm-config"
+config :admin,
+  cosmic_info_slug: "jd-esm-config",
+  whitelist_domain: "@justicedemocrats.com"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
