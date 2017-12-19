@@ -284,9 +284,13 @@ defmodule Admin.EventsChannel do
 
   defp async_rsvp_count_fetch(event) do
     Task.async(fn ->
-      id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-      %{body: %{count: num_rsvps}} = Proxy.get("events/#{id}/rsvp-count")
-      Map.put(event, :attendance_count, num_rsvps)
+      try do
+        id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+        %{body: %{count: num_rsvps}} = Proxy.get("events/#{id}/rsvp-count")
+        Map.put(event, :attendance_count, num_rsvps)
+      rescue
+        _e -> Map.put(event, :attendance_count, 0)
+      end
     end)
   end
 end
