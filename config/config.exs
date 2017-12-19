@@ -40,6 +40,8 @@ config :admin, Admin.Scheduler,
     {"*/5 * * * *", {Admin.EditAgent, :send_and_clear, []}}
   ]
 
+config :admin, cosmic_info_slug: "jd-esm-config"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
