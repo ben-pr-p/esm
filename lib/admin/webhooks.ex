@@ -1,6 +1,8 @@
 defmodule Admin.Webhooks do
   require Logger
 
+  @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
+
   def on(hook, body = %{event: event}) do
     processed = process_event(event)
 
@@ -9,27 +11,27 @@ defmodule Admin.Webhooks do
   end
 
   def exec("confirmed", %{event: event, team_member: team_member}) do
-    %{"metadata" => %{"event_publish" => hook}} = Cosmic.get("jd-esm-info")
+    %{"metadata" => %{"event_publish" => hook}} = Cosmic.get(@cosmic_config_slug)
     HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("rejected", %{event: event, reason: reason, team_member: team_member}) do
-    %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get("jd-esm-info")
+    %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get(@cosmic_config_slug)
     HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
   end
 
   def exec("cancelled", %{event: event, team_member: team_member}) do
-    %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get("jd-esm-info")
+    %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
     HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("tentative", %{event: event, team_member: team_member}) do
-    %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get("jd-esm-info")
+    %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get(@cosmic_config_slug)
     HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("edit", %{event: event, edits: edits}) do
-    %{"metadata" => %{"event_edited" => hook}} = Cosmic.get("jd-esm-info")
+    %{"metadata" => %{"event_edited" => hook}} = Cosmic.get(@cosmic_config_slug)
     HTTPotion.post(hook, bodify(%{event: event, edits: edits}))
   end
 
