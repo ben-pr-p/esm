@@ -213,7 +213,7 @@ defmodule Admin.EventsChannel do
     change = Map.put(%{}, key, value)
     Proxy.post("events/#{id}", body: change)
     %{body: event} = Proxy.get("events/#{id}")
-    event
+    event_pipeline(event)
   end
 
   defp apply_contact_edit(id, [raw_key, value]) do
@@ -221,7 +221,7 @@ defmodule Admin.EventsChannel do
     contact_change = Map.put(%{}, key, value)
     Proxy.post("events/#{id}", body: %{contact: contact_change})
     %{body: event} = Proxy.get("events/#{id}")
-    event
+    event_pipeline(event)
   end
 
   defp apply_location_edit(id, [raw_key, raw_value]) do
@@ -234,19 +234,19 @@ defmodule Admin.EventsChannel do
     location_change = Map.put(%{}, key, value)
     Proxy.post("events/#{id}", body: %{location: location_change})
     %{body: event} = Proxy.get("events/#{id}")
-    event
+    event_pipeline(event)
   end
 
   def edit_tags_and_fetch(id, tags) do
     Proxy.post("events/#{id}", body: %{tags: tags})
     %{body: event} = Proxy.get("events/#{id}")
-    event
+    event_pipeline(event)
   end
 
   defp set_status(id, status) do
     Proxy.post("events/#{id}", body: %{status: status})
     %{body: event} = Proxy.get("events/#{id}")
-    event
+    event_pipeline(event)
   end
 
   defp mark_action(id, action) do
@@ -255,7 +255,7 @@ defmodule Admin.EventsChannel do
     new_tags = Enum.concat(current_tags, [tag])
     Proxy.post("events/#{id}", body: %{tags: new_tags})
     %{body: event} = Proxy.get("events/#{id}")
-    event
+    event_pipeline(event)
   end
 
   defp duplicate(id) do
