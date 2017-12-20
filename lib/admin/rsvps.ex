@@ -1,6 +1,5 @@
 defmodule Rsvps do
   def csv_for(id) do
-    IO.inspect id
     all_attendances = Proxy.stream("events/#{id}/rsvps")
     people_ids = Enum.map(all_attendances, & &1.person)
 
