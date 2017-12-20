@@ -86,6 +86,14 @@ defmodule Admin.Webhooks do
     "#{hour}#{minute} " <> am_pm
   end
 
+  def parse(nil) do
+    DateTime.utc_now()
+  end
+
+  def parse(dt = %DateTime{}) do
+    dt
+  end
+
   def parse(dt) do
     iso = if String.ends_with?(dt, "Z"), do: dt, else: dt <> "Z"
     {:ok, result, _} = DateTime.from_iso8601(iso)
