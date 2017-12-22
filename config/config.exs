@@ -41,7 +41,7 @@ config :admin, Admin.Scheduler,
   ]
 
 config :admin,
-  cosmic_info_slug: "beto-esm-config",
+  cosmic_info_slug: "ba-esm-config",
   whitelist_domain: "@betofortexas.com"
 
 # Import environment specific config. This must remain at the bottom
