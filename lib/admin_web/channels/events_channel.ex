@@ -141,7 +141,7 @@ defmodule Admin.EventsChannel do
   defp send_esm_events(socket) do
     Proxy.stream("events")
     |> Enum.map(&async_rsvp_count_fetch/1)
-    |> Enum.map(fn task -> Task.await(task, 20_000) end)
+    |> Enum.map(fn task -> Task.await(task, 60_000) end)
     |> Enum.map(&event_pipeline/1)
     |> Enum.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
