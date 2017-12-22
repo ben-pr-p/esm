@@ -13,7 +13,9 @@ defmodule Proxy do
       Keyword.get(opts, :query, %{})
       |> Map.put(:secret, @secret)
 
-    Keyword.put(opts, :query, query)
+    opts
+    |> Keyword.put(:query, query)
+    |> Keyword.put(:timeout, 60_000)
   end
 
   def process_request_body(map) when is_map(map) do
