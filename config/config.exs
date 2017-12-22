@@ -41,8 +41,8 @@ config :admin, Admin.Scheduler,
   ]
 
 config :admin,
-  cosmic_info_slug: "jd-esm-config",
-  whitelist_domain: "@justicedemocrats.com"
+  cosmic_info_slug: "beto-esm-config",
+  whitelist_domain: "@betofortexas.com"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
