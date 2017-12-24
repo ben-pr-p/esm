@@ -1,3 +1,4 @@
+const moment = require('moment')
 const ESM_TAG = 'Event: Should Contact Host'
 
 const isInPast = ev => {
@@ -10,33 +11,19 @@ const isInFuture = ev => {
   return new Date(match_date).getTime() > new Date().getTime()
 }
 
+const isIn5Days = ev => {
+  const match_date = ev.end_date || ev.start_date
+  return moment(match_date).diff(moment(), 'days') < 5
+}
+
 export default [
   {
     title: 'Interest Form',
     fn: ev => false
   },
   {
-    title: 'ESM Call #1',
-    fn: ev =>
-      isInFuture(ev) &&
-      ev.tags.includes(ESM_TAG) &&
-      ev.status == 'tentative' &&
-      !ev.tags.includes('Event: Action: Called')
-  },
-  {
     title: 'Needs Approval',
-    fn: ev =>
-      isInFuture(ev) &&
-      ev.status == 'tentative' &&
-      (!ev.tags.includes(ESM_TAG) || ev.tags.includes('Event: Action: Called'))
-  },
-  {
-    title: 'Needs Logistics',
-    fn: ev =>
-      isInFuture(ev) &&
-      ev.tags.includes(ESM_TAG) &&
-      ev.status == 'confirmed' &&
-      !ev.tags.includes('Event: Action: Logisticsed')
+    fn: ev => isInFuture(ev) && ev.status == 'tentative'
   },
   {
     title: 'Upcoming',
@@ -44,10 +31,26 @@ export default [
       return (
         ev.status == 'confirmed' &&
         isInFuture(ev) &&
-        (!ev.tags.includes(ESM_TAG) ||
-          ev.tags.includes('Event: Action: Logisticsed'))
+        !isIn5Days(ev) &&
+        !ev.tags.includes('Event: Action: Logisticsed')
       )
     }
+  },
+  {
+    title: 'ESM Call',
+    fn: ev =>
+      isInFuture(ev) &&
+      ev.status == 'confirmed' &&
+      isIn5Days(ev) &&
+      !ev.tags.includes('Event: Action: Logisticsed')
+  },
+  {
+    title: 'Ready to Go',
+    fn: ev =>
+      isInFuture(ev) &&
+      ev.status == 'confirmed' &&
+      isIn5Days(ev) &&
+      ev.tags.includes('Event: Action: Logisticsed')
   },
   {
     title: 'Needs Debrief',
