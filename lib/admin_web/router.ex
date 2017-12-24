@@ -30,10 +30,15 @@ defmodule Admin.Router do
     get("/events", PageController, :events)
     get("/events/esm", PageController, :esm)
     get("/events/list", PageController, :list)
-    post("/events/create", FormController, :create)
 
     get("/my-events/:token", PageController, :my_events)
 
     get("/rsvps/:encrypted", PageController, :rsvps)
+  end
+
+  scope "/api", Admin do
+    pipe_through :api
+
+    post("/events/create", FormController, :create)
   end
 end

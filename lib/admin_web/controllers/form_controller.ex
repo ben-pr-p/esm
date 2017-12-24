@@ -1,4 +1,4 @@
-defmodule AdminWeb.FormController do
+defmodule Admin.FormController do
   use Admin, :controller
 
   import ShortMaps
@@ -9,7 +9,7 @@ defmodule AdminWeb.FormController do
     %{"metadata" => %{"event_submitted" => success_hook,
       "submission_failure" => failure_hook}} = Cosmic.get(@cosmic_config_slug)
 
-    try do
+    # try do
       created = do_create(params)
 
       success_hook
@@ -17,13 +17,13 @@ defmodule AdminWeb.FormController do
       |> IO.inspect()
 
       json(conn, created)
-    rescue e ->
-      failure_hook
-      |> HTTPotion.post(body: params |> Poison.encode!())
-      |> IO.inspect()
-
-      json(conn, %{"ok" => "But error"})
-    end
+    # rescue e ->
+    #   failure_hook
+    #   |> HTTPotion.post(body: params |> Poison.encode!())
+    #   |> IO.inspect()
+    #
+    #   json(conn, %{"ok" => "But error"})
+    # end
   end
 
   def do_create(body) do
@@ -48,16 +48,18 @@ defmodule AdminWeb.FormController do
 
     start_date = construct_dt(start_time, date)
     end_date = construct_dt(end_time, date)
+    type = event_type
+    status = "tentative"
 
     %{body: created} = Proxy.post("events", body: ~m(
-      location contact start_date end_date tags event_type title description
+      location contact start_date end_date tags type title description status
     ))
 
     created
   end
 
   def construct_dt(time, date) do
-    [hours, minutes] = military_time(time)
+    [hours, minutes] = String.split(time, " ") |> military_time()
     [month, day, year] = String.split(date, "/")
 
     %DateTime{
