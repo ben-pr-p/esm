@@ -44,7 +44,7 @@ defmodule Admin.Webhooks do
     Logger.info("Untracked status change: #{other}, for event: #{inspect(event)}")
   end
 
-  defp bodify(body), do: [body: Poison.encode!(body)]
+  defp bodify(body), do: [body: Poison.encode!(IO.inspect(body))]
 
   defp process_event(event) do
     event
