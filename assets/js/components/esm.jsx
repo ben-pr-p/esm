@@ -16,12 +16,20 @@ export default class Esm extends Component {
     channel: null,
     search: '',
     state: null,
-    calendars: []
+    calendars: [],
+    tabActiveKey: tabSpec[0].title
   }
 
   setSearch = value => this.setState({ search: value })
   setStateFilter = state => this.setState({ state })
   setCalendarFilter = calendars => this.setState({ calendars })
+  onTabChange = newActiveKey => {
+    return newActiveKey != 'Interest Form'
+      ? this.setState({ tabActiveKey: newActiveKey })
+      : window.open(
+          'https://docs.google.com/spreadsheets/d/1zi3D0MWlGuWerm0yiA6vuB389fXOGWfZZoEsx-0SdL8/edit?ts=5a3faeb3#gid=1609788758'
+        )
+  }
 
   filteredEvents = () =>
     Object.keys(this.state.events).filter(e => {
@@ -103,12 +111,12 @@ export default class Esm extends Component {
       this.forceUpdate()
     })
 
-    this.state.channel.on('checkout', ({id, actor}) => {
+    this.state.channel.on('checkout', ({ id, actor }) => {
       this.state.events[id].checked_out_by = actor
       this.forceUpdate()
     })
 
-    this.state.channel.on('checkin', ({id}) => {
+    this.state.channel.on('checkin', ({ id }) => {
       this.state.events[id].checked_out_by = undefined
       this.forceUpdate()
     })
@@ -127,8 +135,7 @@ export default class Esm extends Component {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around'
-              }}
-            >
+              }}>
               <h1 style={{ color: 'white', textTransform: 'capitalize' }}>
                 Welcome {window.userEmail.split('@')[0]}!
               </h1>
@@ -153,8 +160,7 @@ export default class Esm extends Component {
                   option.props.children
                     .toLowerCase()
                     .includes(input.toLowerCase())
-                }
-              >
+                }>
                 {window.calendarOptions
                   .sort()
                   .map(c => <Option value={c.toLowerCase()}>{c}</Option>)}
@@ -163,20 +169,23 @@ export default class Esm extends Component {
               <Select
                 onChange={this.setStateFilter}
                 placeholder="State Filter"
-                style={{ width: 200 }}
-              >
+                style={{ width: 200 }}>
                 <Option value="">All States</Option>
                 {window.states.map(st => <Option value={st}>{st}</Option>)}
               </Select>
             </div>
           </Header>
           <Content style={{ height: '100%' }}>
-            <Tabs>
+            <Tabs onTabClick={this.onTabChange}>
               {tabSpec.map(({ title, fn }) => (
                 <TabPane
-                  tab={title + ` (${this.countEventsFor(fn)})`}
-                  key={title}
-                >
+                  tab={
+                    title == 'Interest Form'
+                      ? title
+                      : title + ` (${this.countEventsFor(fn)})`
+                  }
+                  defaultActiveKey="ESM Call #1"
+                  key={title}>
                   <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                     {this.eventsFor(fn, title)}
                   </div>
