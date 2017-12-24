@@ -1,4 +1,6 @@
 defmodule AdminWeb.FormController do
+  use Admin, :controller
+
   import ShortMaps
 
   @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
@@ -12,21 +14,19 @@ defmodule AdminWeb.FormController do
 
       success_hook
       |> HTTPotion.post(body: created |> Poison.encode!())
-      |> inspect()
-      |> Logger.info()
+      |> IO.inspect()
 
       json(conn, created)
     rescue e ->
       failure_hook
       |> HTTPotion.post(body: params |> Poison.encode!())
-      |> inspect()
-      |> Logger.info()
+      |> IO.inspect()
 
       json(conn, %{"ok" => "But error"})
     end
   end
 
-  def do_create(body)
+  def do_create(body) do
     ~m(first_name last_name email phone city state zip event_type zip title date
        start_time end_time venue address description) = body
 
@@ -84,4 +84,11 @@ defmodule AdminWeb.FormController do
       _ -> [hours + 12, minutes]
     end
   end
+
+  def easy_int(str) when is_binary(str) do
+    {int, _} = Integer.parse(str)
+    int
+  end
+
+  def easy_int(int), do: int
 end
