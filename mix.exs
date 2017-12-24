@@ -53,7 +53,8 @@ defmodule Admin.Mixfile do
       {:quantum, ">= 2.1.0"},
       {:httpotion, "~> 3.0.2"},
       {:mongodb, "~> 0.4.3"},
-      {:timex, "~> 3.1"}
+      {:timex, "~> 3.1"},
+      {:short_maps, "~> 0.1.2"}
     ]
   end
 

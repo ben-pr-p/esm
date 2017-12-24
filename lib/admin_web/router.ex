@@ -30,6 +30,7 @@ defmodule Admin.Router do
     get("/events", PageController, :events)
     get("/events/esm", PageController, :esm)
     get("/events/list", PageController, :list)
+    post("/events/create", FormController, :create)
 
     get("/my-events/:token", PageController, :my_events)
 
