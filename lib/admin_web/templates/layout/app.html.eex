@@ -11,7 +11,7 @@
       <meta id="guardian_token" content="<%= Guardian.Plug.current_token(@conn) %>">
     <% end %>
 
-    <title>JD Admin</title>
+    <title>Beto Event Management</title>
 
     <%= {:safe, css_link_tag() } %>
     <link href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700" rel="stylesheet">
