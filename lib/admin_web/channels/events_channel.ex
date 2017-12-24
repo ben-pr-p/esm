@@ -195,7 +195,7 @@ defmodule Admin.EventsChannel do
     Map.put(
       event,
       :rsvp_download_url,
-      "https://admin.justicedemocrats.com/rsvps/#{encrypted_id}"
+      "https://esm.betofortexas.com/rsvps/#{encrypted_id}"
     )
   end
 
@@ -205,7 +205,7 @@ defmodule Admin.EventsChannel do
     Map.put(
       event,
       :organizer_edit_url,
-      "https://admin.justicedemocrats.com/my-events/#{organizer_edit_hash}"
+      "https://esm.betofortexas.com/my-events/#{organizer_edit_hash}"
     )
   end
 
