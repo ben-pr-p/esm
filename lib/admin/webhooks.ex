@@ -12,26 +12,31 @@ defmodule Admin.Webhooks do
 
   def exec("confirmed", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_publish" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts "Posting webhook to #{hook} because of confirmed"
     HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("rejected", %{event: event, reason: reason, team_member: team_member}) do
     %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts "Posting webhook to #{hook} because of rejected"
     HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
   end
 
   def exec("cancelled", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts "Posting webhook to #{hook} because of cancelled"
     HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("tentative", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts "Posting webhook to #{hook} because of tentative"
     HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("edit", %{event: event, edits: edits}) do
     %{"metadata" => %{"event_edited" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts "Posting webhook to #{hook} because of edit"
     HTTPotion.post(hook, bodify(%{event: event, edits: edits}))
   end
 
