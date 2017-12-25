@@ -14,7 +14,7 @@ defmodule Admin.FormController do
 
       IO.puts "Posting webhook to #{success_hook}"
       IO.inspect created
-  
+
       success_hook
       |> HTTPotion.post(body: created |> Poison.encode!())
       |> IO.inspect()
@@ -57,6 +57,10 @@ defmodule Admin.FormController do
     %{body: created} = Proxy.post("events", body: ~m(
       location contact start_date end_date tags type title description status
     ))
+
+    if Map.keys(created) |> length() < 5 do
+      1 + "force error"
+    end
 
     created
   end
