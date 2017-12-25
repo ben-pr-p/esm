@@ -50,6 +50,9 @@ export default class EditableDate extends Component {
     const start_date = combineDateAndTime(newDate.clone(), newStart)
     const end_date = combineDateAndTime(newDate.clone(), newEnd)
 
+    console.log(start_date.toISOString())
+    console.log(end_date.toISOString())
+
     this.props.onSave([
       ['start_date', start_date.format()],
       ['end_date', end_date.format()]
@@ -60,9 +63,13 @@ export default class EditableDate extends Component {
     const start_moment = this.props.start_date
       ? moment(this.props.start_date)
       : null
-    const end_moment = this.props.end_date
-      ? moment(this.props.end_date)
-      : null
+
+    const end_moment = this.props.end_date ? moment(this.props.end_date) : null
+
+    if (this.state.editing) {
+      console.log(this.props.start_date)
+      console.log(start_moment)
+    }
 
     return (
       <div onDoubleClick={this.editOn}>
@@ -83,6 +90,14 @@ export default class EditableDate extends Component {
             defaultOpenValue={start_moment}
             onChange={this.onStartChange}
             use12Hours={true}
+            format="hh:mm A"
+            disabledMinutes={() =>
+              new Array(60)
+                .fill(null)
+                .map((_, idx) => idx)
+                .filter(i => i % 15 != 0)
+            }
+            hideDisabledOptions={true}
           />
 
           <strong> End: </strong>
@@ -90,14 +105,22 @@ export default class EditableDate extends Component {
             defaultOpenValue={end_moment}
             onChange={this.onEndChange}
             use12Hours={true}
+            format="hh:mm A"
+            disabledMinutes={() =>
+              new Array(60)
+                .fill(null)
+                .map((_, idx) => idx)
+                .filter(i => i % 15 != 0)
+            }
+            hideDisabledOptions={true}
           />
         </Modal>
 
         {start_moment.format('dddd, MMMM Do YYYY')}
         <br />
         <span style={{ userSelect: 'none' }}>
-          {`From ${start_moment.format('HH:mm A')} to ${end_moment.format(
-            'HH:mm A'
+          {`From ${start_moment.format('h:mm A')} to ${end_moment.format(
+            'h:mm A'
           )}`}
         </span>
       </div>

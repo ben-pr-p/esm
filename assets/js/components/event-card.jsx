@@ -242,24 +242,6 @@ export default class EventCard extends Component {
           </Select>
         </div>
 
-        {!this.props.hostEdit && (
-          <div
-            className="field-group"
-            style={{ margin: 10, minWidth: 250, width: '100%' }}>
-            <strong>Calendars:</strong>{' '}
-            <Select
-              mode="multiple"
-              style={{ width: '100%' }}
-              placeholder="Calendars"
-              onChange={this.onCalendarChange}
-              defaultValue={tags
-                .filter(t => t.includes('Calendar:'))
-                .map(t => t.split(':')[1].trim())}>
-              {calendarOptions.map(c => <Option key={c}>{c}</Option>)}
-            </Select>
-          </div>
-        )}
-
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong> Date and Time </strong>
           <EditableDateRange
@@ -457,12 +439,15 @@ export default class EventCard extends Component {
       .concat(
         category == 'ESM Call'
           ? [
-              <Button onClick={this.cancel} type="default">
+              <Button onClick={this.cancel} type="danger">
                 Cancel
               </Button>,
-              <Button onClick={this.makeTentative} type="primary">
+              <Button onClick={this.makeTentative} type="default">
                 Back to Tentative
-              </Button>
+              </Button>,
+              <BUtton onClick={this.markCalled} type="primary">
+                Mark Called
+              </BUtton>
             ]
           : []
       )

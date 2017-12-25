@@ -145,7 +145,7 @@ export default class Esm extends Component {
                 onSearch={this.setSearch}
               />
 
-              <Select
+              {/* <Select
                 style={{
                   width: 300,
                   float: 'right',
@@ -164,7 +164,7 @@ export default class Esm extends Component {
                 {window.calendarOptions
                   .sort()
                   .map(c => <Option value={c.toLowerCase()}>{c}</Option>)}
-              </Select>
+              </Select> */}
 
               <Select
                 onChange={this.setStateFilter}
