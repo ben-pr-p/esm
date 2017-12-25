@@ -78,7 +78,7 @@ defmodule Admin.Webhooks do
       ]
       |> Enum.at(month - 1)
 
-    "#{month}, #{day} "
+    "#{month} #{day} "
   end
 
   defp humanize_time(dt) do
@@ -93,6 +93,11 @@ defmodule Admin.Webhooks do
 
   def parse(nil) do
     DateTime.utc_now()
+  end
+
+  def zero_pad(int) do
+    str = "#{int}"
+    if String.length(str), do: str, else: "0#{str}"
   end
 
   def parse(dt = %DateTime{}) do

@@ -33,6 +33,7 @@ defmodule Admin.EditAgent do
       end)
 
     ranges_to_send
+    |> IO.inspect()
     |> Enum.map(&fetch_edits/1)
     |> Enum.map(&send_edits/1)
 
@@ -44,7 +45,7 @@ defmodule Admin.EditAgent do
   end
 
   defp send_edits({id, edits}) do
-    event = Proxy.get("event/#{id}")
+    %{body: event} = Proxy.get("events/#{id}")
     Webhooks.on("edit", %{event: event, edits: edits})
   end
 
@@ -64,9 +65,9 @@ defmodule Admin.EditAgent do
     Mongo.find(:mongo, "esm_actions_#{@instance}", %{
       "event_id" => id,
       "$and" => [
-        ending_at: %{"$gt" => starting_at},
-        ending_at: %{"$lt" => ending_at}
+        %{ending_at: %{"$gt" => starting_at}},
+        %{ending_at: %{"$lt" => ending_at}}
       ]
-    })
+    }) |> Enum.to_list()
   end
 end
