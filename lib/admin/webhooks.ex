@@ -12,34 +12,39 @@ defmodule Admin.Webhooks do
 
   def exec("confirmed", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_publish" => hook}} = Cosmic.get(@cosmic_config_slug)
-    HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
+    IO.puts "Posting webhook to #{hook} because of confirmed"
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("rejected", %{event: event, reason: reason, team_member: team_member}) do
     %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get(@cosmic_config_slug)
-    HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
+    IO.puts "Posting webhook to #{hook} because of rejected"
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
   end
 
   def exec("cancelled", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
-    HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
+    IO.puts "Posting webhook to #{hook} because of cancelled"
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("tentative", %{event: event, team_member: team_member}) do
     %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get(@cosmic_config_slug)
-    HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
+    IO.puts "Posting webhook to #{hook} because of tentative"
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
   end
 
   def exec("edit", %{event: event, edits: edits}) do
     %{"metadata" => %{"event_edited" => hook}} = Cosmic.get(@cosmic_config_slug)
-    HTTPotion.post(hook, bodify(%{event: event, edits: edits}))
+      IO.puts "Posting webhook to #{hook} because of edit"
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, edits: edits}))
   end
 
   def exec(other, %{event: event, team_member: _team_member}) do
     Logger.info("Untracked status change: #{other}, for event: #{inspect(event)}")
   end
 
-  defp bodify(body), do: [body: Poison.encode!(body)]
+  defp bodify(body), do: [body: Poison.encode!(IO.inspect(body))]
 
   defp process_event(event) do
     event
@@ -73,7 +78,7 @@ defmodule Admin.Webhooks do
       ]
       |> Enum.at(month - 1)
 
-    "#{month}, #{day} "
+    "#{month} #{day} "
   end
 
   defp humanize_time(dt) do
@@ -88,6 +93,11 @@ defmodule Admin.Webhooks do
 
   def parse(nil) do
     DateTime.utc_now()
+  end
+
+  def zero_pad(int) do
+    str = "#{int}"
+    if String.length(str), do: str, else: "0#{str}"
   end
 
   def parse(dt = %DateTime{}) do
