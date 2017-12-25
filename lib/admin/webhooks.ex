@@ -4,6 +4,7 @@ defmodule Admin.Webhooks do
   @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
 
   def on(hook, body = %{event: event}) do
+    IO.inspect event
     processed = process_event(event)
 
     hook
@@ -105,8 +106,12 @@ defmodule Admin.Webhooks do
   end
 
   def parse(dt) do
-    iso = if String.ends_with?(dt, "Z"), do: dt, else: dt <> "Z"
-    {:ok, result, _} = DateTime.from_iso8601(iso)
-    result
+    case DateTime.from_iso8601(dt) do
+      {:ok, result, _} -> result
+      _ ->
+        iso = if String.ends_with?(dt, "Z"), do: dt, else: dt <> "Z"
+        {:ok, result, _} = DateTime.from_iso8601(iso)
+        result
+    end
   end
 end
