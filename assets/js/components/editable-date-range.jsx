@@ -61,15 +61,10 @@ export default class EditableDate extends Component {
 
   render = () => {
     const start_moment = this.props.start_date
-      ? moment(this.props.start_date)
+      ? moment(this.props.start_date).tz('America/Chicago')
       : null
 
-    const end_moment = this.props.end_date ? moment(this.props.end_date) : null
-
-    if (this.state.editing) {
-      console.log(this.props.start_date)
-      console.log(start_moment)
-    }
+    const end_moment = this.props.end_date ? moment(this.props.end_date).tz('America/Chicago') : null
 
     return (
       <div onDoubleClick={this.editOn}>
