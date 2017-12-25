@@ -13,6 +13,8 @@ defmodule Admin.FormController do
       created = do_create(params)
 
       IO.puts "Posting webhook to #{success_hook}"
+      IO.inspect created
+  
       success_hook
       |> HTTPotion.post(body: created |> Poison.encode!())
       |> IO.inspect()
