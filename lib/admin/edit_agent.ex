@@ -46,7 +46,7 @@ defmodule Admin.EditAgent do
 
   defp send_edits({id, edits}) do
     %{body: event} = Proxy.get("events/#{id}")
-    Webhooks.on("edit", %{event: event, edits: edits})
+    Webhooks.on("edit", %{event: Admin.EventsChannel.event_pipeline(event), edits: edits})
   end
 
   defp clear(ids) when is_list(ids) do

@@ -15,6 +15,7 @@ import {
 } from 'antd'
 import EditableText from './editable-text'
 import EditableDate from './editable-date'
+import EditableDateRange from './editable-date-range'
 import clipboard from 'clipboard-js'
 import mtz from 'moment-timezone'
 
@@ -260,30 +261,17 @@ export default class EventCard extends Component {
         )}
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-          <strong>Starts at:</strong> <br />
-          <EditableDate
+          <strong> Date and Time </strong>
+          <EditableDateRange
             disabled={disabled}
             checkout={this.checkout}
             checkin={this.checkin}
-            value={start_date}
             time_zone={location.time_zone}
+            starts_date={start_date}
+            end_date={end_date}
             onSave={this.onSave}
             attr="start_date"
           />
-          <br />
-          <br />
-          <strong>Ends at:</strong> <br />
-          <EditableDate
-            disabled={disabled}
-            checkout={this.checkout}
-            checkin={this.checkin}
-            value={end_date}
-            time_zone={location.time_zone}
-            onSave={this.onSave}
-            attr="end_date"
-          />
-          <br />
-          <br />
         </div>
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>

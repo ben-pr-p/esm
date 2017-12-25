@@ -175,7 +175,7 @@ defmodule Admin.EventsChannel do
     |> Stream.run()
   end
 
-  defp event_pipeline(event) do
+  def event_pipeline(event) do
     event
     |> add_rsvp_download_url()
     |> add_organizer_edit_url()
