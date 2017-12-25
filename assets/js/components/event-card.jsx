@@ -472,11 +472,8 @@ export default class EventCard extends Component {
               <Button onClick={this.cancel} type="default">
                 Cancel
               </Button>,
-              <Button onClick={this.reject} type="danger">
-                Reject
-              </Button>,
-              <Button onClick={this.markLogistics} type="primary">
-                Mark Called
+              <Button onClick={this.makeTentative} type="primary">
+                Back to Tentative
               </Button>
             ]
           : []
@@ -484,9 +481,6 @@ export default class EventCard extends Component {
       .concat(
         category == 'Needs Approval'
           ? [
-              <Button onClick={this.cancel} type="default">
-                Cancel
-              </Button>,
               <Button onClick={this.reject} type="danger">
                 Reject
               </Button>,
