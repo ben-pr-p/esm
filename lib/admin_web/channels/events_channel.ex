@@ -55,6 +55,17 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  def handle_in("edit-" <> id, [["start_date", start_date], ["end_date", end_date]], socket) do
+    edits = Map.new([{"start_date", start_date}, {"end_date", end_date}])
+    insert_edit(%{event_id: id, edit: edits, actor: current_resource(socket)})
+
+    new_event = apply_edit(id, edits)
+
+    push(socket, "event", %{id: id, event: new_event})
+    broadcast(socket, "event", %{id: id, event: new_event})
+    {:noreply, socket}
+  end
+
   # Implement simple edit, contact edit (embeded), or location edit (associative)
   def handle_in("edit-" <> id, [key, value], socket) do
     new_event =
@@ -211,6 +222,12 @@ defmodule Admin.EventsChannel do
 
   defp apply_edit(id, [key, value]) do
     change = Map.put(%{}, key, value)
+    Proxy.post("events/#{id}", body: change)
+    %{body: event} = Proxy.get("events/#{id}")
+    event_pipeline(event)
+  end
+
+  defp apply_edit(id, change) when is_map(change) do
     Proxy.post("events/#{id}", body: change)
     %{body: event} = Proxy.get("events/#{id}")
     event_pipeline(event)

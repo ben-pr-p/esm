@@ -267,7 +267,7 @@ export default class EventCard extends Component {
             checkout={this.checkout}
             checkin={this.checkin}
             time_zone={location.time_zone}
-            starts_date={start_date}
+            start_date={start_date}
             end_date={end_date}
             onSave={this.onSave}
             attr="start_date"
