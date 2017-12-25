@@ -445,9 +445,9 @@ export default class EventCard extends Component {
               <Button onClick={this.makeTentative} type="default">
                 Back to Tentative
               </Button>,
-              <BUtton onClick={this.markCalled} type="primary">
+              <Button onClick={this.markCalled} type="primary">
                 Mark Called
-              </BUtton>
+              </Button>
             ]
           : []
       )
