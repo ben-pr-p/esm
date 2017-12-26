@@ -9,7 +9,7 @@ defmodule Admin.FormController do
     %{"metadata" => %{"event_submitted" => success_hook,
       "submission_failure" => failure_hook}} = Cosmic.get(@cosmic_config_slug)
 
-    try do
+    # try do
       created =
         params
         |> do_create()
@@ -23,13 +23,13 @@ defmodule Admin.FormController do
       |> IO.inspect()
 
       json(conn, created)
-    rescue e ->
-      failure_hook
-      |> HTTPotion.post(body: params |> IO.inspect() |> Poison.encode!())
-      |> IO.inspect()
-
-      json(conn, %{"ok" => "But error"})
-    end
+    # rescue e ->
+    #   failure_hook
+    #   |> HTTPotion.post(body: params |> IO.inspect() |> Poison.encode!())
+    #   |> IO.inspect()
+    #
+    #   json(conn, %{"ok" => "But error"})
+    # end
   end
 
   def do_create(body) do
@@ -80,13 +80,13 @@ defmodule Admin.FormController do
         time_zone: "", hour: easy_int(hours), minute: easy_int(minutes),
         second: 0, std_offset: 0, utc_offset: 0, zone_abbr: "UTC"
       }
-      |> Timex.format("{YYYY}-{M}-{D}T{h24}:{m}")
+      |> Timex.format("{YYYY}-{0M}-{D}T{h24}:{m}")
 
     dt
   end
 
   def military_time([time, "AM"]) do
-    [hours, minutes, seconds] = String.split(time, ":")
+    [hours, minutes] = String.split(time, ":") |> Enum.take(2)
     {hours, _} = Integer.parse(hours)
     case hours do
       12 -> [0, minutes]
@@ -95,7 +95,7 @@ defmodule Admin.FormController do
   end
 
   def military_time([time, "PM"]) do
-    [hours, minutes, seconds] = String.split(time, ":")
+    [hours, minutes] = String.split(time, ":") |> Enum.take(2)
     {hours, _} = Integer.parse(hours)
     case hours do
       12 -> [12, minutes]
