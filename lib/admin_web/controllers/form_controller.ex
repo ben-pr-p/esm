@@ -54,6 +54,8 @@ defmodule Admin.FormController do
     type = event_type
     status = "tentative"
 
+    IO.inspect ~m(location contact start_date end_date tags type title description status)
+
     %{body: created} = Proxy.post("events", body: ~m(
       location contact start_date end_date tags type title description status
     ))

@@ -37,7 +37,7 @@ defmodule Admin.Webhooks do
 
   def exec("edit", %{event: event, edits: edits}) do
     %{"metadata" => %{"event_edited" => hook}} = Cosmic.get(@cosmic_config_slug)
-      IO.puts "Posting webhook to #{hook} because of edit"
+    IO.puts "Posting webhook to #{hook} because of edit"
     IO.inspect HTTPotion.post(hook, bodify(%{event: event, edits: edits}))
   end
 
