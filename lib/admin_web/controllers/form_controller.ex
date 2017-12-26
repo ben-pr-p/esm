@@ -62,7 +62,7 @@ defmodule Admin.FormController do
       1 + "force error"
     end
 
-    created
+    IO.inspect created
   end
 
   def construct_dt(time, date) do
