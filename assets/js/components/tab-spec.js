@@ -58,7 +58,6 @@ export default [
       const match_date = ev.end_date || ev.start_date
 
       return (
-        ev.status == 'confirmed' &&
         isInPast(ev) &&
         !ev.tags.includes('Event: Action: Debriefed')
       )
