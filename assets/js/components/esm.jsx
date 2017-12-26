@@ -145,6 +145,10 @@ export default class Esm extends Component {
               <h1 style={{ color: 'white', textTransform: 'capitalize' }}>
                 Welcome {window.userEmail.split('@')[0]}!
               </h1>
+              <span style={{color: 'white'}}>
+                Please allow up to 20 seconds for all events to load, and
+                refresh to see new events that may have been created
+              </span>
               <Search
                 placeholder="Search title and description"
                 style={{ width: 200 }}
