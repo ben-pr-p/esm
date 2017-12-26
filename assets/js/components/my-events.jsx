@@ -9,6 +9,7 @@ const { Header, Content } = Layout
 export default class MyEvents extends Component {
   state = {
     events: {},
+    typeOptions: [],
     channel: null
   }
 
@@ -29,7 +30,12 @@ export default class MyEvents extends Component {
       })
 
     this.state.channel.on('event', ({ id, event }) => {
+      event.tags.forEach(t => window.tagOptions.push(t))
       this.state.events[id] = event
+      this.state.typeOptions = [
+        ...new Set(this.state.typeOptions.concat([event.type]))
+      ]
+
       this.forceUpdate()
     })
 
@@ -52,6 +58,7 @@ export default class MyEvents extends Component {
                 key={id}
                 event={this.state.events[id]}
                 channel={this.state.channel}
+                typeOptions={this.state.typeOptions}
                 category={undefined}
                 hostEdit={true}
               />
