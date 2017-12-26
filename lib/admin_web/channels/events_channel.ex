@@ -298,7 +298,13 @@ defmodule Admin.EventsChannel do
       edited_at: Timex.now()
     })
 
-    Admin.EditAgent.record_edit(event_id)
+    case edit do
+      %{"status" => _} -> nil
+      %{"tags" => _} -> nil
+      %{"calendar" => _} -> nil
+      %{"action" => _} -> nil
+      _ -> Admin.EditAgent.record_edit(event_id)
+    end
   end
 
   defp async_rsvp_count_fetch(event) do
