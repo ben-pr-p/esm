@@ -16,9 +16,9 @@ export default class EditableDate extends Component {
   }
 
   componentWillMount() {
-    this.state.newDate = moment(this.props.value)
-    this.state.newStart = moment(this.props.value)
-    this.state.newEnd = moment(this.props.value)
+    this.state.newDate = moment.tz(this.props.value, this.props.time_zone)
+    this.state.newStart = moment.tz(this.props.value, this.props.time_zone)
+    this.state.newEnd = moment.tz(this.props.value, this.props.time_zone)
   }
 
   onDateChange = newDate => this.setState({ newDate })
@@ -50,9 +50,6 @@ export default class EditableDate extends Component {
     const start_date = combineDateAndTime(newDate.clone(), newStart)
     const end_date = combineDateAndTime(newDate.clone(), newEnd)
 
-    console.log(start_date.toISOString())
-    console.log(end_date.toISOString())
-
     this.props.onSave([
       ['start_date', start_date.format()],
       ['end_date', end_date.format()]
@@ -61,10 +58,10 @@ export default class EditableDate extends Component {
 
   render = () => {
     const start_moment = this.props.start_date
-      ? moment(this.props.start_date).tz('America/Chicago')
+      ? moment.tz(this.props.start_date, this.props.time_zone)
       : null
 
-    const end_moment = this.props.end_date ? moment(this.props.end_date).tz('America/Chicago') : null
+    const end_moment = this.props.end_date ? moment.tz(this.props.end_date, this.props.time_zone) : null
 
     return (
       <div onDoubleClick={this.editOn}>

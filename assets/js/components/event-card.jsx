@@ -252,6 +252,7 @@ export default class EventCard extends Component {
             start_date={start_date}
             end_date={end_date}
             onSave={this.onSave}
+            time_zone={location.time_zone}
             attr="start_date"
           />
         </div>
@@ -445,7 +446,7 @@ export default class EventCard extends Component {
               <Button onClick={this.makeTentative} type="default">
                 Back to Tentative
               </Button>,
-              <Button onClick={this.markCalled} type="primary">
+              <Button onClick={this.markLogistics} type="primary">
                 Mark Called
               </Button>
             ]
