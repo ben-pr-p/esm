@@ -96,10 +96,12 @@ defmodule Admin.Webhooks do
 
     {hour, am_pm} = if hour >= 12, do: {hour - 12, "PM"}, else: {hour, "AM"}
     hour = if hour == 0, do: 12, else: hour
+    hour = "#{hour}"
+    hour = if String.length(hour) == 2, do: hour, else: "0#{hour}"
     minute = if minute == 0, do: "", else: "#{minute}"
     minute = if String.length(minute) == 2, do: minute, else: "0#{minute}"
 
-    "#{hour}:#{minute}"
+    "#{hour}:#{minute}" <> am_pm
   end
 
   def parse(nil) do

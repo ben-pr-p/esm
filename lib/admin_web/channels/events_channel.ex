@@ -151,13 +151,15 @@ defmodule Admin.EventsChannel do
 
   defp send_esm_events(socket) do
     Proxy.stream("events")
-    |> Enum.map(&async_rsvp_count_fetch/1)
-    |> Enum.map(fn task -> Task.await(task, 60_000) end)
-    |> Enum.map(&event_pipeline/1)
-    |> Enum.each(fn event ->
+    |> Flow.from_enumerable()
+    |> Flow.map(&async_rsvp_count_fetch/1)
+    |> Flow.map(fn task -> Task.await(task, 60_000) end)
+    |> Flow.map(&event_pipeline/1)
+    |> Flow.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
          push(socket, "event", %{id: id, event: event})
        end)
+    |> Flow.run()
   end
 
   defp send_list_events(socket) do

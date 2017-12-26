@@ -70,7 +70,7 @@ export default class Esm extends Component {
 
   eventsFor = (fn, category) =>
     this.filteredEvents()
-      .filter(e => fn(this.state.events[e]))
+      .filter(e => fn(this.state.events[e], true))
       .sort(
         (a, b) =>
           new Date(this.state.events[a].start_date) -
@@ -108,9 +108,12 @@ export default class Esm extends Component {
       })
 
     this.state.channel.on('event', ({ id, event }) => {
-      this.state.events[id] = event
+      const newEvents = Object.assign({}, this.state.events, { [id]: event })
       event.tags.forEach(t => window.tagOptions.push(t))
-      this.state.typeOptions = [...new Set(this.state.typeOptions.push(event.type))]
+      this.state.events[id] = event
+      const typeOptions = [
+        ...new Set(this.state.typeOptions.concat([event.type]))
+      ]
       this.forceUpdate()
     })
 
@@ -179,7 +182,9 @@ export default class Esm extends Component {
             </div>
           </Header>
           <Content style={{ height: '100%' }}>
-            <Tabs onTabClick={this.onTabChange}>
+            <Tabs
+              onTabClick={this.onTabChange}
+              defaultActiveKey="Needs Approval">
               {tabSpec.map(({ title, fn }) => (
                 <TabPane
                   tab={
@@ -187,7 +192,6 @@ export default class Esm extends Component {
                       ? title
                       : title + ` (${this.countEventsFor(fn)})`
                   }
-                  defaultActiveKey="ESM Call #1"
                   key={title}>
                   <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                     {this.eventsFor(fn, title)}
