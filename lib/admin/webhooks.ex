@@ -53,14 +53,19 @@ defmodule Admin.Webhooks do
   end
 
   def get_date_line(event) do
-    humanize_date(event.start_date) <>
+    time_zone = Timex.Timezone.get(event.location.time_zone)
+
+    humanize_date(event.start_date, time_zone) <>
       "from " <>
-      humanize_time(event.start_date) <>
-      " - " <> humanize_time(event.end_date)
+      humanize_time(event.start_date, time_zone) <>
+      "-" <> humanize_time(event.end_date, time_zone)
   end
 
-  defp humanize_date(dt) do
-    %DateTime{month: month, day: day} = parse(dt)
+  defp humanize_date(dt, time_zone) do
+    %DateTime{month: month, day: day} =
+      dt
+      |> parse()
+      |> Timex.Timezone.convert(time_zone)
 
     month =
       [
@@ -82,14 +87,19 @@ defmodule Admin.Webhooks do
     "#{month} #{day} "
   end
 
-  defp humanize_time(dt) do
-    %DateTime{hour: hour, minute: minute} = parse(dt)
+  defp humanize_time(dt, time_zone) do
+    %DateTime{hour: hour, minute: minute} =
+      dt
+      |> parse()
+      |> Timex.Timezone.convert(time_zone)
+      |> IO.inspect()
 
     {hour, am_pm} = if hour >= 12, do: {hour - 12, "PM"}, else: {hour, "AM"}
     hour = if hour == 0, do: 12, else: hour
-    minute = if minute == 0, do: "", else: ":#{minute}"
+    minute = if minute == 0, do: "", else: "#{minute}"
+    minute = if String.length(minute) == 2, do: minute, else: "0#{minute}"
 
-    "#{hour}#{minute} " <> am_pm
+    "#{hour}:#{minute}"
   end
 
   def parse(nil) do
