@@ -71,12 +71,15 @@ defmodule Admin.FormController do
     [hours, minutes] = String.split(time, " ") |> military_time()
     [month, day, year] = String.split(date, "/")
 
-    %DateTime{
-      year: easy_int(year), month: easy_int(month), day: easy_int(day),
-      time_zone: "", hour: easy_int(hours), minute: easy_int(minutes),
-      second: 0, std_offset: 0, utc_offset: 0, zone_abbr: "UTC"
-    }
-    |> Timex.format("{YYYY}-{M}-{D}T{h24}:{m}")
+    {:ok, dt} =
+      %DateTime{
+        year: easy_int(year), month: easy_int(month), day: easy_int(day),
+        time_zone: "", hour: easy_int(hours), minute: easy_int(minutes),
+        second: 0, std_offset: 0, utc_offset: 0, zone_abbr: "UTC"
+      }
+      |> Timex.format("{YYYY}-{M}-{D}T{h24}:{m}")
+
+    dt
   end
 
   def military_time([time, "AM"]) do
