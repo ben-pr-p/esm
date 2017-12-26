@@ -21,7 +21,6 @@ import mtz from 'moment-timezone'
 
 const { TextArea } = Input
 const { Option } = Select
-
 export default class EventCard extends Component {
   onSave = kv => {
     this.props.channel.push(`edit-${this.props.id}`, kv)
@@ -231,14 +230,7 @@ export default class EventCard extends Component {
             defaultValue={type}
             style={{ width: 300 }}
             onChange={this.onTypeChange}>
-            {[
-              'Phonebank',
-              'Organizing meeting',
-              'Tabling or Clipboarding',
-              'Canvass',
-              'Rally, march, or protest',
-              'Other'
-            ].map(o => <Option value={o}>{o}</Option>)}
+            {this.props.typeOptions.map(o => <Option value={o}>{o}</Option>)}
           </Select>
         </div>
 
@@ -259,13 +251,6 @@ export default class EventCard extends Component {
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Location</strong>
-          <br />
-          <Checkbox
-            checked={location.public}
-            onChange={e => this.onSave(['location.public', e.target.checked])}>
-            Address Public?
-          </Checkbox>
-          <br />
           <br />
           <strong>Venue:</strong>{' '}
           <EditableText
@@ -340,13 +325,6 @@ export default class EventCard extends Component {
             value={contact.phone_number}
             attr="contact.phone_number"
           />
-          <br />
-          <Checkbox
-            checked={contact.public}
-            onChange={e => this.onSave(['contact.public', e.target.checked])}>
-            Phone Public?
-          </Checkbox>
-          <br />
           <br />
           <strong>Email Address:</strong>{' '}
           <EditableText

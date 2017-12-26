@@ -17,7 +17,8 @@ export default class Esm extends Component {
     search: '',
     state: null,
     calendars: [],
-    tabActiveKey: tabSpec[0].title
+    tabActiveKey: tabSpec[0].title,
+    typeOptions: []
   }
 
   setSearch = value => this.setState({ search: value })
@@ -77,6 +78,7 @@ export default class Esm extends Component {
       )
       .map(id => (
         <EventCard
+          typeOptions={this.state.typeOptions}
           key={id}
           event={this.state.events[id]}
           id={id}
@@ -108,6 +110,7 @@ export default class Esm extends Component {
     this.state.channel.on('event', ({ id, event }) => {
       this.state.events[id] = event
       event.tags.forEach(t => window.tagOptions.push(t))
+      this.state.typeOptions = [...new Set(this.state.typeOptions.push(event.type))]
       this.forceUpdate()
     })
 
