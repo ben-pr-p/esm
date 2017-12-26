@@ -74,6 +74,7 @@ defmodule Admin.FormController do
       time_zone: "", hour: easy_int(hours), minute: easy_int(minutes),
       second: 0, std_offset: 0, utc_offset: 0, zone_abbr: "UTC"
     }
+    |> Timex.format("{YYYY}-{M}-{D}T{h24}:{m}")
   end
 
   def military_time([time, "AM"]) do
