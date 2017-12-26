@@ -47,7 +47,7 @@ defmodule Admin.Webhooks do
 
   defp bodify(body), do: [body: Poison.encode!(IO.inspect(body))]
 
-  defp process_event(event) do
+  def process_event(event) do
     event
     |> Map.put(:date_line, get_date_line(event))
   end

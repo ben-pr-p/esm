@@ -10,7 +10,10 @@ defmodule Admin.FormController do
       "submission_failure" => failure_hook}} = Cosmic.get(@cosmic_config_slug)
 
     try do
-      created = do_create(params)
+      created =
+        params
+        |> do_create()
+        |> Admin.Webhooks.process_event()
 
       IO.puts "Posting webhook to #{success_hook}"
       IO.inspect created
