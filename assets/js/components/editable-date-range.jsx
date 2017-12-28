@@ -15,10 +15,23 @@ export default class EditableDate extends Component {
     newEnd: undefined
   }
 
+  constructMoment = time =>
+    time
+      ? this.props.time_zone
+        ? moment.tz(time, this.props.time_zone)
+        : moment(time)
+      : null
+
+  combineDateAndTime = (date, time) => {
+    date.hours(time.hours())
+    date.minutes(time.minutes())
+    return date
+  }
+
   componentWillMount() {
-    this.state.newDate = moment.tz(this.props.value, this.props.time_zone)
-    this.state.newStart = moment.tz(this.props.value, this.props.time_zone)
-    this.state.newEnd = moment.tz(this.props.value, this.props.time_zone)
+    this.state.newDate = this.constructMoment(this.props.start_date)
+    this.state.newStart = this.constructMoment(this.props.start_date)
+    this.state.newEnd = this.constructMoment(this.props.end_date)
   }
 
   onDateChange = newDate => this.setState({ newDate })
@@ -40,15 +53,9 @@ export default class EditableDate extends Component {
   onSave = attr => () => {
     this.setState({ editing: false })
 
-    const combineDateAndTime = (date, time) => {
-      date.hours(time.hours())
-      date.minutes(time.minutes())
-      return date
-    }
-
     const { newDate, newStart, newEnd } = this.state
-    const start_date = combineDateAndTime(newDate.clone(), newStart)
-    const end_date = combineDateAndTime(newDate.clone(), newEnd)
+    const start_date = this.combineDateAndTime(newDate.clone(), newStart)
+    const end_date = this.combineDateAndTime(newDate.clone(), newEnd)
 
     this.props.onSave([
       ['start_date', start_date.format()],
@@ -57,11 +64,8 @@ export default class EditableDate extends Component {
   }
 
   render = () => {
-    const start_moment = this.props.start_date
-      ? moment.tz(this.props.start_date, this.props.time_zone)
-      : null
-
-    const end_moment = this.props.end_date ? moment.tz(this.props.end_date, this.props.time_zone) : null
+    const start_moment = this.constructMoment(this.props.start_date)
+    const end_moment = this.constructMoment(this.props.end_date)
 
     return (
       <div onDoubleClick={this.editOn}>
@@ -111,9 +115,9 @@ export default class EditableDate extends Component {
         {start_moment.format('dddd, MMMM Do YYYY')}
         <br />
         <span style={{ userSelect: 'none' }}>
-          {`From ${start_moment.format('h:mm A')} to ${end_moment.format(
-            'h:mm A'
-          )}`}
+          {`From ${start_moment.format('h:mm A')} to ${
+            end_moment ? end_moment.format('h:mm A') : 'unspecified'
+          }`}
         </span>
       </div>
     )
