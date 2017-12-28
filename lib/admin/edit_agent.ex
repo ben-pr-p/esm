@@ -17,7 +17,7 @@ defmodule Admin.EditAgent do
           DateTime.utc_now()
         end
 
-      ending_at = Timex.shift(DateTime.utc_now(), minutes: 1)
+      ending_at = Timex.shift(DateTime.utc_now(), minutes: 5)
 
       return = Map.put(edit_ranges, id, %{starting_at: starting_at, ending_at: ending_at})
       {return, return}
