@@ -17,7 +17,7 @@ defmodule Admin.EditAgent do
           DateTime.utc_now()
         end
 
-      ending_at = Timex.shift(DateTime.utc_now(), minutes: 5)
+      ending_at = Timex.shift(DateTime.utc_now(), minutes: 1)
 
       return = Map.put(edit_ranges, id, %{starting_at: starting_at, ending_at: ending_at})
       {return, return}
@@ -32,12 +32,12 @@ defmodule Admin.EditAgent do
         Timex.before?(ending_at, DateTime.utc_now())
       end)
 
-    ranges_to_send
-    |> IO.inspect()
-    |> Enum.map(&fetch_edits/1)
-    |> Enum.map(&send_edits/1)
-
-    Enum.map(ranges_to_send, fn {id, _} -> id end)
+    Stream.map(ranges_to_send, fn range ->
+      {id, _} = to_send = fetch_edits(range)
+      send_edits(to_send)
+      clear([id])
+    end)
+    |> Stream.run()
   end
 
   defp fetch_edits({id, %{starting_at: starting_at, ending_at: ending_at}}) do
@@ -58,7 +58,6 @@ defmodule Admin.EditAgent do
 
   def send_and_clear do
     sent_ids = send()
-    clear(sent_ids)
   end
 
   def edits_for_within(id, starting_at, ending_at) do
