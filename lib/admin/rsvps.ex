@@ -14,15 +14,13 @@ defmodule Rsvps do
         Enum.join(
           [
             Enum.join([p.given_name, p.family_name], " "),
-            List.first(p.email_addresses) |> Map.get(:address),
             List.first(p.phone_numbers) |> Map.get(:number),
-            ""
           ],
           ","
         )
       end)
 
-    ["Name,Email,Phone,Ref Code"]
+    ["Name,Phone"]
     |> Enum.concat(csv_content)
     |> Enum.join("\n")
   end
