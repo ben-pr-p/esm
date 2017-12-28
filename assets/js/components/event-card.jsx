@@ -14,6 +14,7 @@ import {
   message
 } from 'antd'
 import EditableText from './editable-text'
+import EditableNumber from './editable-number'
 import EditableDateRange from './editable-date-range'
 import clipboard from 'clipboard-js'
 import mtz from 'moment-timezone'
@@ -98,6 +99,7 @@ export default class EventCard extends Component {
     const {
       title,
       tags,
+      capacity,
       status,
       name,
       description,
@@ -154,15 +156,13 @@ export default class EventCard extends Component {
           </div>
         }
         style={{ width: '100%', margin: 25 }}
-        bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}
-      >
+        bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>
         <Modal
           visible={this.state.rejecting}
           title="Why are you rejecting the event?"
           okText="Reject and Send"
           onCancel={() => this.setState({ rejecting: false })}
-          onOk={this.rejectWithMessage}
-        >
+          onOk={this.rejectWithMessage}>
           <p>
             Check for typos – this rejection message will be sent directly to
             the event host.
@@ -194,10 +194,23 @@ export default class EventCard extends Component {
           </div>
         </div>
 
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Capcity:</strong>
+          <div>
+            <EditableNumber
+              disabled={disabled}
+              value={capacity}
+              attr="capacity"
+              onSave={this.onSave}
+              checkout={this.checkout}
+              checkin={this.checkin}
+            />
+          </div>
+        </div>
+
         <div
           className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}
-        >
+          style={{ margin: 10, minWidth: 250, width: '100%' }}>
           <strong>Description:</strong>{' '}
           <EditableText
             disabled={disabled}
@@ -212,8 +225,7 @@ export default class EventCard extends Component {
 
         <div
           className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}
-        >
+          style={{ margin: 10, minWidth: 250, width: '100%' }}>
           <strong>Instructions:</strong>{' '}
           <EditableText
             disabled={disabled}
@@ -228,14 +240,12 @@ export default class EventCard extends Component {
 
         <div
           className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}
-        >
+          style={{ margin: 10, minWidth: 250, width: '100%' }}>
           <strong>Type:</strong>{' '}
           <Select
             defaultValue={type}
             style={{ width: 300 }}
-            onChange={this.onTypeChange}
-          >
+            onChange={this.onTypeChange}>
             {[
               'Phonebank',
               'Organizing meeting',
@@ -250,8 +260,7 @@ export default class EventCard extends Component {
         {!this.props.hostEdit && (
           <div
             className="field-group"
-            style={{ margin: 10, minWidth: 250, width: '100%' }}
-          >
+            style={{ margin: 10, minWidth: 250, width: '100%' }}>
             <strong>Calendars:</strong>{' '}
             <Select
               mode="multiple"
@@ -260,8 +269,7 @@ export default class EventCard extends Component {
               onChange={this.onCalendarChange}
               defaultValue={tags
                 .filter(t => t.includes('Calendar:'))
-                .map(t => t.split(':')[1].trim())}
-            >
+                .map(t => t.split(':')[1].trim())}>
               {calendarOptions.map(c => <Option key={c}>{c}</Option>)}
             </Select>
           </div>
@@ -286,8 +294,7 @@ export default class EventCard extends Component {
           <br />
           <Checkbox
             checked={location.public}
-            onChange={e => this.onSave(['location.public', e.target.checked])}
-          >
+            onChange={e => this.onSave(['location.public', e.target.checked])}>
             Address Public?
           </Checkbox>
           <br />
@@ -368,8 +375,7 @@ export default class EventCard extends Component {
           <br />
           <Checkbox
             checked={contact.public}
-            onChange={e => this.onSave(['contact.public', e.target.checked])}
-          >
+            onChange={e => this.onSave(['contact.public', e.target.checked])}>
             Phone Public?
           </Checkbox>
           <br />
@@ -395,8 +401,7 @@ export default class EventCard extends Component {
               onChange={this.onTagsChange}
               defaultValue={tags.filter(
                 t => !t.includes('Calendar') && !t.includes('Event Type:')
-              )}
-            >
+              )}>
               {window.tagOptions
                 .filter(
                   t => !t.includes('Event: Action') && !t.includes('Calendar')
@@ -422,8 +427,7 @@ export default class EventCard extends Component {
             <Menu.Item>
               <Button
                 style={{ width: '100%' }}
-                onClick={() => window.open(rsvp_download_url)}
-              >
+                onClick={() => window.open(rsvp_download_url)}>
                 Download RSVPs
               </Button>
             </Menu.Item>
@@ -436,8 +440,7 @@ export default class EventCard extends Component {
                     .then(() =>
                       message.success('RSVP download link copied to clipboard')
                     )
-                }
-              >
+                }>
                 Copy RSVP Download Link
               </Button>
             </Menu.Item>
@@ -450,8 +453,7 @@ export default class EventCard extends Component {
                     .then(() =>
                       message.success('Organizer edit link copied to clipboard')
                     )
-                }
-              >
+                }>
                 Copy Organizer Edit Link
               </Button>
             </Menu.Item>
@@ -461,8 +463,7 @@ export default class EventCard extends Component {
               </Button>
             </Menu.Item>
           </Menu>
-        }
-      >
+        }>
         <Button>
           More <Icon type="down" />
         </Button>
