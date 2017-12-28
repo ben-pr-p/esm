@@ -55,6 +55,18 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  # Handle two attribute edit
+  def handle_in("edit-" <> id, [["start_date", start_date], ["end_date", end_date]], socket) do
+    edits = Map.new([{"start_date", start_date}, {"end_date", end_date}])
+    insert_edit(%{event_id: id, edit: edits, actor: current_resource(socket)})
+
+    new_event = apply_edit(id, edits)
+
+    push(socket, "event", %{id: id, event: new_event})
+    broadcast(socket, "event", %{id: id, event: new_event})
+    {:noreply, socket}
+  end
+
   # Implement simple edit, contact edit (embeded), or location edit (associative)
   def handle_in("edit-" <> id, [key, value], socket) do
     new_event =
