@@ -54,7 +54,8 @@ defmodule Admin.Mixfile do
       {:httpotion, "~> 3.0.2"},
       {:mongodb, "~> 0.4.3"},
       {:timex, "~> 3.1"},
-      {:short_maps, "~> 0.1.2"}
+      {:short_maps, "~> 0.1.2"},
+      {:flow, "~> 0.11"}
     ]
   end
 
