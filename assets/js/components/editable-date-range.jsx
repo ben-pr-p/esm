@@ -65,7 +65,8 @@ export default class EditableDate extends Component {
 
   render = () => {
     const start_moment = this.constructMoment(this.props.start_date)
-    const end_moment = this.constructMoment(this.props.end_date)
+    const end_moment =
+      this.constructMoment(this.props.end_date) || start_moment.clone().add(2, 'hours')
 
     return (
       <div onDoubleClick={this.editOn}>
