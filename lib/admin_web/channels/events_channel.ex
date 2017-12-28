@@ -232,6 +232,12 @@ defmodule Admin.EventsChannel do
     event_pipeline(event)
   end
 
+  defp apply_edit(id, change) when is_map(change) do
+    Proxy.post("events/#{id}", body: change)
+    %{body: event} = Proxy.get("events/#{id}")
+    event_pipeline(event)
+  end
+
   defp apply_contact_edit(id, [raw_key, value]) do
     "contact." <> key = raw_key
     contact_change = Map.put(%{}, key, value)
