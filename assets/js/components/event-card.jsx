@@ -14,6 +14,7 @@ import {
   message
 } from 'antd'
 import EditableText from './editable-text'
+import EditableNumber from './editable-number'
 import EditableDateRange from './editable-date-range'
 import clipboard from 'clipboard-js'
 import mtz from 'moment-timezone'
@@ -97,6 +98,7 @@ export default class EventCard extends Component {
     const {
       title,
       tags,
+      capacity,
       status,
       name,
       description,
@@ -188,6 +190,20 @@ export default class EventCard extends Component {
             <a target="_blank" href={browser_url}>
               {browser_url}
             </a>
+          </div>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Capcity:</strong>
+          <div>
+            <EditableNumber
+              disabled={disabled}
+              value={capacity}
+              attr="capacity"
+              onSave={this.onSave}
+              checkout={this.checkout}
+              checkin={this.checkin}
+            />
           </div>
         </div>
 
