@@ -34,7 +34,6 @@ class EditableNumber extends Component {
           <div>
             <InputNumber
               style={{ width: 250 }}
-              precision={5}
               onChange={this.onChange}
               defaultValue={this.props.value}
               onPressEnter={this.onSave(this.props.attr)}
