@@ -61,7 +61,7 @@ defmodule Admin.FormController do
     type = event_type
     status = "tentative"
 
-    IO.inspect(~m(location contact start_date end_date tags type title description status))
+    IO.inspect(~m(location contact start_date end_date tags type title description status capacity))
 
     %{body: created} = Proxy.post("events", body: ~m(
       location contact start_date end_date tags type title description status
@@ -79,8 +79,7 @@ defmodule Admin.FormController do
     [hours, minutes] = String.split(time, " ") |> military_time()
     [month, day, year] = String.split(date, "/")
 
-    # {:ok, dt} =
-    dt =
+    {:ok, dt} =
       %DateTime{
         year: easy_int(year),
         month: easy_int(month),
@@ -93,9 +92,7 @@ defmodule Admin.FormController do
         utc_offset: 0,
         zone_abbr: "UTC"
       }
-      |> DateTime.to_iso8601()
-
-    # |> Timex.format("{YYYY}-{0M}-{D}T{h24}:{m}")
+    |> Timex.format("{YYYY}-{0M}-{0D}T{h24}:{m}")
 
     dt
   end
