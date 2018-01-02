@@ -67,6 +67,7 @@ defmodule Admin.EditAgent do
         %{ending_at: %{"$gt" => starting_at}},
         %{ending_at: %{"$lt" => ending_at}}
       ]
-    }) |> Enum.to_list()
+    })
+    |> Enum.to_list()
   end
 end

@@ -208,11 +208,7 @@ defmodule Admin.EventsChannel do
     id = event.identifiers |> List.first() |> String.split(":") |> List.last()
     encrypted_id = Cipher.encrypt(id)
 
-    Map.put(
-      event,
-      :rsvp_download_url,
-      "https://esm.betofortexas.com/rsvps/#{encrypted_id}"
-    )
+    Map.put(event, :rsvp_download_url, "https://esm.betofortexas.com/rsvps/#{encrypted_id}")
   end
 
   defp add_organizer_edit_url(event) do

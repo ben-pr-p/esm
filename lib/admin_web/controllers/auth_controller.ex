@@ -16,7 +16,9 @@ defmodule Admin.AuthController do
         |> redirect(to: "/events")
 
       {:error, email} when is_binary(email) ->
-        json(conn, %{error: "Use your @betofortexas email #{email}, or request to be given access from your administrator"})
+        json(conn, %{
+          error: "Use your @betofortexas email #{email}, or request to be given access from your administrator"
+        })
     end
   end
 
