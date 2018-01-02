@@ -30,6 +30,9 @@ defmodule Admin.FormController do
     ~m(first_name last_name email phone city state zip event_type zip title date
        start_time end_time venue address description) = body
 
+    capacity = body["capacity"] || 50
+    capacity = easy_int(capacity)
+
     location = %{
       venue: venue,
       locality: city,
@@ -53,6 +56,7 @@ defmodule Admin.FormController do
 
     %{body: created} = Proxy.post("events", body: ~m(
       location contact start_date end_date tags type title description status
+      capacity
     ))
 
     created
