@@ -12,6 +12,7 @@ defmodule Admin.EventsChannel do
   )a
 
   @instance Application.get_env(:admin, :instance, "jd")
+  @deployed_url Application.get_env(:admin, :deployed_url, "localhost:4000")
 
   def join("events", %{"organizer_token" => token}, socket) do
     case token |> URI.encode_www_form() |> Cipher.decrypt() do
@@ -181,6 +182,11 @@ defmodule Admin.EventsChannel do
     Proxy.stream("events")
     |> Flow.from_enumerable()
     |> Flow.filter(&(&1.organizer_id == organizer_id))
+    |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
+    |> Flow.filter(fn %{start_date: start_date} ->
+      {:ok, dt, _} = DateTime.from_iso8601(start_date)
+      Timex.before?(Timex.now(), dt)
+    end)
     |> Flow.map(&async_rsvp_count_fetch/1)
     |> Flow.map(&Task.await/1)
     |> Flow.map(&event_pipeline/1)
@@ -191,7 +197,7 @@ defmodule Admin.EventsChannel do
     |> Flow.run()
   end
 
-  defp event_pipeline(event) do
+  def event_pipeline(event) do
     event
     |> add_rsvp_download_url()
     |> add_organizer_edit_url()
@@ -208,11 +214,8 @@ defmodule Admin.EventsChannel do
     id = event.identifiers |> List.first() |> String.split(":") |> List.last()
     encrypted_id = Cipher.encrypt(id)
 
-    Map.put(
-      event,
-      :rsvp_download_url,
-      "https://admin.justicedemocrats.com/rsvps/#{encrypted_id}"
-    )
+
+    Map.put(event, :rsvp_download_url, "#{@deployed_url}/rsvps/#{encrypted_id}")
   end
 
   defp add_organizer_edit_url(event) do
@@ -221,7 +224,7 @@ defmodule Admin.EventsChannel do
     Map.put(
       event,
       :organizer_edit_url,
-      "https://admin.justicedemocrats.com/my-events/#{organizer_edit_hash}"
+      "#{@deployed_url}/my-events/#{organizer_edit_hash}"
     )
   end
 
