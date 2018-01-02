@@ -13,6 +13,10 @@ export default class MyEvents extends Component {
     channel: null
   }
 
+  componentWillMount() {
+    window.tagOptions = []
+  }
+
   componentDidMount() {
     const token = document
       .querySelector('#organizer-token')
@@ -56,6 +60,7 @@ export default class MyEvents extends Component {
             {Object.keys(this.state.events).map(id => (
               <EventCard
                 key={id}
+                id={id}
                 event={this.state.events[id]}
                 channel={this.state.channel}
                 typeOptions={this.state.typeOptions}
