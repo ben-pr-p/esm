@@ -184,7 +184,14 @@ defmodule Admin.EventsChannel do
     |> Flow.filter(&(&1.organizer_id == organizer_id))
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
     |> Flow.filter(fn %{start_date: start_date} ->
-      {:ok, dt, _} = DateTime.from_iso8601(start_date)
+      dt =
+        case DateTime.from_iso8601(start_date) do
+          {:ok, dt, _} -> dt
+          _ ->
+            {:ok, dt, _} = DateTime.from_iso8601(start_date <> "Z")
+            Timex.shift(dt, days: 1)
+        end
+
       Timex.before?(Timex.now(), dt)
     end)
     |> Flow.map(&async_rsvp_count_fetch/1)
