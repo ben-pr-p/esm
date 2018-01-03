@@ -1,6 +1,7 @@
 defmodule Admin.EventsChannel do
   use Admin, :channel
   alias Admin.{Webhooks}
+  alias Phoenix.Socket.Broadcast
   use Guardian.Channel
   alias Admin.{CheckoutAgent}
   import Guardian.Phoenix.Socket
@@ -13,6 +14,8 @@ defmodule Admin.EventsChannel do
 
   @instance Application.get_env(:admin, :instance, "jd")
   @deployed_url Application.get_env(:admin, :deployed_url, "localhost:4000")
+
+  intercept ["event"]
 
   def join("events", %{"organizer_token" => token}, socket) do
     case token |> URI.encode_www_form() |> Cipher.decrypt() do
@@ -330,5 +333,24 @@ defmodule Admin.EventsChannel do
         _e -> Map.put(event, :attendance_count, 0)
       end
     end)
+  end
+
+  # ----------
+  # -- Special section – makes it so that people in organizer edit view
+  # -- only get updates for their events
+  # ----------
+
+  # Match someone in organizer edit view
+  def handle_out("event", payload = %{event: event}, socket = %{assigns: %{organizer_id: organizer_id}}) do
+    if event.organizer_id == organizer_id do
+      push(socket, "event", payload)
+    end
+    {:noreply, socket}
+  end
+
+  # Match a regular logged in user
+  def handle_out("event", payload, socket) do
+    push(socket, "event", payload)
+    {:noreply, socket}
   end
 end
