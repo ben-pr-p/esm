@@ -78,9 +78,5 @@ export default [
   {
     title: 'Cancelled',
     fn: ev => ev.status == 'cancelled'
-  },
-  {
-    title: 'Unapproved in the Past',
-    fn: ev => ev.status == 'tentative' && isInPast(ev)
   }
 ]
