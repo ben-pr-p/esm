@@ -4,8 +4,9 @@ import enUS from 'antd/lib/locale-provider/en_US'
 import socket from '../socket'
 import EventCard from './event-card'
 import tabSpec from './tab-spec'
+import FilterHeader from './header/index'
 
-const { Header, Content } = Layout
+const { Content } = Layout
 const { Search } = Input
 const { TabPane } = Tabs
 const { Option } = Select
@@ -18,7 +19,8 @@ export default class Esm extends Component {
     state: null,
     calendars: [],
     tabActiveKey: tabSpec[0].title,
-    typeOptions: []
+    typeOptions: [],
+    globalFilterFn: () => true
   }
 
   setSearch = value => this.setState({ search: value })
@@ -32,45 +34,19 @@ export default class Esm extends Component {
         )
   }
 
-  filteredEvents = () =>
+  filteredEvents = fn =>
     Object.keys(this.state.events).filter(e => {
       const event = this.state.events[e]
-
-      const searchOk =
-        this.state.search != ''
-          ? (event.name &&
-              event.name
-                .toLowerCase()
-                .includes(this.state.search.toLowerCase())) ||
-            (event.description &&
-              event.description
-                .toLowerCase()
-                .includes(this.state.search.toLowerCase()))
-          : true
-
-      const stateOk =
-        this.state.state == null || this.state.state.trim() == ''
-          ? true
-          : event.location.region == this.state.state
-
-      const calendarOk =
-        this.state.calendars.length == 0
-          ? true
-          : this.state.calendars.filter(c =>
-              event.tags
-                .map(t => t.toLowerCase())
-                .includes(`Calendar: ${c}`.toLowerCase())
-            ).length > 0
-
-      return searchOk && stateOk && calendarOk
+      return fn(event) && this.state.globalFilterFn(event)
     })
 
   countEventsFor = fn =>
-    this.filteredEvents().filter(e => fn(this.state.events[e])).length
+    this.filteredEvents(fn).length
+
+  setGlobalFilterFn = globalFilterFn => this.setState({ globalFilterFn })
 
   eventsFor = (fn, category) =>
-    this.filteredEvents()
-      .filter(e => fn(this.state.events[e], true))
+    this.filteredEvents(fn)
       .sort(
         (a, b) =>
           new Date(this.state.events[a].start_date) -
@@ -117,6 +93,14 @@ export default class Esm extends Component {
       this.forceUpdate()
     })
 
+    this.state.channel.on('events', ({ all_events }) => {
+      all_events.forEach(({ id, event }) => {
+        this.state.events[id] = event
+        event.tags.forEach(t => window.tagOptions.push(t))
+      })
+      this.forceUpdate()
+    })
+
     this.state.channel.on('checkout', ({ id, actor }) => {
       this.state.events[id].checked_out_by = actor
       this.forceUpdate()
@@ -134,57 +118,7 @@ export default class Esm extends Component {
     return (
       <LocaleProvider locale={enUS}>
         <Layout style={{ width: '100%', height: '100%' }}>
-          <Header>
-            <div
-              style={{
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-around'
-              }}>
-              <h1 style={{ color: 'white', textTransform: 'capitalize' }}>
-                Welcome {window.userEmail.split('@')[0]}!
-              </h1>
-              <span style={{color: 'white'}}>
-                Please allow up to 20 seconds for all events to load, and
-                refresh to see new events that may have been created
-              </span>
-              <Search
-                placeholder="Search title and description"
-                style={{ width: 200 }}
-                onSearch={this.setSearch}
-              />
-
-              {/* <Select
-                style={{
-                  width: 300,
-                  float: 'right',
-                  marginTop: 'auto',
-                  marginBottom: 'auto'
-                }}
-                mode="multiple"
-                defaultValue={[]}
-                onChange={this.setCalendarFilter}
-                placeholder="Calendar Filter"
-                filterOption={(input, option) =>
-                  option.props.children
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }>
-                {window.calendarOptions
-                  .sort()
-                  .map(c => <Option value={c.toLowerCase()}>{c}</Option>)}
-              </Select> */}
-
-              <Select
-                onChange={this.setStateFilter}
-                placeholder="State Filter"
-                style={{ width: 200 }}>
-                <Option value="">All States</Option>
-                {window.states.map(st => <Option value={st}>{st}</Option>)}
-              </Select>
-            </div>
-          </Header>
+          <FilterHeader setGlobalFilterFn={this.setGlobalFilterFn} />
           <Content style={{ height: '100%' }}>
             <Tabs
               onTabClick={this.onTabChange}

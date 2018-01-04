@@ -194,7 +194,7 @@ export default class EventCard extends Component {
         </div>
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-          <strong>Capcity:</strong>
+          <strong>Capacity:</strong>
           <div>
             <EditableNumber
               disabled={disabled}
@@ -510,7 +510,7 @@ export default class EventCard extends Component {
       .concat(
         category == 'Upcoming'
           ? [
-              <Button onClick={this.cancel} type="default">
+              <Button onClick={this.cancel} type="danger">
                 Cancel
               </Button>,
               <Button onClick={this.makeTentative} type="primary">
