@@ -37,9 +37,9 @@ export default class Filter extends Component {
     }
 
     if (this.state.option == 'contains') {
-      return value.includes(this.state.value.toLowerCase())
+      return value && value.includes(this.state.value.toLowerCase())
     } else if (this.state.option == 'does not contain') {
-      return !value.includes(this.state.value.toLowerCase())
+      return !value || !value.includes(this.state.value.toLowerCase())
     }
 
     return false
