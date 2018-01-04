@@ -16,6 +16,10 @@ const isIn5Days = ev => {
   return moment(match_date).diff(moment(), 'days') < 5
 }
 
+const isStaff = ev => {
+  return ev.contact.email_address && ev.contact.email_address.includes('@betofortexas.com')
+}
+
 export default [
   {
     title: 'Interest Form',
@@ -42,7 +46,8 @@ export default [
       isInFuture(ev) &&
       ev.status == 'confirmed' &&
       isIn5Days(ev) &&
-      !ev.tags.includes('Event: Action: Logisticsed')
+      !ev.tags.includes('Event: Action: Logisticsed') &&
+      !isStaff(ev)
   },
   {
     title: 'Ready to Go',
@@ -50,7 +55,7 @@ export default [
       isInFuture(ev) &&
       ev.status == 'confirmed' &&
       isIn5Days(ev) &&
-      ev.tags.includes('Event: Action: Logisticsed')
+      (ev.tags.includes('Event: Action: Logisticsed') || isStaff(ev))
   },
   {
     title: 'Needs Debrief',
