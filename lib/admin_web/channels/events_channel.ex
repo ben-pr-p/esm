@@ -15,7 +15,7 @@ defmodule Admin.EventsChannel do
   @instance Application.get_env(:admin, :instance, "jd")
   @deployed_url Application.get_env(:admin, :deployed_url, "localhost:4000")
 
-  intercept ["event"]
+  intercept ["event", "events"]
 
   def join("events", %{"organizer_token" => token}, socket) do
     case token |> URI.encode_www_form() |> Cipher.decrypt() do
@@ -317,4 +317,34 @@ defmodule Admin.EventsChannel do
       _ -> Admin.EditAgent.record_edit(event_id)
     end
   end
+
+  # ----------
+  # -- Special section – makes it so that people in organizer edit view
+  # -- only get updates for their events
+  # ----------
+
+  # Match someone in organizer edit view
+  def handle_out("event", payload = %{event: event}, socket = %{assigns: %{organizer_id: organizer_id}}) do
+    if event.organizer_id == organizer_id do
+      push(socket, "event", payload)
+    end
+    {:noreply, socket}
+  end
+
+  # Match a regular logged in user
+  def handle_out("event", payload, socket) do
+    push(socket, "event", payload)
+    {:noreply, socket}
+  end
+
+  def handle_out("event", _payload, socket = %{assigns: %{organizer_id: organizer_id}}) do
+    {:noreply, socket}
+  end
+
+  # Match a regular logged in user
+  def handle_out("events", payload, socket) do
+    push(socket, "events", payload)
+    {:noreply, socket}
+  end
+
 end
