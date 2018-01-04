@@ -538,6 +538,9 @@ export default class EventCard extends Component {
       .concat(
         category == 'Upcoming'
           ? [
+              <Button onClick={this.cancel} type="danger">
+                Cancel
+              </Button>,
               <Button onClick={this.makeTentative} type="primary">
                 Back to Tentative
               </Button>
