@@ -155,24 +155,21 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_esm_events(socket) do
-    Proxy.stream("events")
-    |> Flow.from_enumerable()
-    |> Flow.map(&async_rsvp_count_fetch/1)
-    |> Flow.map(fn task -> Task.await(task, 60_000) end)
-    |> Flow.map(&event_pipeline/1)
-    |> Flow.each(fn event ->
+    all_events =
+      Proxy.stream("events")
+      |> Enum.map(&event_pipeline/1)
+      |> Enum.map(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-         push(socket, "event", %{id: id, event: event})
+         %{id: id, event: event}
        end)
-    |> Flow.run()
+
+    broadcast(socket, "events", %{all_events: all_events})
   end
 
   defp send_list_events(socket) do
     Proxy.stream("events")
     |> Flow.from_enumerable()
     |> Flow.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
-    |> Flow.map(&async_rsvp_count_fetch/1)
-    |> Flow.map(&Task.await/1)
     |> Flow.map(&event_pipeline/1)
     |> Flow.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
@@ -197,8 +194,6 @@ defmodule Admin.EventsChannel do
 
       Timex.before?(Timex.now(), dt)
     end)
-    |> Flow.map(&async_rsvp_count_fetch/1)
-    |> Flow.map(&Task.await/1)
     |> Flow.map(&event_pipeline/1)
     |> Flow.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
@@ -321,36 +316,5 @@ defmodule Admin.EventsChannel do
       %{"action" => _} -> nil
       _ -> Admin.EditAgent.record_edit(event_id)
     end
-  end
-
-  defp async_rsvp_count_fetch(event) do
-    Task.async(fn ->
-      try do
-        id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-        %{body: %{count: num_rsvps}} = Proxy.get("events/#{id}/rsvp-count")
-        Map.put(event, :attendance_count, num_rsvps)
-      rescue
-        _e -> Map.put(event, :attendance_count, 0)
-      end
-    end)
-  end
-
-  # ----------
-  # -- Special section – makes it so that people in organizer edit view
-  # -- only get updates for their events
-  # ----------
-
-  # Match someone in organizer edit view
-  def handle_out("event", payload = %{event: event}, socket = %{assigns: %{organizer_id: organizer_id}}) do
-    if event.organizer_id == organizer_id do
-      push(socket, "event", payload)
-    end
-    {:noreply, socket}
-  end
-
-  # Match a regular logged in user
-  def handle_out("event", payload, socket) do
-    push(socket, "event", payload)
-    {:noreply, socket}
   end
 end

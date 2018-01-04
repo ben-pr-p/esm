@@ -14,8 +14,8 @@ defmodule Rsvps do
         Enum.join(
           [
             Enum.join([p.given_name, p.family_name], " "),
-            List.first(p.email_addresses) |> Map.get(:address),
-            List.first(p.phone_numbers) |> Map.get(:number),
+            List.first(p.email_addresses) |> get_email(),
+            List.first(p.phone_numbers) |> get_number(),
             ""
           ],
           ","
@@ -26,4 +26,9 @@ defmodule Rsvps do
     |> Enum.concat(csv_content)
     |> Enum.join("\n")
   end
+
+  defp get_email(nil), do: ""
+  defp get_email(map), do: Map.get(map, :address, "")
+  defp get_number(nil), do: ""
+  defp get_number(map), do: Map.get(map, :number, "")
 end
