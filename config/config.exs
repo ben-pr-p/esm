@@ -44,6 +44,9 @@ config :admin,
   cosmic_info_slug: "ba-esm-config",
   whitelist_domain: "@betofortexas.com"
 
+config :logger,
+  backends: [:console, Rollbax.Logger]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
