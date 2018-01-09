@@ -284,6 +284,7 @@ export default class EventCard extends Component {
             start_date={start_date}
             end_date={end_date}
             time_zone={location.time_zone}
+            time_zone_display={this.props.event.time_zone}
             onSave={this.onSave}
             attr="start_date"
           />
