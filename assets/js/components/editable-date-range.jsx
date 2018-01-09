@@ -68,6 +68,8 @@ export default class EditableDate extends Component {
     const end_moment =
       this.constructMoment(this.props.end_date) || start_moment.clone().add(2, 'hours')
 
+    console.log(this.props.time_zone_display)
+
     return (
       <div onDoubleClick={this.editOn}>
         <Modal
@@ -118,7 +120,7 @@ export default class EditableDate extends Component {
         <span style={{ userSelect: 'none' }}>
           {`From ${start_moment.format('h:mm A')} to ${
             end_moment ? end_moment.format('h:mm A') : 'unspecified'
-          }`}
+          } in ${this.props.time_zone_display ? moment.tz.zone(this.props.time_zone_display).abbrs[0] : 'Unknown (add a zip code)'}`}
         </span>
       </div>
     )
