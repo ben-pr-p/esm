@@ -167,15 +167,15 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_list_events(socket) do
-    Proxy.stream("events")
-    |> Flow.from_enumerable()
-    |> Flow.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
-    |> Flow.map(&event_pipeline/1)
-    |> Flow.each(fn event ->
-         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-         push(socket, "event", %{id: event.id, event: event})
-       end)
-    |> Flow.run()
+    all_events =
+      Proxy.stream("events")
+      |> Enum.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
+      |> Enum.map(&event_pipeline/1)
+      |> Enum.map(fn event = %{id: id} ->
+           %{id: event.id, event: event}
+         end)
+
+    broadcast(socket, "events", %{all_events: all_events})
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do

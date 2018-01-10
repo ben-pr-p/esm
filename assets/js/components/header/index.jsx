@@ -105,6 +105,8 @@ export default class FilterHeader extends Component {
               </Button>
             )}
           </div>
+
+          <Button icon="save" onClick={this.props.download} />
         </div>
       </Header>
     )
