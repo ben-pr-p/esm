@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import Infinite from 'react-infinite'
 import { Card, Input, Layout, LocaleProvider, Select, Tabs } from 'antd'
 import enUS from 'antd/lib/locale-provider/en_US'
 import socket from '../socket'
@@ -18,7 +19,8 @@ export default class Esm extends Component {
     search: '',
     state: null,
     calendars: [],
-    globalFilterFn: () => true
+    globalFilterFn: () => true,
+    upper: 10
   }
 
   setSearch = value => this.setState({ search: value })
@@ -112,7 +114,9 @@ export default class Esm extends Component {
                   tab={title + ` (${this.countEventsFor(fn)})`}
                   key={title}>
                   <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                    {this.eventsFor(fn, title)}
+                    <Infinite containerHeight={1000} elementHeight={600}>
+                      {this.eventsFor(fn, title)}
+                    </Infinite>
                   </div>
                 </TabPane>
               ))}
