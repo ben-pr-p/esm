@@ -293,12 +293,13 @@ defmodule Admin.EventsChannel do
 
     to_create =
       old
-      |> Map.put(:start_date, old.start_date |> Timex.shift(days: 7))
-      |> Map.put(:end_date, old.end_date |> Timex.shift(days: 7))
+      |> Map.put(:start_date, Timex.now() |> Timex.shift(days: 7))
+      |> Map.put(:end_date, Timex.now() |> Timex.shift(days: 7))
       |> Map.put(:status, "tentative")
       |> Map.drop([:identifiers])
 
-    new = Proxy.post("event", body: to_create)
+    %{body: new} = Proxy.post("events", body: to_create)
+    new
   end
 
   defp insert_edit(%{event_id: event_id, edit: edit, actor: actor}) do
