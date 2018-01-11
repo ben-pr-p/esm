@@ -159,7 +159,7 @@ export default class EventCard extends Component {
               </div>
             ) : (
               [
-                <span> {attendance_count} RSVPs </span>,
+                <span> {attendance_count || 0} RSVPs </span>,
                 <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
               ]
             )}
