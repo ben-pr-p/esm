@@ -53,7 +53,8 @@ export default class EventCard extends Component {
   setCancelMessage = e => this.setState({ cancelMessage: e.target.value })
 
   cancel = () => this.setState({ canceling: true })
-  cancelStage2 = () => this.setState({ verifyingCancel: true, canceling: false })
+  cancelStage2 = () =>
+    this.setState({ verifyingCancel: true, canceling: false })
 
   confirm = () =>
     this.props.channel.push(`action-${this.props.id}`, {
@@ -205,7 +206,6 @@ export default class EventCard extends Component {
           onOk={this.cancelWithMessage}>
           This cannot be undone.
         </Modal>
-
 
         <div>
           {isDirectPublish && (
@@ -580,6 +580,13 @@ export default class EventCard extends Component {
               </Button>
             ]
           : []
+      )
+      .concat(
+        category == undefined && [
+          <Button onClick={this.cancel} type="danger">
+            Cancel
+          </Button>
+        ]
       )
   }
 }
