@@ -3,6 +3,7 @@ import enUS from 'antd/lib/locale-provider/en_US'
 import { Layout, LocaleProvider } from 'antd'
 import socket from '../socket'
 import EventCard from './event-card'
+import { Spin } from 'antd'
 
 const { Header, Content } = Layout
 
@@ -47,6 +48,14 @@ export default class MyEvents extends Component {
   }
 
   render() {
+    const future = Object.keys(this.state.events).filter(id => {
+      return new Date(this.state.events[id].start_date) > new Date()
+    })
+
+    const past = Object.keys(this.state.events).filter(idx => {
+      return new Date(this.state.events[idx].start_date) < new Date()
+    })
+
     return (
       <LocaleProvider locale={enUS}>
         <Layout style={{ width: '100%', height: '100%' }}>
@@ -56,8 +65,31 @@ export default class MyEvents extends Component {
               You can double click on any text field or date to edit it.
             </h2>
           </Header>
-          <Content style={{width: '95%'}}>
-            {Object.keys(this.state.events).map(id => (
+
+          {Object.keys(this.state.events).length == 0 && <Spin style={{height: '100%'}} size="large"/>}
+
+          <Content style={{ width: '95%' }}>
+            {Object.keys(this.state.events).length > 0 &&
+              (future.length > 0 ? (
+                <h1 style={{ textAlign: 'center' }}> Upcoming </h1>
+              ) : (
+                <h1 style={{ textAlign: 'center' }}> No Upcoming Events </h1>
+              ))}
+
+            {future.map(id => (
+              <EventCard
+                key={id}
+                id={id}
+                event={this.state.events[id]}
+                channel={this.state.channel}
+                typeOptions={this.state.typeOptions}
+                category={undefined}
+                hostEdit={true}
+              />
+            ))}
+
+            {past.length > 0 && <h1 style={{ textAlign: 'center' }}> Past Events </h1>}
+            {past.map(id => (
               <EventCard
                 key={id}
                 id={id}
