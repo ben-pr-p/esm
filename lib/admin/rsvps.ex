@@ -7,7 +7,8 @@ defmodule Rsvps do
       %{body: body} = Proxy.get("people/#{&1}")
       body
     end))
-    people = Enum.map(people_fetch_tasks, &Task.await/1)
+
+    people = Enum.map(people_fetch_tasks, fn t -> Task.await(t, :infinity) end)
 
     csv_content =
       Enum.map(people, fn p ->

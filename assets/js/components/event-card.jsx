@@ -34,7 +34,7 @@ export default class EventCard extends Component {
   onCalendarChange = vals =>
     this.props.channel.push(`calendars-${this.props.id}`, vals)
 
-  reject = () => this.setState({ rejecting: true })
+  reject = () => this.setState({ rejecting: true, saving: true })
 
   rejectWithMessage = () =>
     this.props.channel.push(`action-${this.props.id}`, {
@@ -44,49 +44,70 @@ export default class EventCard extends Component {
 
   setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
 
-  cancel = () =>
+  cancelWithMessage = () => {
     this.props.channel.push(`action-${this.props.id}`, {
-      status: 'cancelled'
+      status: 'cancelled',
+      message: this.state.cancelMessage
     })
+  }
 
-  confirm = () =>
+  setCancelMessage = e => this.setState({ cancelMessage: e.target.value })
+
+  cancel = () => this.setState({ canceling: true, saving: true })
+  cancelStage2 = () =>
+    this.setState({ verifyingCancel: true, canceling: false })
+
+  confirm = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       status: 'confirmed'
     })
+    this.setState({saving: true})
+  }
 
-  makeTentative = () =>
+  makeTentative = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       status: 'tentative'
     })
+    this.setState({saving: true})
+  }
 
-  markCalled = () =>
+  markCalled = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       action: 'called'
     })
+    this.setState({saving: true})
+  }
 
   markCalledAndConfirm = () => {
+    this.setState({saving: true})
     this.markCalled()
     this.confirm()
   }
 
-  markLogistics = () =>
+  markLogistics = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       action: 'logisticsed'
     })
+    this.setState({saving: true})
+  }
 
-  markDebriefed = () =>
+  markDebriefed = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       action: 'debriefed'
     })
+    this.setState({saving: true})
+  }
 
   duplicate = () => this.props.channel.push(`duplicate-${this.props.id}`)
-
   checkout = () => this.props.channel.push(`checkout-${this.props.id}`)
   checkin = () => this.props.channel.push(`checkin-${this.props.id}`)
 
   state = {
     rejecting: false,
-    rejectionMessage: ''
+    rejectionMessage: '',
+    canceling: false,
+    verifyingCancel: false,
+    cancelMessage: ''
   }
 
   componentWillReceiveProps(_nextProps) {
@@ -149,13 +170,13 @@ export default class EventCard extends Component {
               </div>
             ) : (
               [
-                <span> {attendance_count} RSVPs </span>,
+                <span> {attendance_count || 0} RSVPs </span>,
                 <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
               ]
             )}
           </div>
         }
-        style={{ width: '100%', margin: 25 }}
+        style={{ width: '100%', marginTop: 25 }}
         bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>
         <Modal
           visible={this.state.rejecting}
@@ -172,6 +193,29 @@ export default class EventCard extends Component {
             onChange={this.setRejectionMessage}
             value={this.state.rejectionMessage}
           />
+        </Modal>
+
+        <Modal
+          visible={this.state.canceling}
+          title="Why are you cancelling this event?"
+          okText="Cancel"
+          onCancel={() => this.setState({ rejecting: false })}
+          onOk={this.cancelStage2}>
+          <TextArea
+            rows={5}
+            onChange={this.setCancelMessage}
+            value={this.state.cancelMessage}
+          />
+        </Modal>
+
+        <Modal
+          visible={this.state.verifyingCancel}
+          title="Are you sure?"
+          okText="Cancel Irreversibly"
+          okType="danger"
+          onCancel={() => this.setState({ rejecting: false })}
+          onOk={this.cancelWithMessage}>
+          This cannot be undone.
         </Modal>
 
         <div>
@@ -195,7 +239,7 @@ export default class EventCard extends Component {
         </div>
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-          <strong>Capacity:</strong>
+          <strong>Capacity:</strong> (set to 0 for unlimited)
           <div>
             <EditableNumber
               disabled={disabled}
@@ -547,6 +591,13 @@ export default class EventCard extends Component {
               </Button>
             ]
           : []
+      )
+      .concat(
+        category == undefined && [
+          <Button onClick={this.cancel} type="danger">
+            Cancel
+          </Button>
+        ]
       )
   }
 }

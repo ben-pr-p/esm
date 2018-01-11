@@ -105,6 +105,10 @@ export default class FilterHeader extends Component {
               </Button>
             )}
           </div>
+
+          {this.props.download && (
+            <Button icon="save" onClick={this.props.download} />
+          )}
         </div>
       </Header>
     )
@@ -121,5 +125,5 @@ const filterSpec = {
   'location.locality': { type: 'string', display: 'City' },
   'location.region': { type: 'string', display: 'State' },
   'location.postal_code': { type: 'string', display: 'Zip Code' },
-  'tags': {type: 'string', display: 'Tags'}
+  tags: { type: 'string', display: 'Tags' }
 }
