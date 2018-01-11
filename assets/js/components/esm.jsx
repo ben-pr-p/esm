@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import Infinite from 'react-infinite'
 import { Card, Input, Layout, LocaleProvider, Select, Tabs } from 'antd'
 import enUS from 'antd/lib/locale-provider/en_US'
 import socket from '../socket'
@@ -131,8 +132,10 @@ export default class Esm extends Component {
                       : title + ` (${this.countEventsFor(fn)})`
                   }
                   key={title}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                    {this.eventsFor(fn, title)}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', paddingLeft: 25, paddingRight: 25 }}>
+                    <Infinite containerHeight={1000} elementHeight={600}>
+                      {this.eventsFor(fn, title)}
+                    </Infinite>
                   </div>
                 </TabPane>
               ))}

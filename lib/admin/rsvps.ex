@@ -3,16 +3,12 @@ defmodule Rsvps do
     all_attendances = Proxy.stream("events/#{id}/rsvps")
     people_ids = Enum.map(all_attendances, & &1.person)
 
-    people_fetch_tasks =
-      Enum.map(
-        people_ids,
-        &Task.async(fn ->
-          %{body: body} = Proxy.get("people/#{&1}")
-          body
-        end)
-      )
+    people_fetch_tasks = Enum.map(people_ids, &Task.async(fn ->
+      %{body: body} = Proxy.get("people/#{&1}")
+      body
+    end))
 
-    people = Enum.map(people_fetch_tasks, &Task.await/1)
+    people = Enum.map(people_fetch_tasks, fn t -> Task.await(t, :infinity) end)
 
     csv_content =
       Enum.map(people, fn p ->

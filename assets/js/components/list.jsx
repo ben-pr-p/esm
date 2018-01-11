@@ -1,17 +1,22 @@
 import React, { Component } from 'react'
 import socket from '../socket'
-import { Table, LocaleProvider } from 'antd'
+import { Table, LocaleProvider, Layout } from 'antd'
 import enUS from 'antd/lib/locale-provider/en_US'
 import moment from 'moment'
 import mtz from 'moment-timezone'
+import FilterHeader from './header/index'
+import FileSaver from 'file-saver'
+const { Content } = Layout
 
 export default class List extends Component {
   columns = [
     'title',
+    'status',
     'candidate',
     'browser_url',
     'type',
     'rsvp_download_url',
+    'organizer_edit_url',
     'venue',
     'address',
     'city',
@@ -36,23 +41,29 @@ export default class List extends Component {
         : typeof a[attr] == 'string'
           ? a[attr] < b[attr] ? -1 : 1
           : a[attr] - b[attr],
-    render: (text, record, index) => text // (
-    //   // <div
-    //   //   style={{
-    //   //     whiteSpace: 'no-wrap',
-    //   //     overflowX: 'scroll',
-    //   //     width: '100%',
-    //   //     height: 50,
-    //   //     display: 'flex',
-    //   //     alignItems: 'center'
-    //   //   }}
-    //   // >
-    //   // </div>
-    // )
+    render: (text, record, index) => (text.component ? text.component : text)
   }))
 
   state = {
-    events: []
+    events: [],
+    globalFilterFn: () => true
+  }
+
+  download = () => {
+    const as_csv = [this.columns.map(({ title }) => title).join(',')]
+      .concat(
+        this.state.events
+          .filter(this.state.globalFilterFn)
+          .map(e =>
+            this.columns.map(({ dataIndex }) => `"${e[dataIndex].value || e[dataIndex]}"`).join(',')
+          )
+      )
+      .join('\n')
+    console.log(as_csv)
+
+    const blob = new Blob([as_csv], { type: 'text/csv;charset=utf-8' })
+    console.log(blob)
+    FileSaver.saveAs(blob, `${Date.now()}-export.csv`)
   }
 
   componentDidMount() {
@@ -76,20 +87,37 @@ export default class List extends Component {
       this.forceUpdate()
     })
 
+    this.state.channel.on('events', ({ all_events }) => {
+      all_events.forEach(({ id, event }) => {
+        this.state.events.push(preprocess(event))
+      })
+      this.forceUpdate()
+    })
+
     this.state.channel.push('ready', { page: 'list' })
   }
+
+  setGlobalFilterFn = globalFilterFn => this.setState({ globalFilterFn })
 
   render() {
     return (
       <LocaleProvider locale={enUS}>
-        <Table
-          size="middle"
-          scroll={{ x: 3500 }}
-          pagination={false}
-          bordered={true}
-          dataSource={this.state.events}
-          columns={this.columns}
-        />
+        <Layout style={{ width: '100%', height: '100%' }}>
+          <FilterHeader
+            setGlobalFilterFn={this.setGlobalFilterFn}
+            download={this.download}
+          />
+          <Content>
+            <Table
+              size="middle"
+              scroll={{ x: 3500 }}
+              pagination={false}
+              bordered={true}
+              dataSource={this.state.events.filter(this.state.globalFilterFn)}
+              columns={this.columns}
+            />
+          </Content>
+        </Layout>
       </LocaleProvider>
     )
   }
@@ -105,53 +133,64 @@ const capitalize = str =>
 const preprocess = ({
   name,
   title,
+  status,
   browser_url,
   description,
   instructions,
   type,
   rsvp_download_url,
+  organizer_edit_url,
   location,
   contact,
-  attendances,
+  attendance_count,
   start_date,
   end_date,
-  tags
-}) => ({
-  key: name,
-  title,
-  description,
-  instructions,
-  type,
-  rsvp_download_url: linkify(rsvp_download_url),
-  browser_url: linkify(browser_url),
-  address: location.address_lines[0],
-  venue: location.venue,
-  host_name: contact.name,
-  host_email: contact.email_address,
-  host_phone: contact.phone_number,
-  rsvps: attendances.length,
-  city: location.locality,
-  state: location.region,
-  zip: location.postal_code,
-  start_date: mtz(start_date)
-    .tz(location.time_zone)
-    .format('dd, MM/DD, h:mm a'),
-  end_date: mtz(end_date)
-    .tz(location.time_zone)
-    .format('dd MM/DD, h:mm a'),
-  candidate:
-    tags
-      .filter(
-        t =>
-          t.startsWith('Calendar: ') &&
-          !t.includes('Brand New Congress') &&
-          !t.includes('Justice Democrats')
-      )
-      .map(t => t.split(':')[1].trim())[0] || 'General'
-})
+  tags,
+  time_zone,
+  id
+}) => {
+  return {
+    key: id,
+    title,
+    status,
+    description,
+    instructions,
+    type,
+    rsvp_download_url: linkify(rsvp_download_url),
+    organizer_edit_url: linkify(organizer_edit_url),
+    browser_url: linkify(browser_url),
+    address: location.address_lines[0],
+    venue: location.venue,
+    host_name: contact.name,
+    host_email: contact.email_address,
+    host_phone: contact.phone_number,
+    rsvps: attendance_count,
+    city: location.locality,
+    state: location.region,
+    zip: location.postal_code,
+    start_date: mtz(start_date)
+      .tz((time_zone || location.time_zone) || 'America/New_York')
+      .format('dd, MM/DD, h:mm a'),
+    end_date: mtz(end_date)
+      .tz((time_zone || location.time_zone) || 'America/New_York')
+      .format('dd MM/DD, h:mm a'),
+    candidate:
+      tags
+        .filter(
+          t =>
+            t.startsWith('Calendar: ') &&
+            !t.includes('Brand New Congress') &&
+            !t.includes('Justice Democrats')
+        )
+        .map(t => t.split(':')[1].trim())[0] || 'General'
+  }
+}
 
-const linkify = href => (
-  <a target="_blank" href={href}>
-    {href}
-  </a>
-)
+const linkify = href => ({
+  component: (
+    <a target="_blank" href={href}>
+      {href}
+    </a>
+  ),
+  value: href
+})

@@ -167,15 +167,15 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_list_events(socket) do
-    Proxy.stream("events")
-    |> Flow.from_enumerable()
-    |> Flow.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
-    |> Flow.map(&event_pipeline/1)
-    |> Flow.each(fn event ->
-         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-         push(socket, "event", %{id: event.id, event: event})
-       end)
-    |> Flow.run()
+    all_events =
+      Proxy.stream("events")
+      |> Enum.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
+      |> Enum.map(&event_pipeline/1)
+      |> Enum.map(fn event = %{id: id} ->
+           %{id: event.id, event: event}
+         end)
+
+    broadcast(socket, "events", %{all_events: all_events})
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
@@ -183,17 +183,6 @@ defmodule Admin.EventsChannel do
     |> Flow.from_enumerable()
     |> Flow.filter(&(&1.organizer_id == organizer_id))
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
-    |> Flow.filter(fn %{start_date: start_date} ->
-      dt =
-        case DateTime.from_iso8601(start_date) do
-          {:ok, dt, _} -> dt
-          _ ->
-            {:ok, dt, _} = DateTime.from_iso8601(start_date <> "Z")
-            Timex.shift(dt, days: 1)
-        end
-
-      Timex.before?(Timex.now(), dt)
-    end)
     |> Flow.map(&event_pipeline/1)
     |> Flow.each(fn event ->
          id = event.identifiers |> List.first() |> String.split(":") |> List.last()
@@ -293,12 +282,13 @@ defmodule Admin.EventsChannel do
 
     to_create =
       old
-      |> Map.put(:start_date, old.start_date |> Timex.shift(days: 7))
-      |> Map.put(:end_date, old.end_date |> Timex.shift(days: 7))
+      |> Map.put(:start_date, Timex.now() |> Timex.shift(days: 7))
+      |> Map.put(:end_date, Timex.now() |> Timex.shift(days: 7))
       |> Map.put(:status, "tentative")
       |> Map.drop([:identifiers])
 
-    new = Proxy.post("event", body: to_create)
+    %{body: new} = Proxy.post("events", body: to_create)
+    new
   end
 
   defp insert_edit(%{event_id: event_id, edit: edit, actor: actor}) do
