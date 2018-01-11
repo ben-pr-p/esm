@@ -44,10 +44,16 @@ export default class EventCard extends Component {
 
   setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
 
-  cancel = () =>
+  cancelWithMessage = () =>
     this.props.channel.push(`action-${this.props.id}`, {
-      status: 'cancelled'
+      status: 'cancelled',
+      message: this.state.cancelMessage
     })
+
+  setCancelMessage = e => this.setState({ cancelMessage: e.target.value })
+
+  cancel = () => this.setState({ canceling: true })
+  cancelStage2 = () => this.setState({ verifyingCancel: true, canceling: false })
 
   confirm = () =>
     this.props.channel.push(`action-${this.props.id}`, {
@@ -86,7 +92,10 @@ export default class EventCard extends Component {
 
   state = {
     rejecting: false,
-    rejectionMessage: ''
+    rejectionMessage: '',
+    canceling: false,
+    verifyingCancel: false,
+    cancelMessage: ''
   }
 
   componentWillReceiveProps(_nextProps) {
@@ -173,6 +182,30 @@ export default class EventCard extends Component {
             value={this.state.rejectionMessage}
           />
         </Modal>
+
+        <Modal
+          visible={this.state.canceling}
+          title="Why are you cancelling this event?"
+          okText="Cancel"
+          onCancel={() => this.setState({ rejecting: false })}
+          onOk={this.cancelStage2}>
+          <TextArea
+            rows={5}
+            onChange={this.setCancelMessage}
+            value={this.state.cancelMessage}
+          />
+        </Modal>
+
+        <Modal
+          visible={this.state.verifyingCancel}
+          title="Are you sure?"
+          okText="Cancel Irreversibly"
+          okType="danger"
+          onCancel={() => this.setState({ rejecting: false })}
+          onOk={this.cancelWithMessage}>
+          This cannot be undone.
+        </Modal>
+
 
         <div>
           {isDirectPublish && (

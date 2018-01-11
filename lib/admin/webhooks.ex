@@ -22,10 +22,10 @@ defmodule Admin.Webhooks do
     IO.inspect HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
   end
 
-  def exec("cancelled", %{event: event, team_member: team_member}) do
+  def exec("cancelled", %{event: event, team_member: team_member, reason: reason}) do
     %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
     IO.puts "Posting webhook to #{hook} because of cancelled"
-    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member}))
+    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
   end
 
   def exec("tentative", %{event: event, team_member: team_member}) do
