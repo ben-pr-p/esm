@@ -228,7 +228,7 @@ export default class EventCard extends Component {
         </div>
 
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-          <strong>Capacity:</strong>
+          <strong>Capacity:</strong> (set to 0 for unlimited)
           <div>
             <EditableNumber
               disabled={disabled}
