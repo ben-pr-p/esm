@@ -101,8 +101,8 @@ export default class MyEvents extends Component {
                 <h1 style={{ textAlign: 'center' }}> No Events </h1>
                 <span style={{fontSize: 18}}>
                   Does this seem like a mistake? Please contact
-                  <a href="mailto:events@justicedemocrats.com">
-                    {' '}events@justicedemocrats.com{' '}
+                  <a href="mailto:organizing@betofortexas.com">
+                    {' '}organizing@betofortexas.com{' '}
                   </a>
                   to resolve any potential issues.
                 </span>

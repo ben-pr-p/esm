@@ -56,14 +56,14 @@ defmodule Admin.PageController do
   defp alert_user_rsvp(conn) do
     text(
       conn,
-      "Hey there!\n\nUnfortunately, our systems could not associate this rsvp download link with an event.\nPlease contact events@justicedemocrats.com for help."
+      "Hey there!\n\nUnfortunately, our systems could not associate this rsvp download link with an event.\nPlease contact organizing@betofortexas.com for help."
     )
   end
 
   defp alert_user_edit(conn) do
     text(
       conn,
-      "Hey there!\n\nUnfortunately, our systems could not associate this token with a particular event host.\nPlease contact events@justicedemocrats.com for help."
+      "Hey there!\n\nUnfortunately, our systems could not associate this token with a particular event host.\nPlease contact organizing@betofortexas.com for help."
     )
   end
 
