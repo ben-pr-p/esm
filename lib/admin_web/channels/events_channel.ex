@@ -207,8 +207,6 @@ defmodule Admin.EventsChannel do
   defp add_rsvp_download_url(event) do
     id = event.identifiers |> List.first() |> String.split(":") |> List.last()
     encrypted_id = Cipher.encrypt(id)
-
-
     Map.put(event, :rsvp_download_url, "#{@deployed_url}/rsvps/#{encrypted_id}")
   end
 
@@ -263,9 +261,20 @@ defmodule Admin.EventsChannel do
   end
 
   defp set_status(id, status) do
-    Proxy.post("events/#{id}", body: %{status: status})
-    %{body: event} = Proxy.get("events/#{id}")
-    event_pipeline(event)
+    case status do
+      "cancelled" ->
+        %{body: event} = Proxy.get("events/#{id}")
+        Proxy.delete("events/#{id}")
+
+        event
+        |> Map.put(:status, "cancelled")
+        |> event_pipeline()
+
+      _ ->
+        Proxy.post("events/#{id}", body: %{status: status})
+        %{body: event} = Proxy.get("events/#{id}")
+        event_pipeline(event)
+    end
   end
 
   defp mark_action(id, action) do

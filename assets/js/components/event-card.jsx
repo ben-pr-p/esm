@@ -48,11 +48,13 @@ export default class EventCard extends Component {
       status: 'cancelled',
       message: this.state.cancelMessage
     })
+
+    this.setState({ saving: true })
   }
 
   setCancelMessage = e => this.setState({ cancelMessage: e.target.value })
 
-  cancel = () => this.setState({ canceling: true, saving: true })
+  cancel = () => this.setState({ canceling: true })
   cancelStage2 = () =>
     this.setState({ verifyingCancel: true, canceling: false })
 
@@ -210,9 +212,9 @@ export default class EventCard extends Component {
         <Modal
           visible={this.state.verifyingCancel}
           title="Are you sure?"
-          okText="Cancel Irreversibly"
+          okText={this.state.saving ? "working..." : "Cancel Irreversibly"}
           okType="danger"
-          onCancel={() => this.setState({ rejecting: false })}
+          onCancel={() => this.setState({ canceling: false })}
           onOk={this.cancelWithMessage}>
           This cannot be undone.
         </Modal>

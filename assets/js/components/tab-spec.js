@@ -35,8 +35,7 @@ export default [
       return (
         ev.status == 'confirmed' &&
         isInFuture(ev) &&
-        !isIn5Days(ev) &&
-        !ev.tags.includes('Event: Action: Logisticsed')
+        !isIn5Days(ev)
       )
     }
   },
@@ -83,5 +82,9 @@ export default [
   {
     title: 'Cancelled',
     fn: ev => ev.status == 'cancelled'
+  },
+  {
+    title: 'Unnapproved in the Past',
+    fn: ev => ev.status == 'tentative' && isInPast(ev)
   }
 ]

@@ -41,7 +41,8 @@ export default class List extends Component {
         : typeof a[attr] == 'string'
           ? a[attr] < b[attr] ? -1 : 1
           : a[attr] - b[attr],
-    render: (text, record, index) => (text.component ? text.component : text)
+    render: (text, record, index) =>
+      text ? (text.component ? text.component : text) : ''
   }))
 
   state = {
@@ -52,11 +53,15 @@ export default class List extends Component {
   download = () => {
     const as_csv = [this.columns.map(({ title }) => title).join(',')]
       .concat(
-        this.state.events
-          .filter(this.state.globalFilterFn)
-          .map(e =>
-            this.columns.map(({ dataIndex }) => `"${e[dataIndex].value || e[dataIndex]}"`).join(',')
-          )
+        this.state.events.filter(this.state.globalFilterFn).map(e =>
+          this.columns
+            .map(({ dataIndex }) => {
+              return `"${
+                e[dataIndex] ? e[dataIndex].value || e[dataIndex] : ''
+              }"`
+            })
+            .join(',')
+        )
       )
       .join('\n')
     console.log(as_csv)
@@ -149,7 +154,7 @@ const preprocess = ({
   time_zone,
   id
 }) => {
-  return {
+  const result = {
     key: id,
     title,
     status,
@@ -162,17 +167,17 @@ const preprocess = ({
     address: location.address_lines[0],
     venue: location.venue,
     host_name: contact.name,
-    host_email: contact.email_address,
+    host_email: contact.email_address || '',
     host_phone: contact.phone_number,
     rsvps: attendance_count,
     city: location.locality,
     state: location.region,
     zip: location.postal_code,
     start_date: mtz(start_date)
-      .tz((time_zone || location.time_zone) || 'America/New_York')
+      .tz(time_zone || location.time_zone || 'America/New_York')
       .format('dd, MM/DD, h:mm a'),
     end_date: mtz(end_date)
-      .tz((time_zone || location.time_zone) || 'America/New_York')
+      .tz(time_zone || location.time_zone || 'America/New_York')
       .format('dd MM/DD, h:mm a'),
     candidate:
       tags
@@ -184,6 +189,8 @@ const preprocess = ({
         )
         .map(t => t.split(':')[1].trim())[0] || 'General'
   }
+
+  return result
 }
 
 const linkify = href => ({
