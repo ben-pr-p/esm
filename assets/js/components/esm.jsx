@@ -113,7 +113,7 @@ export default class Esm extends Component {
                 <TabPane
                   tab={title + ` (${this.countEventsFor(fn)})`}
                   key={title}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', paddingLeft: 25, paddingRight: 25 }}>
                     <Infinite containerHeight={1000} elementHeight={600}>
                       {this.eventsFor(fn, title)}
                     </Infinite>

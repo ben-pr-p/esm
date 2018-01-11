@@ -45,20 +45,30 @@ export default class MyEvents extends Component {
     })
 
     this.state.channel.push('ready', { page: 'my-events' })
+
+    setTimeout(() => {
+      if (Object.keys(this.state.events).length == 0) {
+        this.setState({ no_events: true })
+      }
+    }, 20000)
   }
 
   render() {
-    const future = Object.keys(this.state.events).filter(id => {
+    const events = Object.keys(this.state.events).filter(id => {
+      return this.state.events[id].status != 'cancelled'
+    })
+
+    const future = events.filter(id => {
       return new Date(this.state.events[id].start_date) > new Date()
     })
 
-    const past = Object.keys(this.state.events).filter(idx => {
+    const past = events.filter(idx => {
       return new Date(this.state.events[idx].start_date) < new Date()
     })
 
     return (
       <LocaleProvider locale={enUS}>
-        <Layout style={{ width: '100%', height: '100%' }}>
+        <Layout style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
           <Header style={{ display: 'flex', justifyContent: 'space-around' }}>
             <h1 style={{ color: 'white' }}>Edit Your Events</h1>
             <h2 style={{ color: 'white' }}>
@@ -66,9 +76,39 @@ export default class MyEvents extends Component {
             </h2>
           </Header>
 
-          {Object.keys(this.state.events).length == 0 && <Spin style={{height: '100%'}} size="large"/>}
+          <Content
+            style={{
+              width: '100%',
+              padding: 25,
+              minHeight: '100vh',
+              position: 'relative'
+            }}>
+            {Object.keys(this.state.events).length == 0 &&
+              !this.state.no_events && (
+                <Spin
+                  style={{
+                    height: '100%',
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%'
+                  }}
+                  size="large"
+                />
+              )}
 
-          <Content style={{ width: '95%' }}>
+            {this.state.no_events && (
+              <div>
+                <h1 style={{ textAlign: 'center' }}> No Events </h1>
+                <span style={{fontSize: 18}}>
+                  Does this seem like a mistake? Please contact
+                  <a href="mailto:events@justicedemocrats.com">
+                    {' '}events@justicedemocrats.com{' '}
+                  </a>
+                  to resolve any potential issues.
+                </span>
+              </div>
+            )}
+
             {Object.keys(this.state.events).length > 0 &&
               (future.length > 0 ? (
                 <h1 style={{ textAlign: 'center' }}> Upcoming </h1>
@@ -88,7 +128,9 @@ export default class MyEvents extends Component {
               />
             ))}
 
-            {past.length > 0 && <h1 style={{ textAlign: 'center' }}> Past Events </h1>}
+            {past.length > 0 && (
+              <h1 style={{ textAlign: 'center' }}> Past Events </h1>
+            )}
             {past.map(id => (
               <EventCard
                 key={id}
