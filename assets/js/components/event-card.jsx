@@ -566,12 +566,12 @@ export default class EventCard extends Component {
             ]
           : []
       )
-      .concat(
-        category == undefined && [
-          <Button onClick={this.cancel} type="danger">
-            Cancel
-          </Button>
-        ]
-      )
+      // .concat(
+      //   category == undefined && [
+      //     <Button onClick={this.cancel} type="danger">
+      //       Cancel
+      //     </Button>
+      //   ]
+      // )
   }
 }
