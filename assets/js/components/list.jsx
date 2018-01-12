@@ -27,7 +27,8 @@ export default class List extends Component {
     'host_phone',
     'rsvps',
     'start_date',
-    'end_date'
+    'end_date',
+    'tags'
   ].map(attr => ({
     title: capitalize(attr),
     key: attr,
@@ -55,7 +56,9 @@ export default class List extends Component {
         this.state.events
           .filter(this.state.globalFilterFn)
           .map(e =>
-            this.columns.map(({ dataIndex }) => `"${e[dataIndex].value || e[dataIndex]}"`).join(',')
+            this.columns
+              .map(({ dataIndex }) => `"${e[dataIndex].value || e[dataIndex]}"`)
+              .join(',')
           )
       )
       .join('\n')
@@ -169,10 +172,10 @@ const preprocess = ({
     state: location.region,
     zip: location.postal_code,
     start_date: mtz(start_date)
-      .tz((time_zone || location.time_zone) || 'America/New_York')
+      .tz(time_zone || location.time_zone || 'America/New_York')
       .format('dd, MM/DD, h:mm a'),
     end_date: mtz(end_date)
-      .tz((time_zone || location.time_zone) || 'America/New_York')
+      .tz(time_zone || location.time_zone || 'America/New_York')
       .format('dd MM/DD, h:mm a'),
     candidate:
       tags
@@ -182,7 +185,8 @@ const preprocess = ({
             !t.includes('Brand New Congress') &&
             !t.includes('Justice Democrats')
         )
-        .map(t => t.split(':')[1].trim())[0] || 'General'
+        .map(t => t.split(':')[1].trim())[0] || 'General',
+    tags: tags.filter(t => !t.startsWith('Calendar: ')).join(', ')
   }
 }
 
