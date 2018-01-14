@@ -199,7 +199,9 @@ export default class EventCard extends Component {
           visible={this.state.canceling}
           title="Why are you cancelling this event?"
           okText="Cancel"
-          onCancel={() => this.setState({ rejecting: false })}
+          cancelText="Don't Cancel"
+          closable={false}
+          onCancel={() => this.setState({ cancelling: false, verifyingCancel: false })}
           onOk={this.cancelStage2}>
           <TextArea
             rows={5}
@@ -213,7 +215,9 @@ export default class EventCard extends Component {
           title="Are you sure?"
           okText="Cancel Irreversibly"
           okType="danger"
-          onCancel={() => this.setState({ rejecting: false })}
+          closable={false}
+          onCancel={() => this.setState({ cancelling: false, verifyingCancel: false })}
+          cancelText="Don't Cancel"
           onOk={this.cancelWithMessage}>
           This cannot be undone.
         </Modal>
