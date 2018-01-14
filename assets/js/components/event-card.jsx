@@ -44,6 +44,7 @@ export default class EventCard extends Component {
   setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
 
   cancelWithMessage = () => {
+    this.setState({ saving: true })
     this.props.channel.push(`action-${this.props.id}`, {
       status: 'cancelled',
       message: this.state.cancelMessage
@@ -62,25 +63,25 @@ export default class EventCard extends Component {
     this.props.channel.push(`action-${this.props.id}`, {
       status: 'confirmed'
     })
-    this.setState({saving: true})
+    this.setState({ saving: true })
   }
 
   makeTentative = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       status: 'tentative'
     })
-    this.setState({saving: true})
+    this.setState({ saving: true })
   }
 
   markCalled = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       action: 'called'
     })
-    this.setState({saving: true})
+    this.setState({ saving: true })
   }
 
   markCalledAndConfirm = () => {
-    this.setState({saving: true})
+    this.setState({ saving: true })
     this.markCalled()
     this.confirm()
   }
@@ -89,14 +90,14 @@ export default class EventCard extends Component {
     this.props.channel.push(`action-${this.props.id}`, {
       action: 'logisticsed'
     })
-    this.setState({saving: true})
+    this.setState({ saving: true })
   }
 
   markDebriefed = () => {
     this.props.channel.push(`action-${this.props.id}`, {
       action: 'debriefed'
     })
-    this.setState({saving: true})
+    this.setState({ saving: true })
   }
 
   duplicate = () => this.props.channel.push(`duplicate-${this.props.id}`)
@@ -139,6 +140,8 @@ export default class EventCard extends Component {
     } = event
 
     const disabled = checked_out_by !== undefined && checked_out_by !== null
+
+    console.log(this.state.canceling)
 
     const isVolEvent =
       tags.filter(t => t.includes('Source: Direct Publish')).length == 0
@@ -200,7 +203,10 @@ export default class EventCard extends Component {
           visible={this.state.canceling}
           title="Why are you cancelling this event?"
           okText="Cancel"
-          onCancel={() => this.setState({ rejecting: false })}
+          cancelText="Don't Cancel"
+          onCancel={() =>
+            this.setState({ canceling: false, verifyingCancel: false })
+          }
           onOk={this.cancelStage2}>
           <TextArea
             rows={5}
@@ -214,7 +220,10 @@ export default class EventCard extends Component {
           title="Are you sure?"
           okText={this.state.saving ? "working..." : "Cancel Irreversibly"}
           okType="danger"
-          onCancel={() => this.setState({ canceling: false })}
+          onCancel={() =>
+            this.setState({ cancelling: false, verifyingCancel: false })
+          }
+          cancelText="Don't Cancel"
           onOk={this.cancelWithMessage}>
           This cannot be undone.
         </Modal>
