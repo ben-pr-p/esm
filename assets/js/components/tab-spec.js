@@ -1,9 +1,9 @@
-const moment = require('moment')
+const moment = require('moment-timezone')
 const ESM_TAG = 'Event: Should Contact Host'
 
 const isInPast = ev => {
   const match_date = ev.end_date || ev.start_date
-  return new Date(match_date).getTime() < new Date().getTime()
+  return moment.tz(match_date, ev.time_zone || ev.location.time_zone).toDate().getTime() < new Date().getTime()
 }
 
 const isInFuture = ev => {

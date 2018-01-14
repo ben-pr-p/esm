@@ -27,7 +27,8 @@ export default class List extends Component {
     'host_phone',
     'rsvps',
     'start_date',
-    'end_date'
+    'end_date',
+    'tags'
   ].map(attr => ({
     title: capitalize(attr),
     key: attr,
@@ -187,7 +188,8 @@ const preprocess = ({
             !t.includes('Brand New Congress') &&
             !t.includes('Justice Democrats')
         )
-        .map(t => t.split(':')[1].trim())[0] || 'General'
+        .map(t => t.split(':')[1].trim())[0] || 'General',
+    tags: tags.filter(t => !t.startsWith('Calendar: ')).join(', ')
   }
 
   return result
