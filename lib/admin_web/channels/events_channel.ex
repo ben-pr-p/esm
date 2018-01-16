@@ -176,7 +176,7 @@ defmodule Admin.EventsChannel do
 
     Webhooks.on("message-attendees", %{
       event: event,
-      attendee_emails: attendee_emails,
+      attendee_emails: Enum.join(attendee_emails, ";"),
       message: message
     })
 
