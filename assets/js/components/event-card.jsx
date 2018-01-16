@@ -161,8 +161,6 @@ export default class EventCard extends Component {
 
     const disabled = checked_out_by !== undefined && checked_out_by !== null
 
-    console.log(this.state.canceling)
-
     const isVolEvent =
       tags.filter(t => t.includes('Source: Direct Publish')).length == 0
 
