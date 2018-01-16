@@ -37,7 +37,7 @@ defmodule Admin.Router do
   end
 
   scope "/api", Admin do
-    pipe_through :api
+    pipe_through(:api)
 
     post("/events/create", FormController, :create)
   end

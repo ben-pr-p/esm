@@ -16,7 +16,9 @@ defmodule Admin.AuthController do
         |> redirect(to: "/events")
 
       {:error, email} when is_binary(email) ->
-        json(conn, %{error: "Use your JD email #{email}, or request to be whitelisted from your JD contact"})
+        json(conn, %{
+          error: "Use your JD email #{email}, or request to be whitelisted from your JD contact"
+        })
     end
   end
 

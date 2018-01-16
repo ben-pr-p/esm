@@ -6,8 +6,8 @@ defmodule Admin.FormController do
   @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
 
   def create(conn, params) do
-    %{"metadata" => %{"event_submitted" => success_hook,
-      "submission_failure" => failure_hook}} = Cosmic.get(@cosmic_config_slug)
+    %{"metadata" => %{"event_submitted" => success_hook, "submission_failure" => failure_hook}} =
+      Cosmic.get(@cosmic_config_slug)
 
     try do
       created = do_create(params)
@@ -17,12 +17,13 @@ defmodule Admin.FormController do
       |> IO.inspect()
 
       json(conn, created)
-    rescue e ->
-      failure_hook
-      |> HTTPotion.post(body: params |> Poison.encode!())
-      |> IO.inspect()
+    rescue
+      e ->
+        failure_hook
+        |> HTTPotion.post(body: params |> Poison.encode!())
+        |> IO.inspect()
 
-      json(conn, %{"ok" => "But error"})
+        json(conn, %{"ok" => "But error"})
     end
   end
 
@@ -67,15 +68,23 @@ defmodule Admin.FormController do
     [month, day, year] = String.split(date, "/")
 
     %DateTime{
-      year: easy_int(year), month: easy_int(month), day: easy_int(day),
-      time_zone: "", hour: easy_int(hours), minute: easy_int(minutes),
-      second: 0, std_offset: 0, utc_offset: 0, zone_abbr: "UTC"
+      year: easy_int(year),
+      month: easy_int(month),
+      day: easy_int(day),
+      time_zone: "",
+      hour: easy_int(hours),
+      minute: easy_int(minutes),
+      second: 0,
+      std_offset: 0,
+      utc_offset: 0,
+      zone_abbr: "UTC"
     }
   end
 
   def military_time([time, "AM"]) do
     [hours, minutes, seconds] = String.split(time, ":")
     {hours, _} = Integer.parse(hours)
+
     case hours do
       12 -> [0, minutes]
       _ -> [hours, minutes]
@@ -85,6 +94,7 @@ defmodule Admin.FormController do
   def military_time([time, "PM"]) do
     [hours, minutes, seconds] = String.split(time, ":")
     {hours, _} = Integer.parse(hours)
+
     case hours do
       12 -> [12, minutes]
       _ -> [hours + 12, minutes]
