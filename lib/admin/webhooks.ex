@@ -70,7 +70,7 @@ defmodule Admin.Webhooks do
 
   def exec("message-attendees-cancelled", ~m(event attendee_emails message)a) do
     %{"metadata" => %{"message_attendees_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of message-attendees")
+    IO.puts("Posting webhook to #{hook} because of message-attendees-cancelled")
     IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
