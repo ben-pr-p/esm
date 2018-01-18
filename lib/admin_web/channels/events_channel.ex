@@ -15,7 +15,7 @@ defmodule Admin.EventsChannel do
   @instance Application.get_env(:admin, :instance, "jd")
   @deployed_url Application.get_env(:admin, :deployed_url, "localhost:4000")
 
-  intercept ["event", "events"]
+  intercept(["event", "events"])
 
   def join("events", %{"organizer_token" => token}, socket) do
     case token |> URI.encode_www_form() |> Cipher.decrypt() do
@@ -124,6 +124,10 @@ defmodule Admin.EventsChannel do
 
   # Handle status changes
   def handle_in("action-" <> id, payload = %{"status" => status}, socket) do
+    if status == "cancelled" do
+      do_message_attendees("message-attendees-cancelled", id, payload["message"])
+    end
+
     insert_edit(%{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
     new_event = set_status(id, status)
 
@@ -132,7 +136,6 @@ defmodule Admin.EventsChannel do
       team_member: current_resource(socket),
       reason: payload["message"]
     })
-
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
@@ -154,14 +157,46 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  def handle_in("message-host-" <> id, %{"message" => message}, socket) do
+    %{body: event} = Proxy.get("events/#{id}")
+
+    Webhooks.on("message-host", %{
+      event: event_pipeline(event),
+      host: event.contact.email_address,
+      message: message
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in("message-attendees-" <> id, %{"message" => message}, socket) do
+    do_message_attendees("message-attendees", id, message)
+    {:noreply, socket}
+  end
+
+  def do_message_attendees(hook_type, event_id, message) do
+    [%{body: event}, attendee_emails] =
+      [
+        Task.async(fn -> Proxy.get("events/#{event_id}") end),
+        Task.async(fn -> Rsvps.emails_for(event_id) end)
+      ]
+      |> Enum.map(fn t -> Task.await(t, :infinity) end)
+
+    Webhooks.on(hook_type, %{
+      event: event_pipeline(event),
+      attendee_emails: Enum.join(attendee_emails, ";"),
+      message: message
+    })
+  end
+
   defp send_esm_events(socket) do
     all_events =
       Proxy.stream("events")
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event ->
-         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-         %{id: id, event: event}
-       end)
+           id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+           %{id: id, event: event}
+         end)
 
     broadcast(socket, "events", %{all_events: all_events})
   end
@@ -208,18 +243,13 @@ defmodule Admin.EventsChannel do
     id = event.identifiers |> List.first() |> String.split(":") |> List.last()
     encrypted_id = Cipher.encrypt(id)
 
-
     Map.put(event, :rsvp_download_url, "#{@deployed_url}/rsvps/#{encrypted_id}")
   end
 
   defp add_organizer_edit_url(event) do
     organizer_edit_hash = Cipher.encrypt("#{event.organizer_id}")
 
-    Map.put(
-      event,
-      :organizer_edit_url,
-      "#{@deployed_url}/my-events/#{organizer_edit_hash}"
-    )
+    Map.put(event, :organizer_edit_url, "#{@deployed_url}/my-events/#{organizer_edit_hash}")
   end
 
   defp apply_edit(id, [key, value]) do
@@ -314,10 +344,15 @@ defmodule Admin.EventsChannel do
   # ----------
 
   # Match someone in organizer edit view
-  def handle_out("event", payload = %{event: event}, socket = %{assigns: %{organizer_id: organizer_id}}) do
+  def handle_out(
+        "event",
+        payload = %{event: event},
+        socket = %{assigns: %{organizer_id: organizer_id}}
+      ) do
     if event.organizer_id == organizer_id do
       push(socket, "event", payload)
     end
+
     {:noreply, socket}
   end
 
@@ -336,5 +371,4 @@ defmodule Admin.EventsChannel do
     push(socket, "events", payload)
     {:noreply, socket}
   end
-
 end
