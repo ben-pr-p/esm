@@ -161,7 +161,7 @@ defmodule Admin.EventsChannel do
     %{body: event} = Proxy.get("events/#{id}")
 
     Webhooks.on("message-host", %{
-      event: event,
+      event: event_pipeline(event),
       host: event.contact.email_address,
       message: message
     })
@@ -183,7 +183,7 @@ defmodule Admin.EventsChannel do
       |> Enum.map(fn t -> Task.await(t, :infinity) end)
 
     Webhooks.on(hook_type, %{
-      event: event,
+      event: event_pipeline(event),
       attendee_emails: Enum.join(attendee_emails, ";"),
       message: message
     })
