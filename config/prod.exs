@@ -68,4 +68,43 @@ config :admin,
 # Finally import the config/prod.secret.exs
 # which should be versioned separately.
 
-import_config "prod.secret.exs"
+config :ueberauth, Ueberauth,
+  providers: [
+    google: {
+      Ueberauth.Strategy.Google,
+      [
+        approval_prompt: "force",
+        access_type: "offline",
+        default_scope: "email profile"
+      ]
+    }
+  ]
+
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: "${GOOGLE_AUTH_CLIENT_ID}",
+  client_secret: "${GOOGLE_AUTH_CLIENT_SECRET}"
+
+# Cipher
+config :cipher,
+  keyphrase: "${CIPHER_KEYPHRASE}",
+  ivphrase: "${CIPHER_IVPHRASE}"
+
+# Proxy layer + mongo
+config :admin,
+  proxy_base_url: "${PROXY_BASE_URL}",
+  proxy_secret: "${PROXY_SECRET}",
+  mongodb_username: "${MONGO_USERNAME}",
+  mongodb_hostname: "${MONGO_HOSTNAME}",
+  mongodb_password: "${MONGO_PASSWORD}",
+  mongodb_port: "${MONGO_PORT}",
+  deployed_url: "${DEPLOYED_URL}"
+
+config :rollbax,
+  access_token: "${ROLLBAR_TOKEN}",
+  environment: "production"
+
+config :maps, key: "${MAPS_KEY}"
+
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: "${GOOGLE_AUTH_CLIENT_ID}",
+  client_secret: "${GOOGLE_AUTH_CLIENT_SECRET}"

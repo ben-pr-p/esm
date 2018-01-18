@@ -13,7 +13,7 @@ defmodule Admin.EventsChannel do
   )a
 
   @instance Application.get_env(:admin, :instance, "jd")
-  @deployed_url Application.get_env(:admin, :deployed_url, "localhost:4000")
+  def deployed_url, do: Application.get_env(:admin, :deployed_url, "localhost:4000")
 
   intercept(["event", "events"])
 
@@ -243,13 +243,13 @@ defmodule Admin.EventsChannel do
     id = event.identifiers |> List.first() |> String.split(":") |> List.last()
     encrypted_id = Cipher.encrypt(id)
 
-    Map.put(event, :rsvp_download_url, "#{@deployed_url}/rsvps/#{encrypted_id}")
+    Map.put(event, :rsvp_download_url, "#{deployed_url()}/rsvps/#{encrypted_id}")
   end
 
   defp add_organizer_edit_url(event) do
     organizer_edit_hash = Cipher.encrypt("#{event.organizer_id}")
 
-    Map.put(event, :organizer_edit_url, "#{@deployed_url}/my-events/#{organizer_edit_hash}")
+    Map.put(event, :organizer_edit_url, "#{deployed_url()}/my-events/#{organizer_edit_hash}")
   end
 
   defp apply_edit(id, [key, value]) do
