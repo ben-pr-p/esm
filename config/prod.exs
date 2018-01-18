@@ -81,8 +81,8 @@ config :ueberauth, Ueberauth,
   ]
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: "${GOOGLE_AUTH_CLIENT_ID}",
-  client_secret: "${GOOGLE_AUTH_CLIENT_SECRET}"
+  client_id: "${GOOGLE_CLIENT_ID}",
+  client_secret: "${GOOGLE_CLIENT_SECRET}"
 
 # Cipher
 config :cipher,
@@ -104,7 +104,3 @@ config :rollbax,
   environment: "production"
 
 config :maps, key: "${MAPS_KEY}"
-
-config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: "${GOOGLE_AUTH_CLIENT_ID}",
-  client_secret: "${GOOGLE_AUTH_CLIENT_SECRET}"
