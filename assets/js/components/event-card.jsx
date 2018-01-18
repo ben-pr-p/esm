@@ -226,6 +226,7 @@ export default class EventCard extends Component {
             this.setState({ canceling: false, verifyingCancel: false })
           }
           onOk={this.cancelStage2}>
+          {`This message will be sent to all ${attendance_count} people who have already RSVPed`}
           <TextArea
             rows={5}
             onChange={this.setCancelMessage}

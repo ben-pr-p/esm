@@ -124,6 +124,10 @@ defmodule Admin.EventsChannel do
 
   # Handle status changes
   def handle_in("action-" <> id, payload = %{"status" => status}, socket) do
+    if status == "cancelled" do
+      do_message_attendees("message-attendees-cancelled", id, payload["message"])
+    end
+
     insert_edit(%{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
     new_event = set_status(id, status)
 
@@ -132,7 +136,6 @@ defmodule Admin.EventsChannel do
       team_member: current_resource(socket),
       reason: payload["message"]
     })
-
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
@@ -167,20 +170,23 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("message-attendees-" <> id, %{"message" => message}, socket) do
+    do_message_attendees("message-attendees", id, message)
+    {:noreply, socket}
+  end
+
+  def do_message_attendees(hook_type, event_id, message) do
     [%{body: event}, attendee_emails] =
       [
-        Task.async(fn -> Proxy.get("events/#{id}") end),
-        Task.async(fn -> Rsvps.emails_for(id) end)
+        Task.async(fn -> Proxy.get("events/#{event_id}") end),
+        Task.async(fn -> Rsvps.emails_for(event_id) end)
       ]
       |> Enum.map(fn t -> Task.await(t, :infinity) end)
 
-    Webhooks.on("message-attendees", %{
+    Webhooks.on(hook_type, %{
       event: event,
       attendee_emails: Enum.join(attendee_emails, ";"),
       message: message
     })
-
-    {:noreply, socket}
   end
 
   defp send_esm_events(socket) do
