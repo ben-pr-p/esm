@@ -26,5 +26,6 @@ npm-debug.log
 # variables.
 
 # config/prod.secret.exs
+.env
 cosmic_cache
 /priv/static

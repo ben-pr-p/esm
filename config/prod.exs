@@ -33,45 +33,38 @@ config :admin, script_tag: ~s(/js/)
 config :admin,
   css_tag: ~s(<link rel="stylesheet" type="text/css" href="/css/app.css" media="screen,projection" />)
 
-# ## SSL Support
-#
-# To get SSL working, you will need to add the `https` key
-# to the previous section and set your `:url` port to 443:
-#
-#     config :admin, Admin.Endpoint,
-#       ...
-#       url: [host: "example.com", port: 443],
-#       https: [:inet6,
-#               port: 443,
-#               keyfile: System.get_env("SOME_APP_SSL_KEY_PATH"),
-#               certfile: System.get_env("SOME_APP_SSL_CERT_PATH")]
-#
-# Where those two env variables return an absolute path to
-# the key and cert in disk or a relative path inside priv,
-# for example "priv/ssl/server.key".
-#
-# We also recommend setting `force_ssl`, ensuring no data is
-# ever sent via http, always redirecting to https:
-#
-#     config :admin, Admin.Endpoint,
-#       force_ssl: [hsts: true]
-#
-# Check `Plug.SSL` for all available options in `force_ssl`.
+config :ueberauth, Ueberauth,
+  providers: [
+    google: {
+      Ueberauth.Strategy.Google,
+      [
+        approval_prompt: "force",
+        access_type: "offline",
+        default_scope: "email profile"
+      ]
+    }
+  ]
 
-# ## Using releases
-#
-# If you are doing OTP releases, you need to instruct Phoenix
-# to start the server for all endpoints:
-#
-#     config :phoenix, :serve_endpoints, true
-#
-# Alternatively, you can configure exactly which server to
-# start per endpoint:
-#
-#     config :admin, Admin.Endpoint, server: true
-#
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: "${GOOGLE_CLIENT_ID}498662660636-al1tjrisggkmukvuhogj7iep0ndu8n77.apps.googleusercontent.com",
+  client_secret: "${GOOGLE_CLIENT_SECRET}FH2rjZjHt0YZJm8FqyRxTTtx"
 
-# Finally import the config/prod.secret.exs
-# which should be versioned separately.
+# Cipher
+config :cipher,
+  keyphrase: "${CIPHER_KEYPHRASE}4d457a8044a24ec9",
+  ivphrase: "${CIPHER_IVPHRASE}6475636b7661706f"
 
-import_config "prod.secret.exs"
+# Proxy layer + mongo
+config :admin,
+  proxy_base_url: "${PROXY_BASE_URL}https://bsd-proxy.herokuapp.com/bsd",
+  proxy_secret: "${PROXY_SECRET}G2rdjAMk4MUKF2Ek",
+  mongodb_username: "${MONGO_USERNAME}esm_tool",
+  mongodb_hostname: "${MONGO_HOSTNAME}ds137826.mlab.com",
+  mongodb_password: "${MONGO_PASSWORD}6hVet5quL5diR9jX",
+  mongodb_port: "${MONGO_PORT}37826",
+  instance: "${INSTANCE}beto",
+  deployed_url: "${DEPLOYED_URL}https://esm.betofortexas.com"
+
+config :rollbax,
+  access_token: "${ROLLBAR_TOKEN}c031970983d44ef1863df53d6c40955b",
+  environment: "production"
