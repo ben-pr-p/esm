@@ -116,8 +116,6 @@ config :rollbax,
   access_token: System.get_env("ROLLBAR_TOKEN"),
   environment: "production"
 
-config :maps, key: System.get_env("MAPS_KEY")
-
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_AUTH_CLIENT_ID"),
   client_secret: System.get_env("GOOGLE_AUTH_CLIENT_SECRET")
