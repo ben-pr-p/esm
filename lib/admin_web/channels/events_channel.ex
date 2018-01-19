@@ -125,7 +125,7 @@ defmodule Admin.EventsChannel do
   # Handle status changes
   def handle_in("action-" <> id, payload = %{"status" => status}, socket) do
     if status == "cancelled" do
-      do_message_attendees("message-attendees-cancelled", id, payload["message"])
+      do_message_attendees("message_attendees_cancelled", id, payload["message"])
     end
 
     insert_edit(%{event_id: id, edit: %{"status" => status}, actor: current_resource(socket)})
@@ -160,7 +160,7 @@ defmodule Admin.EventsChannel do
   def handle_in("message-host-" <> id, %{"message" => message}, socket) do
     %{body: event} = Proxy.get("events/#{id}")
 
-    Webhooks.on("message-host", %{
+    Webhooks.on("message_host", %{
       event: event_pipeline(event),
       host: event.contact.email_address,
       message: message
@@ -169,8 +169,14 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
-  def handle_in("message-attendees-" <> id, %{"message" => message}, socket) do
-    do_message_attendees("message-attendees", id, message)
+  def handle_in("message_attendees-" <> id, %{"message" => message}, socket) do
+    hook_type =
+      case socket.assigns do
+        %{organizer_id: _} -> "message_attendees_from_host"
+        _ -> "message_attendees_from_staff"
+      end
+
+    do_message_attendees(hook_type, id, message)
     {:noreply, socket}
   end
 

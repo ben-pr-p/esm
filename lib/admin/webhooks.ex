@@ -57,21 +57,15 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(%{event: event, edits: edits})))
   end
 
-  def exec("message-host", ~m(event host message)a) do
+  def exec("message_host", ~m(event host message)a) do
     %{"metadata" => %{"message_host" => hook}} = Cosmic.get(@cosmic_config_slug)
     IO.puts("Posting webhook to #{hook} because of message-host")
     IO.inspect(HTTPotion.post(hook, bodify(~m(event host message))))
   end
 
-  def exec("message-attendees", ~m(event attendee_emails message)a) do
-    %{"metadata" => %{"message_attendees" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of message-attendees")
-    IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
-  end
-
-  def exec("message-attendees-cancelled", ~m(event attendee_emails message)a) do
-    %{"metadata" => %{"message_attendees_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of message-attendees-cancelled")
+  def exec(hook_type = "message_attendees" <> _rest, ~m(event attendee_emails message)a) do
+    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", hook_type])
+    IO.puts("Posting webhook to #{hook} because of #{hook_type}")
     IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
