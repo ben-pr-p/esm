@@ -94,8 +94,8 @@ config :rollbax, enabled: false
 config :phoenix, :stacktrace_depth, 20
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: System.get_env("GOOGLE_AUTH_CLIENT_ID"),
-  client_secret: System.get_env("GOOGLE_AUTH_CLIENT_SECRET")
+  client_id: System.get_env("GOOGLE_CLIENT_ID"),
+  client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
 
 # Cipher
 config :cipher,
@@ -114,8 +114,4 @@ config :admin,
 
 config :rollbax,
   access_token: System.get_env("ROLLBAR_TOKEN"),
-  environment: "production"
-
-config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: System.get_env("GOOGLE_AUTH_CLIENT_ID"),
-  client_secret: System.get_env("GOOGLE_AUTH_CLIENT_SECRET")
+  environment: "development"

@@ -502,15 +502,13 @@ export default class EventCard extends Component {
               </Menu.Item>
             )}
 
-            {category !== undefined && (
-              <Menu.Item>
-                <Button
-                  style={{ width: '100%' }}
-                  onClick={this.messageAttendees}>
-                  Message Attendees
-                </Button>
-              </Menu.Item>
-            )}
+            <Menu.Item>
+              <Button
+                style={{ width: '100%' }}
+                onClick={this.messageAttendees}>
+                Message Attendees
+              </Button>
+            </Menu.Item>
 
             <Menu.Item>
               <Button

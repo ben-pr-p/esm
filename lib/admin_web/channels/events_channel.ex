@@ -169,7 +169,7 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
-  def handle_in("message_attendees-" <> id, %{"message" => message}, socket) do
+  def handle_in("message-attendees-" <> id, %{"message" => message}, socket) do
     hook_type =
       case socket.assigns do
         %{organizer_id: _} -> "message_attendees_from_host"
