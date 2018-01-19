@@ -65,10 +65,7 @@ export default class List extends Component {
         )
       )
       .join('\n')
-    console.log(as_csv)
-
     const blob = new Blob([as_csv], { type: 'text/csv;charset=utf-8' })
-    console.log(blob)
     FileSaver.saveAs(blob, `${Date.now()}-export.csv`)
   }
 

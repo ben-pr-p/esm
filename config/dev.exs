@@ -56,8 +56,6 @@ config :cipher,
   ivphrase: "testieivphraseforcipher",
   magic_token: "magictoken"
 
-config :maps, key: System.get_env("GOOGLE_MAPS_KEY")
-
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
@@ -94,3 +92,32 @@ config :rollbax, enabled: false
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
+
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: System.get_env("GOOGLE_AUTH_CLIENT_ID"),
+  client_secret: System.get_env("GOOGLE_AUTH_CLIENT_SECRET")
+
+# Cipher
+config :cipher,
+  keyphrase: System.get_env("CIPHER_KEYPHRASE"),
+  ivphrase: System.get_env("CIPHER_IVPHRASE")
+
+# Proxy layer + mongo
+config :admin,
+  proxy_base_url: System.get_env("PROXY_BASE_URL"),
+  proxy_secret: System.get_env("PROXY_SECRET"),
+  mongodb_username: System.get_env("MONGO_USERNAME"),
+  mongodb_hostname: System.get_env("MONGO_HOSTNAME"),
+  mongodb_password: System.get_env("MONGO_PASSWORD"),
+  mongodb_port: System.get_env("MONGO_PORT"),
+  deployed_url: System.get_env("DEPLOYED_URL")
+
+config :rollbax,
+  access_token: System.get_env("ROLLBAR_TOKEN"),
+  environment: "production"
+
+config :maps, key: System.get_env("MAPS_KEY")
+
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: System.get_env("GOOGLE_AUTH_CLIENT_ID"),
+  client_secret: System.get_env("GOOGLE_AUTH_CLIENT_SECRET")

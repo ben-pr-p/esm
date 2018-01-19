@@ -1,17 +1,17 @@
 defmodule Proxy do
   use HTTPotion.Base
 
-  @base Application.get_env(:admin, :proxy_base_url)
-  @secret Application.get_env(:admin, :proxy_secret)
+  def base, do: Application.get_env(:admin, :proxy_base_url)
+  def secret, do: Application.get_env(:admin, :proxy_secret)
 
   def process_url(url) do
-    "#{@base}/#{url}"
+    "#{base}/#{url}"
   end
 
   def process_options(opts) do
     query =
       Keyword.get(opts, :query, %{})
-      |> Map.put(:secret, @secret)
+      |> Map.put(:secret, secret)
 
     opts
     |> Keyword.put(:query, query)

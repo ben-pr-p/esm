@@ -1,5 +1,6 @@
 defmodule Admin.Webhooks do
   require Logger
+  import ShortMaps
 
   @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
 
@@ -28,8 +29,20 @@ defmodule Admin.Webhooks do
 
   def exec("cancelled", %{event: event, team_member: team_member, reason: reason}) do
     %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts "Posting webhook to #{hook} because of cancelled"
-    IO.inspect HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
+    IO.puts("Posting webhook to #{hook} because of cancelled")
+
+    IO.inspect(
+      HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
+    )
+  end
+
+  def exec("cancelled", %{event: event, team_member: team_member, reason: reason}) do
+    %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
+    IO.puts("Posting webhook to #{hook} because of cancelled")
+
+    IO.inspect(
+      HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
+    )
   end
 
   def exec("tentative", %{event: event, team_member: team_member}) do
@@ -42,6 +55,24 @@ defmodule Admin.Webhooks do
     %{"metadata" => %{"event_edited" => hook}} = Cosmic.get(@cosmic_config_slug)
     IO.puts("Posting webhook to #{hook} because of edit")
     IO.inspect(HTTPotion.post(hook, bodify(%{event: event, edits: edits})))
+  end
+
+  def exec("message-host", ~m(event host message)a) do
+    %{"metadata" => %{"message_host" => hook}} = Cosmic.get(@cosmic_config_slug)
+    IO.puts("Posting webhook to #{hook} because of message-host")
+    IO.inspect(HTTPotion.post(hook, bodify(~m(event host message))))
+  end
+
+  def exec("message-attendees", ~m(event attendee_emails message)a) do
+    %{"metadata" => %{"message_attendees" => hook}} = Cosmic.get(@cosmic_config_slug)
+    IO.puts("Posting webhook to #{hook} because of message-attendees")
+    IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
+  end
+
+  def exec("message-attendees-cancelled", ~m(event attendee_emails message)a) do
+    %{"metadata" => %{"message_attendees_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
+    IO.puts("Posting webhook to #{hook} because of message-attendees-cancelled")
+    IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
   def exec(other, %{event: event, team_member: _team_member}) do

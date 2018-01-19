@@ -34,14 +34,34 @@ export default class EventCard extends Component {
     this.props.channel.push(`calendars-${this.props.id}`, vals)
 
   reject = () => this.setState({ rejecting: true, saving: true })
+  cancel = () => this.setState({ canceling: true })
+  messageAttendees = () => this.setState({ messagingAttendees: true })
+  messageHost = () => this.setState({ messagingHost: true })
+
+  setCancelMessage = e => this.setState({ cancelMessage: e.target.value })
+  setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
+  setHostMessage = e => this.setState({ hostMessage: e.target.value })
+  setAttendeeMessage = e => this.setState({ attendeeMessage: e.target.value })
+
+  finishMessageAttendees = () => {
+    this.props.channel.push(`message-attendees-${this.props.id}`, {
+      message: this.state.attendeeMessage
+    })
+    this.setState({ messagingAttendees: false })
+  }
+
+  finishMessageHost = () => {
+    this.props.channel.push(`message-host-${this.props.id}`, {
+      message: this.state.hostMessage
+    })
+    this.setState({ messagingHost: false })
+  }
 
   rejectWithMessage = () =>
     this.props.channel.push(`action-${this.props.id}`, {
       status: 'rejected',
       message: this.state.rejectionMessage
     })
-
-  setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
 
   cancelWithMessage = () => {
     this.setState({ saving: true })
@@ -53,9 +73,6 @@ export default class EventCard extends Component {
     this.setState({ saving: true })
   }
 
-  setCancelMessage = e => this.setState({ cancelMessage: e.target.value })
-
-  cancel = () => this.setState({ canceling: true })
   cancelStage2 = () =>
     this.setState({ verifyingCancel: true, canceling: false })
 
@@ -109,7 +126,11 @@ export default class EventCard extends Component {
     rejectionMessage: '',
     canceling: false,
     verifyingCancel: false,
-    cancelMessage: ''
+    cancelMessage: '',
+    attendeeMessage: '',
+    hostMessage: '',
+    messagingAttendees: false,
+    messagingHost: false
   }
 
   componentWillReceiveProps(_nextProps) {
@@ -140,8 +161,6 @@ export default class EventCard extends Component {
     } = event
 
     const disabled = checked_out_by !== undefined && checked_out_by !== null
-
-    console.log(this.state.canceling)
 
     const isVolEvent =
       tags.filter(t => t.includes('Source: Direct Publish')).length == 0
@@ -208,6 +227,7 @@ export default class EventCard extends Component {
             this.setState({ canceling: false, verifyingCancel: false })
           }
           onOk={this.cancelStage2}>
+          {`This message will be sent to all ${attendance_count} people who have already RSVPed`}
           <TextArea
             rows={5}
             onChange={this.setCancelMessage}
@@ -226,6 +246,40 @@ export default class EventCard extends Component {
           cancelText="Don't Cancel"
           onOk={this.cancelWithMessage}>
           This cannot be undone.
+        </Modal>
+
+        <Modal
+          visible={this.state.messagingHost}
+          title={`Message the Event Host (${contact.email_address})`}
+          okText="Send"
+          okType="primary"
+          onCancel={() =>
+            this.setState({ messagingHost: false, hostMessage: '' })
+          }
+          cancelText="Cancel"
+          onOk={this.finishMessageHost}>
+          <TextArea
+            rows={5}
+            onChange={this.setHostMessage}
+            value={this.state.hostMessage}
+          />
+        </Modal>
+
+        <Modal
+          visible={this.state.messagingAttendees}
+          title={`Message All ${attendance_count} Attendees `}
+          okText="Send"
+          okType="primary"
+          onCancel={() =>
+            this.setState({ messagingAttendees: false, attendeeMessage: '' })
+          }
+          cancelText="Cancel"
+          onOk={this.finishMessageAttendees}>
+          <TextArea
+            rows={5}
+            onChange={this.setAttendeeMessage}
+            value={this.state.attendeeMessage}
+          />
         </Modal>
 
         <div>
@@ -440,6 +494,24 @@ export default class EventCard extends Component {
       <Dropdown
         overlay={
           <Menu>
+            {category !== undefined && (
+              <Menu.Item>
+                <Button style={{ width: '100%' }} onClick={this.messageHost}>
+                  Message Host
+                </Button>
+              </Menu.Item>
+            )}
+
+            {category !== undefined && (
+              <Menu.Item>
+                <Button
+                  style={{ width: '100%' }}
+                  onClick={this.messageAttendees}>
+                  Message Attendees
+                </Button>
+              </Menu.Item>
+            )}
+
             <Menu.Item>
               <Button
                 style={{ width: '100%' }}
@@ -447,6 +519,7 @@ export default class EventCard extends Component {
                 Download RSVPs
               </Button>
             </Menu.Item>
+
             <Menu.Item>
               <Button
                 style={{ width: '100%' }}
@@ -460,6 +533,7 @@ export default class EventCard extends Component {
                 Copy RSVP Download Link
               </Button>
             </Menu.Item>
+
             <Menu.Item>
               <Button
                 style={{ width: '100%' }}
@@ -473,6 +547,7 @@ export default class EventCard extends Component {
                 Copy Organizer Edit Link
               </Button>
             </Menu.Item>
+
             <Menu.Item>
               <Button style={{ width: '100%' }} onClick={this.duplicate}>
                 Duplicate

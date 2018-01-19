@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Button, Icon, Layout, Select } from 'antd'
+import { Button, Icon, Layout, Select, DatePicker } from 'antd'
 import Filter from './filter'
 
 const { Header, Content } = Layout
@@ -117,6 +117,7 @@ export default class FilterHeader extends Component {
 
 const filterSpec = {
   title: { type: 'string', display: 'Title' },
+  start_date: {type: 'date', display: 'Date'},
   description: { type: 'string', display: 'Description' },
   type: { type: 'string', display: 'Type' },
   'contact.name': { type: 'string', display: 'Host Name' },

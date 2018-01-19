@@ -46,25 +46,24 @@ config :ueberauth, Ueberauth,
   ]
 
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: "${GOOGLE_CLIENT_ID}498662660636-al1tjrisggkmukvuhogj7iep0ndu8n77.apps.googleusercontent.com",
-  client_secret: "${GOOGLE_CLIENT_SECRET}FH2rjZjHt0YZJm8FqyRxTTtx"
+  client_id: "${GOOGLE_CLIENT_ID}",
+  client_secret: "${GOOGLE_CLIENT_SECRET}"
 
 # Cipher
 config :cipher,
-  keyphrase: "${CIPHER_KEYPHRASE}4d457a8044a24ec9",
-  ivphrase: "${CIPHER_IVPHRASE}6475636b7661706f"
+  keyphrase: "${CIPHER_KEYPHRASE}",
+  ivphrase: "${CIPHER_IVPHRASE}"
 
 # Proxy layer + mongo
 config :admin,
-  proxy_base_url: "${PROXY_BASE_URL}https://bsd-proxy.herokuapp.com/bsd",
-  proxy_secret: "${PROXY_SECRET}G2rdjAMk4MUKF2Ek",
-  mongodb_username: "${MONGO_USERNAME}esm_tool",
-  mongodb_hostname: "${MONGO_HOSTNAME}ds137826.mlab.com",
-  mongodb_password: "${MONGO_PASSWORD}6hVet5quL5diR9jX",
-  mongodb_port: "${MONGO_PORT}37826",
-  instance: "${INSTANCE}beto",
-  deployed_url: "${DEPLOYED_URL}https://esm.betofortexas.com"
+  proxy_base_url: "${PROXY_BASE_URL}",
+  proxy_secret: "${PROXY_SECRET}",
+  mongodb_username: "${MONGO_USERNAME}",
+  mongodb_hostname: "${MONGO_HOSTNAME}",
+  mongodb_password: "${MONGO_PASSWORD}",
+  mongodb_port: "${MONGO_PORT}",
+  deployed_url: "${DEPLOYED_URL}"
 
 config :rollbax,
-  access_token: "${ROLLBAR_TOKEN}c031970983d44ef1863df53d6c40955b",
+  access_token: "${ROLLBAR_TOKEN}",
   environment: "production"
