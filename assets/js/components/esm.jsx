@@ -91,14 +91,19 @@ export default class Esm extends Component {
       const typeOptions = [
         ...new Set(this.state.typeOptions.concat([event.type]))
       ]
+      this.state.typeOptions = typeOptions
       this.forceUpdate()
     })
 
     this.state.channel.on('events', ({ all_events }) => {
+      const typeOptions = new Set()
       all_events.forEach(({ id, event }) => {
         this.state.events[id] = event
         event.tags.forEach(t => window.tagOptions.push(t))
+        typeOptions.add(event.type)
       })
+      this.state.typeOptions = [...typeOptions]
+      console.log(this.state.typeOptions)
       this.forceUpdate()
     })
 

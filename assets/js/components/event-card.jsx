@@ -27,8 +27,11 @@ export default class EventCard extends Component {
     this.setState({ saving: true })
   }
 
-  onTypeChange = val =>
+  onTypeChange = val => {
     this.props.channel.push(`edit-${this.props.id}`, ['type', val])
+    this.setState({ saving: true })
+  }
+
   onTagsChange = vals => this.props.channel.push(`tags-${this.props.id}`, vals)
   onCalendarChange = vals =>
     this.props.channel.push(`calendars-${this.props.id}`, vals)
