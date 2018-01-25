@@ -517,43 +517,43 @@ export default class EventCard extends Component {
         </div>
 
         {!this.props.hostEdit && (
-          <div>
-            <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-              <strong>Tags:</strong>
-              <Select
-                mode="multiple"
-                style={{ width: "100%" }}
-                placeholder="Tags"
-                onChange={this.onTagsChange}
-                defaultValue={tags.filter(
-                  t => !t.includes("Calendar") && !t.includes("Event Type:")
-                )}
-              >
-                {window.tagOptions
-                  .filter(
-                    t => !t.includes("Event: Action") && !t.includes("Calendar")
-                  )
-                  .map(t => <Option key={t}>{t}</Option>)}
-              </Select>
-            </div>
-
-            <div>
-              <EditLogs
-                id={this.props.id}
-                channel={this.props.channel}
-                edits={this.props.edits}
-              />
-              <CallLogs
-                id={this.props.id}
-                channel={this.props.channel}
-                calls={this.props.calls}
-              />
-            </div>
+          <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+            <strong>Tags:</strong>
+            <Select
+              mode="multiple"
+              style={{ width: "100%" }}
+              placeholder="Tags"
+              onChange={this.onTagsChange}
+              defaultValue={tags.filter(
+                t => !t.includes("Calendar") && !t.includes("Event Type:")
+              )}
+            >
+              {window.tagOptions
+                .filter(
+                  t => !t.includes("Event: Action") && !t.includes("Calendar")
+                )
+                .map(t => <Option key={t}>{t}</Option>)}
+            </Select>
           </div>
         )}
 
         <br />
         <br />
+
+        {!this.props.hostEdit && (
+          <div>
+            <EditLogs
+              id={this.props.id}
+              channel={this.props.channel}
+              edits={this.props.edits}
+            />
+            <CallLogs
+              id={this.props.id}
+              channel={this.props.channel}
+              calls={this.props.calls}
+            />
+          </div>
+        )}
       </Card>
     );
   }
