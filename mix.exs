@@ -48,7 +48,7 @@ defmodule Admin.Mixfile do
       {:ueberauth_google, "~> 0.5"},
       {:guardian, "~> 0.14"},
       {:distillery, "~> 1.0.0"},
-      {:cipher, ">= 1.3.3"},
+      {:cipher, "~> 1.3.4"},
       {:quantum, ">= 2.1.0"},
       {:httpotion, "~> 3.0.2"},
       {:mongodb, "~> 0.4.3"},

@@ -33,9 +33,16 @@ defmodule Admin.PageController do
   end
 
   def my_events(conn, %{"token" => token}) do
-    case token |> URI.encode_www_form() |> Cipher.decrypt() do
+    case token |> URI.encode_www_form() |> MyCipher.decrypt() do
       {:error, _message} -> alert_user_edit(conn)
       _organizer_id -> render(conn, "my-events.html", organizer_token: token)
+    end
+  end
+
+  def candidate_events(conn, %{"token" => token}) do
+    case token |> URI.encode_www_form() |> MyCipher.decrypt() do
+      {:error, _message} -> alert_user_edit(conn)
+      _candidate_tag -> render(conn, "candidate-events.html", candidate_token: token)
     end
   end
 
@@ -47,7 +54,7 @@ defmodule Admin.PageController do
   end
 
   def rsvps(conn, %{"encrypted" => encrypted}) do
-    case encrypted |> URI.encode_www_form() |> Cipher.decrypt() do
+    case encrypted |> URI.encode_www_form() |> MyCipher.decrypt() do
       {:error, _message} -> alert_user_rsvp(conn)
       id -> authorized_rsvp(conn, id)
     end

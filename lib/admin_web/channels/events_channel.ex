@@ -5,6 +5,7 @@ defmodule Admin.EventsChannel do
   use Guardian.Channel
   alias Admin.{CheckoutAgent}
   import Guardian.Phoenix.Socket
+  import ShortMaps
 
   @attrs ~w(
     id start_date end_date featured_image_url location summary title name
@@ -17,8 +18,15 @@ defmodule Admin.EventsChannel do
 
   intercept(["event", "events"])
 
+  def join("events", %{"candidate_token" => token}, socket) do
+    case token |> URI.encode_www_form() |> MyCipher.decrypt() do
+      {:error, message} -> {:error, message}
+      candidate_tag -> {:ok, assign(socket, :candidate_tag, candidate_tag)}
+    end
+  end
+
   def join("events", %{"organizer_token" => token}, socket) do
-    case token |> URI.encode_www_form() |> Cipher.decrypt() do
+    case token |> URI.encode_www_form() |> MyCipher.decrypt() do
       {:error, message} -> {:error, message}
       organizer_id -> {:ok, assign(socket, :organizer_id, organizer_id)}
     end
@@ -41,6 +49,11 @@ defmodule Admin.EventsChannel do
 
   def handle_in("ready", %{"page" => "my-events"}, socket) do
     send_my_events(socket)
+    {:noreply, socket}
+  end
+
+  def handle_in("ready", %{"page" => "candidate-events"}, socket) do
+    send_candidate_events(socket)
     {:noreply, socket}
   end
 
@@ -136,6 +149,7 @@ defmodule Admin.EventsChannel do
       team_member: current_resource(socket),
       reason: payload["message"]
     })
+
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
@@ -180,6 +194,26 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  def handle_in("call-logs-for-" <> id, _payload, socket) do
+    calls = Admin.CallLogs.get_for(id)
+    push(socket, "call-logs", ~m(calls id))
+    {:noreply, socket}
+  end
+
+  def handle_in("add-call-log-" <> event_id, ~m(note), socket) do
+    actor = current_resource(socket)
+    Admin.CallLogs.add_to(~m(actor event_id note))
+    calls = Admin.CallLogs.get_for(event_id)
+    push(socket, "call-logs", Map.merge(~m(calls), %{"id" => event_id}))
+    {:noreply, socket}
+  end
+
+  def handle_in("edit-logs-for-" <> event_id, _payload, socket) do
+    edits = Admin.EditLogs.get_for(event_id)
+    push(socket, "edit-logs", Map.merge(~m(edits), %{"id" => event_id}))
+    {:noreply, socket}
+  end
+
   def do_message_attendees(hook_type, event_id, message) do
     [%{body: event}, attendee_emails] =
       [
@@ -200,9 +234,9 @@ defmodule Admin.EventsChannel do
       Proxy.stream("events")
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event ->
-           id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-           %{id: id, event: event}
-         end)
+        id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+        %{id: id, event: event}
+      end)
 
     broadcast(socket, "events", %{all_events: all_events})
   end
@@ -213,8 +247,8 @@ defmodule Admin.EventsChannel do
       |> Enum.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event = %{id: id} ->
-           %{id: event.id, event: event}
-         end)
+        %{id: event.id, event: event}
+      end)
 
     broadcast(socket, "events", %{all_events: all_events})
   end
@@ -226,9 +260,22 @@ defmodule Admin.EventsChannel do
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
     |> Flow.map(&event_pipeline/1)
     |> Flow.each(fn event ->
-         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-         push(socket, "event", %{id: id, event: event})
-       end)
+      id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+      push(socket, "event", %{id: id, event: event})
+    end)
+    |> Flow.run()
+  end
+
+  defp send_candidate_events(socket = %{assigns: %{candidate_tag: candidate_tag}}) do
+    Proxy.stream("events")
+    |> Flow.from_enumerable()
+    |> Flow.filter(&Enum.member?(&1.tags, candidate_tag))
+    |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
+    |> Flow.map(&event_pipeline/1)
+    |> Flow.each(fn event ->
+      id = event.identifiers |> List.first() |> String.split(":") |> List.last()
+      push(socket, "event", %{id: id, event: event})
+    end)
     |> Flow.run()
   end
 
@@ -236,6 +283,7 @@ defmodule Admin.EventsChannel do
     event
     |> add_rsvp_download_url()
     |> add_organizer_edit_url()
+    |> add_candidate_events_url()
   end
 
   defp to_map(event = %{tags: tags}) do
@@ -256,6 +304,22 @@ defmodule Admin.EventsChannel do
     organizer_edit_hash = Cipher.encrypt("#{event.organizer_id}")
 
     Map.put(event, :organizer_edit_url, "#{deployed_url()}/my-events/#{organizer_edit_hash}")
+  end
+
+  defp add_candidate_events_url(event) do
+    candidate_tag =
+      Enum.filter(event.tags, fn
+        "Calendar: " <> cand -> cand != "Brand New Congress" and cand != "Justice Democrats"
+        _ -> false
+      end)
+      |> List.first()
+
+    if candidate_tag do
+      hash = Cipher.encrypt(candidate_tag)
+      Map.put(event, :candidate_events_url, "#{deployed_url()}/candidate-events/#{hash}")
+    else
+      event
+    end
   end
 
   defp apply_edit(id, [key, value]) do
@@ -367,6 +431,18 @@ defmodule Admin.EventsChannel do
         socket = %{assigns: %{organizer_id: organizer_id}}
       ) do
     if event.organizer_id == organizer_id do
+      push(socket, "event", payload)
+    end
+
+    {:noreply, socket}
+  end
+
+  def handle_out(
+        "event",
+        payload = %{event: event},
+        socket = %{assigns: %{candidate_tag: candidate_tag}}
+      ) do
+    if event.tags |> Enum.member?(candidate_tag) do
       push(socket, "event", payload)
     end
 

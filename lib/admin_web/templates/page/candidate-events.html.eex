@@ -1,0 +1,3 @@
+<div id="app"></div>
+<div id="candidate-token" style="display:none" content="<%= @candidate_token %>"></div>
+<%= {:safe, js_script_tag("candidate-events.js") } %>

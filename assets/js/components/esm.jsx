@@ -17,6 +17,8 @@ export default class Esm extends Component {
     events: {},
     channel: null,
     search: '',
+    calls: {},
+    edits: {},
     state: null,
     calendars: [],
     tabActiveKey: tabSpec[0].title,
@@ -59,6 +61,8 @@ export default class Esm extends Component {
           key={id}
           event={this.state.events[id]}
           id={id}
+          calls={this.state.calls[id]}
+          edits={this.state.edits[id]}
           channel={this.state.channel}
           category={category}
         />
@@ -104,6 +108,19 @@ export default class Esm extends Component {
       })
       this.state.typeOptions = [...typeOptions]
       console.log(this.state.typeOptions)
+      this.forceUpdate()
+    })
+
+    this.state.channel.on('call-logs', ({id, calls}) => {
+      this.state.calls[id] = calls
+      this.forceUpdate()
+    })
+
+    this.state.channel.on('edit-logs', ({id, edits}) => {
+      console.log('hi')
+      console.log(edits)
+      this.state.edits[id] = edits
+      console.log(this.state.edits)
       this.forceUpdate()
     })
 

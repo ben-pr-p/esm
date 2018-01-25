@@ -29,6 +29,13 @@ defmodule Admin.Application do
       # worker(Admin.Worker, [arg1, arg2, arg3]),
     ]
 
+    Application.put_env(
+      :ueberauth,
+      Ueberauth.Strategy.Google.OAuth,
+      client_id: System.get_env("GOOGLE_CLIENT_ID"),
+      client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
+    )
+
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Admin.Supervisor]

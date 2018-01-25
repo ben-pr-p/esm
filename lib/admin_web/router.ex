@@ -32,6 +32,7 @@ defmodule Admin.Router do
     get("/events/list", PageController, :list)
 
     get("/my-events/:token", PageController, :my_events)
+    get("/candidate-events/:token", PageController, :candidate_events)
 
     get("/rsvps/:encrypted", PageController, :rsvps)
   end

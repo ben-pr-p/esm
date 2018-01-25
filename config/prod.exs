@@ -31,7 +31,8 @@ config :logger, level: :info
 config :admin, script_tag: ~s(/js/)
 
 config :admin,
-  css_tag: ~s(<link rel="stylesheet" type="text/css" href="/css/app.css" media="screen,projection" />)
+  css_tag:
+    ~s(<link rel="stylesheet" type="text/css" href="/css/app.css" media="screen,projection" />)
 
 config :ueberauth, Ueberauth,
   providers: [
