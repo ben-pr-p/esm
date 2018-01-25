@@ -17,6 +17,7 @@ import EditableText from './editable-text'
 import EditableNumber from './editable-number'
 import EditableDateRange from './editable-date-range'
 import CallLogs from './call-logs'
+import EditLogs from './edit-logs'
 import clipboard from 'clipboard-js'
 import mtz from 'moment-timezone'
 
@@ -520,7 +521,13 @@ export default class EventCard extends Component {
           </div>
         )}
 
-        <CallLogs id={this.props.id} channel={this.props.channel} calls={this.props.calls} />
+        <br/>
+        <br/>
+
+        <div>
+          <EditLogs id={this.props.id} channel={this.props.channel} edits={this.props.edits} />
+          <CallLogs id={this.props.id} channel={this.props.channel} calls={this.props.calls} />
+        </div>
       </Card>
     )
   }

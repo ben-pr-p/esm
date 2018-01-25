@@ -196,6 +196,12 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  def handle_in("edit-logs-for-" <> event_id, _payload, socket) do
+    edits = Admin.EditLogs.get_for(event_id)
+    push(socket, "edit-logs", Map.merge(~m(edits), %{"id" => event_id}))
+    {:noreply, socket}
+  end
+
   def do_message_attendees(hook_type, event_id, message) do
     [%{body: event}, attendee_emails] =
       [

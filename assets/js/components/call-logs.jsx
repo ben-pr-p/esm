@@ -12,15 +12,15 @@ export default class CallLogs extends Component {
     logNote: ""
   };
 
-  componentDidMount() {
-    this.props.channel.push(`call-logs-for-${this.props.id}`);
-  }
-
   componentWillReceiveProps(nextProps) {
-    this.setState({adding: false})
+    this.setState({ adding: false });
   }
 
-  openMe = () => this.setState({ open: true });
+  openMe = () => {
+    this.props.channel.push(`call-logs-for-${this.props.id}`);
+    this.setState({ open: true });
+  };
+
   addCallLog = () =>
     this.props.channel.push(`add-call-log-${this.props.id}`, {
       note: this.state.logNote
@@ -49,7 +49,11 @@ export default class CallLogs extends Component {
             onChange={this.setLogNote}
             value={this.state.logNote}
             pageSize={5}
-            pagination={{pageSize: 5, total: Math.ceil(this.props.calls.length / 5), defaultCurrent: 1}}
+            pagination={{
+              pageSize: 5,
+              total: Math.ceil(this.props.calls.length / 5),
+              defaultCurrent: 1
+            }}
           />
         </Modal>
       );
@@ -59,17 +63,36 @@ export default class CallLogs extends Component {
           visible={true}
           title="Call Notes"
           okText="Add Call"
+          width="60%"
           onCancel={() => this.setState({ open: false })}
           onOk={() => this.setState({ adding: true })}
         >
-          <Table
-            columns={[
-              { title: "Caller", dataIndex: "actor", key: "actor" },
-              { title: "Called At", dataIndex: "timestamp", key: "timestamp" },
-              { title: "Notes", dataIndex: "note", key: "note" }
-            ]}
-            dataSource={this.props.calls}
-          />
+          {this.props.calls === undefined ? (
+            <Icon type="loading" />
+          ) : (
+            <Table
+              columns={[
+                {
+                  title: "Caller",
+                  dataIndex: "actor",
+                  key: "actor",
+                  width: 300
+                },
+                {
+                  title: "Called At",
+                  dataIndex: "timestamp",
+                  key: "timestamp",
+                  width: 200
+                },
+                { title: "Notes", dataIndex: "note", key: "note" }
+              ]}
+              dataSource={this.props.calls.map(c =>
+                Object.assign(c, {
+                  timestamp: new Date(c.timestamp).toString()
+                })
+              )}
+            />
+          )}
         </Modal>
       );
     }
