@@ -110,7 +110,8 @@ config :admin,
   mongodb_hostname: System.get_env("MONGO_HOSTNAME"),
   mongodb_password: System.get_env("MONGO_PASSWORD"),
   mongodb_port: System.get_env("MONGO_PORT"),
-  deployed_url: System.get_env("DEPLOYED_URL")
+  deployed_url: System.get_env("DEPLOYED_URL"),
+  instance: "beto"
 
 config :rollbax,
   access_token: System.get_env("ROLLBAR_TOKEN"),
