@@ -17,6 +17,7 @@ export default class Esm extends Component {
     events: {},
     channel: null,
     search: '',
+    calls: {},
     state: null,
     calendars: [],
     globalFilterFn: () => true,
@@ -50,6 +51,7 @@ export default class Esm extends Component {
           key={id}
           event={this.state.events[id]}
           id={id}
+          calls={this.state.calls[id]}
           channel={this.state.channel}
           category={category}
         />
@@ -86,6 +88,11 @@ export default class Esm extends Component {
         this.state.events[id] = event
         event.tags.forEach(t => window.tagOptions.push(t))
       })
+      this.forceUpdate()
+    })
+
+    this.state.channel.on('call-logs', ({id, calls}) => {
+      this.state.calls[id] = calls
       this.forceUpdate()
     })
 

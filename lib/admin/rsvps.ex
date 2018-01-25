@@ -38,11 +38,11 @@ defmodule Rsvps do
 
     people_ids
     |> Enum.map(
-         &Task.async(fn ->
-           %{body: body} = Proxy.get("people/#{&1}")
-           body
-         end)
-       )
+      &Task.async(fn ->
+        %{body: body} = Proxy.get("people/#{&1}")
+        body
+      end)
+    )
     |> Enum.map(fn t -> Task.await(t, :infinity) end)
     |> Enum.map(&(List.first(&1.email_addresses) |> get_email()))
   end

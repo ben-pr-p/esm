@@ -35,8 +35,7 @@ config :ueberauth, Ueberauth,
       [
         approval_prompt: "force",
         access_type: "offline",
-        default_scope: "email profile",
-        hd: System.get_env("HOSTED_DOMAIN")
+        default_scope: "email profile"
       ]
     }
   ]
@@ -48,7 +47,8 @@ config :ueberauth, Ueberauth.Strategy.Google.OAuth,
 config :admin, script_tag_base: ~s(http://localhost:8080/js/)
 
 config :admin,
-  css_tag: ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
+  css_tag:
+    ~s(<link rel="stylesheet" type="text/css" href="http://localhost:8080/css/app.css" media="screen,projection" />)
 
 # Cipher
 config :cipher,
