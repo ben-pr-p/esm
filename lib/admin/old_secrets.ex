@@ -1,8 +1,7 @@
 defmodule Admin.OldSecrets do
   import ShortMaps
-  @instance Application.get_env(:admin, :instance, "jd")
 
-  def collection, do: "old_secrets_#{@instance}"
+  def collection, do: "old_secrets_#{Application.get_env(:admin, :instance, "jd")}"
 
   def decrypt(string) do
     case Mongo.find_one(:mongo, collection(), %{"key" => string}) do
@@ -19,23 +18,42 @@ defmodule Admin.OldSecrets do
     events =
       Proxy.stream("events")
       |> Enum.to_list()
-      |> Enum.map(fn event = ~m(id)a -> {"#{id}", event} end)
+      |> Enum.map(fn event = ~m(id browser_url)a ->
+        obfuscated = String.split(browser_url, "/") |> List.last()
+        {"#{obfuscated}", event}
+      end)
       |> Enum.into(%{})
 
     kvs =
-      File.stream!(path)
-      |> Stream.flat_map(fn line -> extract_keys(line, events) end)
+      File.read!(path)
+      |> String.replace("\uFEFF", "")
+      |> String.split("\n")
+      |> Enum.flat_map(fn line -> extract_keys(line, events) end)
       |> Enum.to_list()
       |> Enum.each(fn kv -> upload(kv) |> IO.inspect() end)
   end
 
   def extract_keys(line, events) do
-    [id, event_id_encrypted, organizer_id_encrypted] = String.trim(line) |> String.split(",")
-    organizer_id = events[id].organizer_id
+    [obfuscated, event_id_encrypted, organizer_id_encrypted] =
+      case String.trim(line) |> String.split(",") do
+        [a,b,c] -> [a,b,c]
+        [a,b] -> [a | String.split(b, ~s("))]
+      end
+    IO.inspect obfuscated
+    id = events[obfuscated].id
+    organizer_id = events[obfuscated].organizer_id
 
     [
-      %{"key" => event_id_encrypted, "value" => id},
-      %{"key" => organizer_id_encrypted, "value" => organizer_id}
+      %{"key" => ensure_double(event_id_encrypted), "value" => id},
+      %{"key" => ensure_double(organizer_id_encrypted), "value" => organizer_id}
     ]
+  end
+
+  def ensure_double(string) do
+    if String.ends_with?(string, "%3D%3D") do
+      string
+    else
+      string <> "%3D"
+    end
   end
 end
