@@ -70,6 +70,7 @@ export default [
       isInFuture(ev) &&
       ev.status == "confirmed" &&
       isIn5Days(ev) &&
+      !isToday(ev) &&
       (ev.tags.includes("Event: Action: Logisticsed") || isStaff(ev))
   },
   {
