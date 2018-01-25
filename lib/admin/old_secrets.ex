@@ -22,10 +22,11 @@ defmodule Admin.OldSecrets do
       |> Enum.map(fn event = ~m(id)a -> {"#{id}", event} end)
       |> Enum.into(%{})
 
-    kvs = File.stream!(path)
-    |> Stream.flat_map(fn line -> extract_keys(line, events) end)
-    |> Enum.to_list()
-    |> Enum.each(fn kv -> upload(kv) |> IO.inspect() end)
+    kvs =
+      File.stream!(path)
+      |> Stream.flat_map(fn line -> extract_keys(line, events) end)
+      |> Enum.to_list()
+      |> Enum.each(fn kv -> upload(kv) |> IO.inspect() end)
   end
 
   def extract_keys(line, events) do

@@ -39,6 +39,13 @@ defmodule Admin.PageController do
     end
   end
 
+  def candidate_events(conn, %{"token" => token}) do
+    case token |> URI.encode_www_form() |> MyCipher.decrypt() do
+      {:error, _message} -> alert_user_edit(conn)
+      _candidate_tag -> render(conn, "candidate-events.html", candidate_token: token)
+    end
+  end
+
   def unauthenticated(conn, _) do
     conn
     |> put_status(302)

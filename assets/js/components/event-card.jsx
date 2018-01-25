@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component } from "react";
 import {
   Button,
   Card,
@@ -12,134 +12,135 @@ import {
   Tabs,
   Select,
   message
-} from 'antd'
-import EditableText from './editable-text'
-import EditableNumber from './editable-number'
-import EditableDateRange from './editable-date-range'
-import CallLogs from './call-logs'
-import EditLogs from './edit-logs'
-import clipboard from 'clipboard-js'
-import mtz from 'moment-timezone'
+} from "antd";
+import EditableText from "./editable-text";
+import EditableNumber from "./editable-number";
+import EditableDateRange from "./editable-date-range";
+import CallLogs from "./call-logs";
+import EditLogs from "./edit-logs";
+import clipboard from "clipboard-js";
+import mtz from "moment-timezone";
 
-const { TextArea } = Input
-const { Option } = Select
+const { TextArea } = Input;
+const { Option } = Select;
 
 export default class EventCard extends Component {
   onSave = kv => {
-    this.props.channel.push(`edit-${this.props.id}`, kv)
-    this.setState({ saving: true })
-  }
+    this.props.channel.push(`edit-${this.props.id}`, kv);
+    this.setState({ saving: true });
+  };
 
   onTypeChange = val =>
-    this.props.channel.push(`edit-${this.props.id}`, ['type', val])
-  onTagsChange = vals => this.props.channel.push(`tags-${this.props.id}`, vals)
+    this.props.channel.push(`edit-${this.props.id}`, ["type", val]);
+  onTagsChange = vals => this.props.channel.push(`tags-${this.props.id}`, vals);
   onCalendarChange = vals =>
-    this.props.channel.push(`calendars-${this.props.id}`, vals)
+    this.props.channel.push(`calendars-${this.props.id}`, vals);
 
-  reject = () => this.setState({ rejecting: true, saving: true })
-  cancel = () => this.setState({ canceling: true })
-  messageAttendees = () => this.setState({ messagingAttendees: true })
-  messageHost = () => this.setState({ messagingHost: true })
+  reject = () => this.setState({ rejecting: true, saving: true });
+  cancel = () => this.setState({ canceling: true });
+  messageAttendees = () => this.setState({ messagingAttendees: true });
+  messageHost = () => this.setState({ messagingHost: true });
 
-  setCancelMessage = e => this.setState({ cancelMessage: e.target.value })
-  setRejectionMessage = e => this.setState({ rejectionMessage: e.target.value })
-  setHostMessage = e => this.setState({ hostMessage: e.target.value })
-  setAttendeeMessage = e => this.setState({ attendeeMessage: e.target.value })
+  setCancelMessage = e => this.setState({ cancelMessage: e.target.value });
+  setRejectionMessage = e =>
+    this.setState({ rejectionMessage: e.target.value });
+  setHostMessage = e => this.setState({ hostMessage: e.target.value });
+  setAttendeeMessage = e => this.setState({ attendeeMessage: e.target.value });
 
   finishMessageAttendees = () => {
     this.props.channel.push(`message-attendees-${this.props.id}`, {
       message: this.state.attendeeMessage
-    })
-    this.setState({ messagingAttendees: false })
-  }
+    });
+    this.setState({ messagingAttendees: false });
+  };
 
   finishMessageHost = () => {
     this.props.channel.push(`message-host-${this.props.id}`, {
       message: this.state.hostMessage
-    })
-    this.setState({ messagingHost: false })
-  }
+    });
+    this.setState({ messagingHost: false });
+  };
 
   rejectWithMessage = () =>
     this.props.channel.push(`action-${this.props.id}`, {
-      status: 'rejected',
+      status: "rejected",
       message: this.state.rejectionMessage
-    })
+    });
 
   cancelWithMessage = () => {
-    this.setState({ saving: true })
+    this.setState({ saving: true });
     this.props.channel.push(`action-${this.props.id}`, {
-      status: 'cancelled',
+      status: "cancelled",
       message: this.state.cancelMessage
-    })
-  }
+    });
+  };
 
   cancelStage2 = () =>
-    this.setState({ verifyingCancel: true, canceling: false })
+    this.setState({ verifyingCancel: true, canceling: false });
 
   confirm = () => {
     this.props.channel.push(`action-${this.props.id}`, {
-      status: 'confirmed'
-    })
-    this.setState({ saving: true })
-  }
+      status: "confirmed"
+    });
+    this.setState({ saving: true });
+  };
 
   makeTentative = () => {
     this.props.channel.push(`action-${this.props.id}`, {
-      status: 'tentative'
-    })
-    this.setState({ saving: true })
-  }
+      status: "tentative"
+    });
+    this.setState({ saving: true });
+  };
 
   markCalled = () => {
     this.props.channel.push(`action-${this.props.id}`, {
-      action: 'called'
-    })
-    this.setState({ saving: true })
-  }
+      action: "called"
+    });
+    this.setState({ saving: true });
+  };
 
   markCalledAndConfirm = () => {
-    this.setState({ saving: true })
-    this.markCalled()
-    this.confirm()
-  }
+    this.setState({ saving: true });
+    this.markCalled();
+    this.confirm();
+  };
 
   markLogistics = () => {
     this.props.channel.push(`action-${this.props.id}`, {
-      action: 'logisticsed'
-    })
-    this.setState({ saving: true })
-  }
+      action: "logisticsed"
+    });
+    this.setState({ saving: true });
+  };
 
   markDebriefed = () => {
     this.props.channel.push(`action-${this.props.id}`, {
-      action: 'debriefed'
-    })
-    this.setState({ saving: true })
-  }
+      action: "debriefed"
+    });
+    this.setState({ saving: true });
+  };
 
-  duplicate = () => this.props.channel.push(`duplicate-${this.props.id}`)
-  checkout = () => this.props.channel.push(`checkout-${this.props.id}`)
-  checkin = () => this.props.channel.push(`checkin-${this.props.id}`)
+  duplicate = () => this.props.channel.push(`duplicate-${this.props.id}`);
+  checkout = () => this.props.channel.push(`checkout-${this.props.id}`);
+  checkin = () => this.props.channel.push(`checkin-${this.props.id}`);
 
   state = {
     rejecting: false,
-    rejectionMessage: '',
+    rejectionMessage: "",
     canceling: false,
     verifyingCancel: false,
-    cancelMessage: '',
-    attendeeMessage: '',
-    hostMessage: '',
+    cancelMessage: "",
+    attendeeMessage: "",
+    hostMessage: "",
     messagingAttendees: false,
     messagingHost: false
-  }
+  };
 
   componentWillReceiveProps(_nextProps) {
-    this.state.saving = false
+    this.state.saving = false;
   }
 
   render() {
-    const { event, category } = this.props
+    const { event, category } = this.props;
 
     const {
       title,
@@ -159,15 +160,15 @@ export default class EventCard extends Component {
       attendance_count,
       browser_url,
       checked_out_by
-    } = event
+    } = event;
 
-    const disabled = checked_out_by !== undefined && checked_out_by !== null
+    const disabled = checked_out_by !== undefined && checked_out_by !== null;
 
     const isVolEvent =
-      tags.filter(t => t.includes('Source: Direct Publish')).length == 0
+      tags.filter(t => t.includes("Source: Direct Publish")).length == 0;
 
     const isDirectPublish =
-      tags.filter(t => t.includes('Source: Direct Publish')).length > 0
+      tags.filter(t => t.includes("Source: Direct Publish")).length > 0;
 
     return (
       <Card
@@ -182,11 +183,11 @@ export default class EventCard extends Component {
           />
         }
         extra={
-          <div style={{ display: 'flex' }}>
+          <div style={{ display: "flex" }}>
             {this.state.saving ? (
               <div>
-                {' '}
-                <Icon type="loading" /> Saving{' '}
+                {" "}
+                <Icon type="loading" /> Saving{" "}
               </div>
             ) : disabled ? (
               <div>
@@ -200,14 +201,16 @@ export default class EventCard extends Component {
             )}
           </div>
         }
-        style={{ width: '100%', marginTop: 25 }}
-        bodyStyle={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>
+        style={{ width: "100%", marginTop: 25 }}
+        bodyStyle={{ display: "flex", flexWrap: "wrap", width: "100%" }}
+      >
         <Modal
           visible={this.state.rejecting}
           title="Why are you rejecting the event?"
           okText="Reject and Send"
           onCancel={() => this.setState({ rejecting: false })}
-          onOk={this.rejectWithMessage}>
+          onOk={this.rejectWithMessage}
+        >
           <p>
             Check for typos – this rejection message will be sent directly to
             the event host.
@@ -227,7 +230,8 @@ export default class EventCard extends Component {
           onCancel={() =>
             this.setState({ canceling: false, verifyingCancel: false })
           }
-          onOk={this.cancelStage2}>
+          onOk={this.cancelStage2}
+        >
           {`This message will be sent to all ${attendance_count} people who have already RSVPed`}
           <TextArea
             rows={5}
@@ -245,7 +249,8 @@ export default class EventCard extends Component {
             this.setState({ cancelling: false, verifyingCancel: false })
           }
           cancelText="Don't Cancel"
-          onOk={this.cancelWithMessage}>
+          onOk={this.cancelWithMessage}
+        >
           This cannot be undone.
         </Modal>
 
@@ -255,10 +260,11 @@ export default class EventCard extends Component {
           okText="Send"
           okType="primary"
           onCancel={() =>
-            this.setState({ messagingHost: false, hostMessage: '' })
+            this.setState({ messagingHost: false, hostMessage: "" })
           }
           cancelText="Cancel"
-          onOk={this.finishMessageHost}>
+          onOk={this.finishMessageHost}
+        >
           <TextArea
             rows={5}
             onChange={this.setHostMessage}
@@ -272,10 +278,11 @@ export default class EventCard extends Component {
           okText="Send"
           okType="primary"
           onCancel={() =>
-            this.setState({ messagingAttendees: false, attendeeMessage: '' })
+            this.setState({ messagingAttendees: false, attendeeMessage: "" })
           }
           cancelText="Cancel"
-          onOk={this.finishMessageAttendees}>
+          onOk={this.finishMessageAttendees}
+        >
           <TextArea
             rows={5}
             onChange={this.setAttendeeMessage}
@@ -285,7 +292,7 @@ export default class EventCard extends Component {
 
         <div>
           {isDirectPublish && (
-            <Button disabled={true} style={{ cursor: 'none', color: 'green' }}>
+            <Button disabled={true} style={{ cursor: "none", color: "green" }}>
               Direct Published
             </Button>
           )}
@@ -319,8 +326,9 @@ export default class EventCard extends Component {
 
         <div
           className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}>
-          <strong>Description:</strong>{' '}
+          style={{ margin: 10, minWidth: 250, width: "100%" }}
+        >
+          <strong>Description:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -334,8 +342,9 @@ export default class EventCard extends Component {
 
         <div
           className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}>
-          <strong>Instructions:</strong>{' '}
+          style={{ margin: 10, minWidth: 250, width: "100%" }}
+        >
+          <strong>Instructions:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -349,19 +358,21 @@ export default class EventCard extends Component {
 
         <div
           className="field-group"
-          style={{ margin: 10, minWidth: 250, width: '100%' }}>
-          <strong>Type:</strong>{' '}
+          style={{ margin: 10, minWidth: 250, width: "100%" }}
+        >
+          <strong>Type:</strong>{" "}
           <Select
             defaultValue={type}
             style={{ width: 300 }}
-            onChange={this.onTypeChange}>
+            onChange={this.onTypeChange}
+          >
             {[
-              'Phonebank',
-              'Organizing meeting',
-              'Tabling or Clipboarding',
-              'Canvass',
-              'Rally, march, or protest',
-              'Other'
+              "Phonebank",
+              "Organizing meeting",
+              "Tabling or Clipboarding",
+              "Canvass",
+              "Rally, march, or protest",
+              "Other"
             ].map(o => <Option value={o}>{o}</Option>)}
           </Select>
         </div>
@@ -369,16 +380,18 @@ export default class EventCard extends Component {
         {!this.props.hostEdit && (
           <div
             className="field-group"
-            style={{ margin: 10, minWidth: 250, width: '100%' }}>
-            <strong>Calendars:</strong>{' '}
+            style={{ margin: 10, minWidth: 250, width: "100%" }}
+          >
+            <strong>Calendars:</strong>{" "}
             <Select
               mode="multiple"
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               placeholder="Calendars"
               onChange={this.onCalendarChange}
               defaultValue={tags
-                .filter(t => t.includes('Calendar:'))
-                .map(t => t.split(':')[1].trim())}>
+                .filter(t => t.includes("Calendar:"))
+                .map(t => t.split(":")[1].trim())}
+            >
               {calendarOptions.map(c => <Option key={c}>{c}</Option>)}
             </Select>
           </div>
@@ -404,12 +417,13 @@ export default class EventCard extends Component {
           <br />
           <Checkbox
             checked={location.public}
-            onChange={e => this.onSave(['location.public', e.target.checked])}>
+            onChange={e => this.onSave(["location.public", e.target.checked])}
+          >
             Address Public?
           </Checkbox>
           <br />
           <br />
-          <strong>Venue:</strong>{' '}
+          <strong>Venue:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -419,7 +433,7 @@ export default class EventCard extends Component {
             attr="location.venue"
           />
           <br />
-          <strong>Address:</strong>{' '}
+          <strong>Address:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -429,7 +443,7 @@ export default class EventCard extends Component {
             attr="location.address_lines[0]"
           />
           <br />
-          <strong>City:</strong>{' '}
+          <strong>City:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -439,7 +453,7 @@ export default class EventCard extends Component {
             attr="location.locality"
           />
           <br />
-          <strong>State:</strong>{' '}
+          <strong>State:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -449,7 +463,7 @@ export default class EventCard extends Component {
             attr="location.region"
           />
           <br />
-          <strong>Zip:</strong>{' '}
+          <strong>Zip:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -463,7 +477,7 @@ export default class EventCard extends Component {
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Host</strong>
           <br />
-          <strong>Name:</strong>{' '}
+          <strong>Name:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -473,7 +487,7 @@ export default class EventCard extends Component {
             attr="contact.name"
           />
           <br />
-          <strong>Phone Number:</strong>{' '}
+          <strong>Phone Number:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -485,12 +499,13 @@ export default class EventCard extends Component {
           <br />
           <Checkbox
             checked={contact.public}
-            onChange={e => this.onSave(['contact.public', e.target.checked])}>
+            onChange={e => this.onSave(["contact.public", e.target.checked])}
+          >
             Phone Public?
           </Checkbox>
           <br />
           <br />
-          <strong>Email Address:</strong>{' '}
+          <strong>Email Address:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -502,41 +517,52 @@ export default class EventCard extends Component {
         </div>
 
         {!this.props.hostEdit && (
-          <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-            <strong>Tags:</strong>
-            <Select
-              mode="multiple"
-              style={{ width: '100%' }}
-              placeholder="Tags"
-              onChange={this.onTagsChange}
-              defaultValue={tags.filter(
-                t => !t.includes('Calendar') && !t.includes('Event Type:')
-              )}>
-              {window.tagOptions
-                .filter(
-                  t => !t.includes('Event: Action') && !t.includes('Calendar')
-                )
-                .map(t => <Option key={t}>{t}</Option>)}
-            </Select>
+          <div>
+            <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+              <strong>Tags:</strong>
+              <Select
+                mode="multiple"
+                style={{ width: "100%" }}
+                placeholder="Tags"
+                onChange={this.onTagsChange}
+                defaultValue={tags.filter(
+                  t => !t.includes("Calendar") && !t.includes("Event Type:")
+                )}
+              >
+                {window.tagOptions
+                  .filter(
+                    t => !t.includes("Event: Action") && !t.includes("Calendar")
+                  )
+                  .map(t => <Option key={t}>{t}</Option>)}
+              </Select>
+            </div>
+
+            <div>
+              <EditLogs
+                id={this.props.id}
+                channel={this.props.channel}
+                edits={this.props.edits}
+              />
+              <CallLogs
+                id={this.props.id}
+                channel={this.props.channel}
+                calls={this.props.calls}
+              />
+            </div>
           </div>
         )}
 
-        <br/>
-        <br/>
-
-        <div>
-          <EditLogs id={this.props.id} channel={this.props.channel} edits={this.props.edits} />
-          <CallLogs id={this.props.id} channel={this.props.channel} calls={this.props.calls} />
-        </div>
+        <br />
+        <br />
       </Card>
-    )
+    );
   }
 
   renderButtons() {
     const {
       category,
       event: { rsvp_download_url, organizer_edit_url }
-    } = this.props
+    } = this.props;
 
     return [
       <Dropdown
@@ -544,7 +570,7 @@ export default class EventCard extends Component {
           <Menu>
             {category !== undefined && (
               <Menu.Item>
-                <Button style={{ width: '100%' }} onClick={this.messageHost}>
+                <Button style={{ width: "100%" }} onClick={this.messageHost}>
                   Message Host
                 </Button>
               </Menu.Item>
@@ -553,8 +579,9 @@ export default class EventCard extends Component {
             {category !== undefined && (
               <Menu.Item>
                 <Button
-                  style={{ width: '100%' }}
-                  onClick={this.messageAttendees}>
+                  style={{ width: "100%" }}
+                  onClick={this.messageAttendees}
+                >
                   Message Attendees
                 </Button>
               </Menu.Item>
@@ -562,54 +589,77 @@ export default class EventCard extends Component {
 
             <Menu.Item>
               <Button
-                style={{ width: '100%' }}
-                onClick={() => window.open(rsvp_download_url)}>
+                style={{ width: "100%" }}
+                onClick={() => window.open(rsvp_download_url)}
+              >
                 Download RSVPs
               </Button>
             </Menu.Item>
 
             <Menu.Item>
               <Button
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 onClick={() =>
                   clipboard
                     .copy(rsvp_download_url)
                     .then(() =>
-                      message.success('RSVP download link copied to clipboard')
+                      message.success("RSVP download link copied to clipboard")
                     )
-                }>
+                }
+              >
                 Copy RSVP Download Link
               </Button>
             </Menu.Item>
 
             <Menu.Item>
               <Button
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 onClick={() =>
                   clipboard
                     .copy(organizer_edit_url)
                     .then(() =>
-                      message.success('Organizer edit link copied to clipboard')
+                      message.success("Organizer edit link copied to clipboard")
                     )
-                }>
+                }
+              >
                 Copy Organizer Edit Link
               </Button>
             </Menu.Item>
 
+            {this.props.event.candidate_events_url && (
+              <Menu.Item>
+                <Button
+                  style={{ width: "100%" }}
+                  onClick={() =>
+                    clipboard
+                      .copy(this.props.event.candidate_events_url)
+                      .then(() =>
+                        message.success(
+                          "Organizer edit link copied to clipboard"
+                        )
+                      )
+                  }
+                >
+                  Copy Candidate Events View Link
+                </Button>
+              </Menu.Item>
+            )}
+
             <Menu.Item>
-              <Button style={{ width: '100%' }} onClick={this.duplicate}>
+              <Button style={{ width: "100%" }} onClick={this.duplicate}>
                 Duplicate
               </Button>
             </Menu.Item>
           </Menu>
-        }>
+        }
+      >
         <Button>
           More <Icon type="down" />
         </Button>
       </Dropdown>
     ]
       .concat(
-        category == 'ESM Call #1'
+        category == "ESM Call #1"
           ? [
               <Button onClick={this.reject} type="danger">
                 Reject
@@ -624,7 +674,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Needs Approval'
+        category == "Needs Approval"
           ? [
               <Button onClick={this.reject} type="danger">
                 Reject
@@ -636,7 +686,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Needs Logistics'
+        category == "Needs Logistics"
           ? [
               <Button onClick={this.cancel} type="danger">
                 Cancel
@@ -648,7 +698,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Needs Debrief'
+        category == "Needs Debrief"
           ? [
               <Button onClick={this.markDebriefed} type="primary">
                 Mark Debriefed
@@ -657,7 +707,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Rejected'
+        category == "Rejected"
           ? [
               <Button onClick={this.makeTentative} type="primary">
                 Back to Tentative
@@ -666,7 +716,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Cancelled'
+        category == "Cancelled"
           ? [
               <Button onClick={this.makeTentative} type="primary">
                 Back to Tentative
@@ -675,7 +725,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Upcoming'
+        category == "Upcoming"
           ? [
               <Button onClick={this.cancel} type="danger">
                 Cancel
@@ -692,6 +742,6 @@ export default class EventCard extends Component {
             Cancel
           </Button>
         ]
-      )
+      );
   }
 }

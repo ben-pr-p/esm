@@ -23,6 +23,7 @@ module.exports = env => {
       esm: ['js/esm.js', 'stylus/app.styl'],
       list: ['js/list.js', 'stylus/app.styl'],
       'my-events': ['js/my-events.js', 'stylus/app.styl'],
+      'candidate-events': ['js/candidate-events.js', 'stylus/app.styl'],
     },
 
     output: {
