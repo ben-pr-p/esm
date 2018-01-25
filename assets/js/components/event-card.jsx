@@ -737,6 +737,18 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
+        category == "Today"
+          ? [
+              <Button onClick={this.cancel} type="danger">
+                Cancel
+              </Button>,
+              <Button onClick={this.makeTentative} type="primary">
+                Back to Tentative
+              </Button>
+            ]
+          : []
+      )
+      .concat(
         category == undefined && [
           <Button onClick={this.cancel} type="danger">
             Cancel
