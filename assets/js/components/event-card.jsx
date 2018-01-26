@@ -416,7 +416,7 @@ export default class EventCard extends Component {
           <strong>Location</strong>
           <br />
           <Checkbox
-            checked={location.public}
+            checked={location.public == "1"}
             onChange={e => this.onSave(["location.public", e.target.checked])}
           >
             Address Public?
@@ -497,14 +497,14 @@ export default class EventCard extends Component {
             attr="contact.phone_number"
           />
           <br />
-          <Checkbox
+          {/* <Checkbox
             checked={contact.public}
             onChange={e => this.onSave(["contact.public", e.target.checked])}
           >
             Phone Public?
-          </Checkbox>
-          <br />
-          <br />
+          </Checkbox> */}
+          {/* <br />
+          <br /> */}
           <strong>Email Address:</strong>{" "}
           <EditableText
             disabled={disabled}
