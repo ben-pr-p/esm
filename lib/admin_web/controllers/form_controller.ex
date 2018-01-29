@@ -60,9 +60,7 @@ defmodule Admin.FormController do
     start_date = construct_dt(start_time, date)
     end_date = construct_dt(end_time, date)
     type = event_type
-    status = if Map.has_key(body, "whitelist"), do: "confirmed", else: "tentative"
-
-    IO.inspect(~m(location contact start_date end_date tags type title description status capacity))
+    status = if Map.has_key?(body, "whitelist"), do: "confirmed", else: "tentative"
 
     %{body: created} = Proxy.post("events", body: ~m(
       location contact start_date end_date tags type title description status
