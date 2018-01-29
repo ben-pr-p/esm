@@ -44,7 +44,7 @@ defmodule Admin.Mixfile do
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      {:cosmic, git: "https://github.com/BrandNewCongress/cosmic_ex.git"},
+      {:cosmic, git: "https://github.com/justicedemocrats/cosmic_ex.git"},
       {:ueberauth_google, "~> 0.5"},
       {:guardian, "~> 0.14"},
       {:distillery, "~> 1.0.0"},
