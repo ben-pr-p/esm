@@ -91,7 +91,7 @@ defmodule Admin.FormController do
         utc_offset: 0,
         zone_abbr: "UTC"
       }
-    |> Timex.format("{YYYY}-{0M}-{0D}T{h24}:{m}")
+      |> Timex.format("{YYYY}-{0M}-{0D}T{h24}:{m}")
 
     dt
   end
@@ -147,5 +147,38 @@ defmodule Admin.FormController do
       ]) do
     do_create(~m(first_name last_name email phone city state zip event_type zip title date
        start_time end_time venue address description))
+  end
+
+  def rerun_whitelist(line) when is_binary(line) do
+    String.split(line, "\t") |> rerun_whitelist()
+  end
+
+  def rerun_whitelist([
+        _,
+        first_name,
+        last_name,
+        email,
+        phone,
+        event_type,
+        date,
+        start_time,
+        end_time,
+        title,
+        description,
+        venue,
+        capacity,
+        address,
+        city,
+        state,
+        zip
+      ]) do
+    do_create(~m(first_name last_name email phone city state zip event_type zip title date
+       start_time end_time venue address description) |> Map.merge(%{"whitelist" => true}))
+  end
+
+  def do_rerun do
+    rerun_whitelist(
+      ~s()
+    )
   end
 end

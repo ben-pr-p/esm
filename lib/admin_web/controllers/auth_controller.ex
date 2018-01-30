@@ -17,7 +17,8 @@ defmodule Admin.AuthController do
 
       {:error, email} when is_binary(email) ->
         json(conn, %{
-          error: "Use your @betofortexas email #{email}, or request to be given access from your administrator"
+          error:
+            "Use your @betofortexas email #{email}, or request to be given access from your administrator"
         })
     end
   end

@@ -36,10 +36,11 @@ defmodule Admin.OldSecrets do
   def extract_keys(line, events) do
     [obfuscated, event_id_encrypted, organizer_id_encrypted] =
       case String.trim(line) |> String.split(",") do
-        [a,b,c] -> [a,b,c]
-        [a,b] -> [a | String.split(b, ~s("))]
+        [a, b, c] -> [a, b, c]
+        [a, b] -> [a | String.split(b, ~s("))]
       end
-    IO.inspect obfuscated
+
+    IO.inspect(obfuscated)
     id = events[obfuscated].id
     organizer_id = events[obfuscated].organizer_id
 
