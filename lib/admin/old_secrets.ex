@@ -1,7 +1,7 @@
 defmodule Admin.OldSecrets do
   import ShortMaps
 
-  def collection, do: "old_secrets_#{Application.get_env(:admin, :instance, "jd")}"
+  def collection, do: IO.inspect("old_secrets_#{Application.get_env(:admin, :instance, "jd")}")
 
   def decrypt(string) do
     case Mongo.find_one(:mongo, collection(), %{"key" => string}) do
