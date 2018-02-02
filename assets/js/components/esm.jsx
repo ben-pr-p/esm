@@ -124,14 +124,14 @@ export default class Esm extends Component {
       <LocaleProvider locale={enUS}>
         <Layout style={{ width: '100%', height: '100%' }}>
           <FilterHeader setGlobalFilterFn={this.setGlobalFilterFn} />
-          <Content style={{ height: '100%' }}>
+          <Content >
             <Tabs>
               {tabSpec.map(({ title, fn }) => (
                 <TabPane
                   tab={title + ` (${this.countEventsFor(fn)})`}
                   key={title}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', paddingLeft: 25, paddingRight: 25 }}>
-                    <Infinite containerHeight={1000} elementHeight={600}>
+                    <Infinite useWindowAsScrollContainer={true} elementHeight={600}>
                       {this.eventsFor(fn, title)}
                     </Infinite>
                   </div>
