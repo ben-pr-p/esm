@@ -151,7 +151,7 @@ export default class Esm extends Component {
                   }
                   key={title}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', paddingLeft: 25, paddingRight: 25 }}>
-                    <Infinite useWindowAsScrollContainer={true} elementHeight={900}>
+                    <Infinite useWindowAsScrollContainer={true} elementHeight={634}>
                       {this.eventsFor(fn, title)}
                     </Infinite>
                   </div>

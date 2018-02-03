@@ -204,7 +204,7 @@ export default class EventCard extends Component {
           </div>
         }
         style={{ width: "100%", marginTop: 25 }}
-        bodyStyle={{ display: "flex", flexWrap: "wrap", width: "100%" }}
+        bodyStyle={{ display: "flex", flexWrap: "wrap", width: "100%", height: 500, overflowY: 'scroll' }}
       >
         <Modal
           visible={this.state.rejecting}
