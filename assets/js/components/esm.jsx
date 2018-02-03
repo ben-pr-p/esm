@@ -131,7 +131,7 @@ export default class Esm extends Component {
                   tab={title + ` (${this.countEventsFor(fn)})`}
                   key={title}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', paddingLeft: 25, paddingRight: 25 }}>
-                    <Infinite useWindowAsScrollContainer={true} elementHeight={600}>
+                    <Infinite useWindowAsScrollContainer={true} elementHeight={900}>
                       {this.eventsFor(fn, title)}
                     </Infinite>
                   </div>
