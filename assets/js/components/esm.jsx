@@ -107,7 +107,6 @@ export default class Esm extends Component {
         typeOptions.add(event.type)
       })
       this.state.typeOptions = [...typeOptions]
-      console.log(this.state.typeOptions)
       this.forceUpdate()
     })
 
@@ -117,10 +116,7 @@ export default class Esm extends Component {
     })
 
     this.state.channel.on('edit-logs', ({id, edits}) => {
-      console.log('hi')
-      console.log(edits)
       this.state.edits[id] = edits
-      console.log(this.state.edits)
       this.forceUpdate()
     })
 
@@ -142,7 +138,7 @@ export default class Esm extends Component {
       <LocaleProvider locale={enUS}>
         <Layout style={{ width: '100%', height: '100%' }}>
           <FilterHeader setGlobalFilterFn={this.setGlobalFilterFn} />
-          <Content style={{ height: '100%' }}>
+          <Content>
             <Tabs
               onTabClick={this.onTabChange}
               defaultActiveKey="Needs Approval">
@@ -155,7 +151,7 @@ export default class Esm extends Component {
                   }
                   key={title}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', paddingLeft: 25, paddingRight: 25 }}>
-                    <Infinite containerHeight={1000} elementHeight={600}>
+                    <Infinite useWindowAsScrollContainer={true} elementHeight={900}>
                       {this.eventsFor(fn, title)}
                     </Infinite>
                   </div>
