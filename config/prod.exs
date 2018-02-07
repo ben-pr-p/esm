@@ -100,6 +100,11 @@ config :admin,
   mongodb_port: "${MONGO_PORT}",
   deployed_url: "${DEPLOYED_URL}"
 
+config :actionkit,
+  base: "${AK_BASE}",
+  username: "${AK_USERNAME}",
+  password: "${AK_PASSWORD}"
+
 config :rollbax,
   access_token: "${ROLLBAR_TOKEN}",
   environment: "production"
