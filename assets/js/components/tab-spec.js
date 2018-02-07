@@ -88,7 +88,8 @@ export default [
       return (
         isInPast(ev) &&
         !isToday(ev) &&
-        !ev.tags.includes("Event: Action: Debriefed")
+        !ev.tags.includes("Event: Action: Debriefed") &&
+        ev.status == "confirmed"
       );
     }
   },
