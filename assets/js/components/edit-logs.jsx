@@ -23,7 +23,7 @@ export default class EditLogs extends Component {
       return (
         <Modal
           visible={true}
-          title="Call Notes"
+          title="Edit History"
           footer={[]}
           width={this.props.edits === undefined ? "" : "90%"}
           onCancel={() => this.setState({ open: false })}
