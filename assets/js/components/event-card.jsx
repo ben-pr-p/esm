@@ -523,10 +523,11 @@ export default class EventCard extends Component {
           <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
             <strong>Tags:</strong>
             <Select
-              mode="multiple"
+              mode="tags"
               style={{ width: "100%" }}
               placeholder="Tags"
               onChange={this.onTagsChange}
+              tokenSeparators={[',']}
               defaultValue={tags.filter(
                 t => !t.includes("Calendar") && !t.includes("Event Type:")
               )}
