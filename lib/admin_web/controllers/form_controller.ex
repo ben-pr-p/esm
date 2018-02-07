@@ -62,16 +62,18 @@ defmodule Admin.FormController do
     type = event_type
     status = if Map.has_key?(body, "whitelist"), do: "confirmed", else: "tentative"
 
-    %{body: created} = Proxy.post("events", body: ~m(
-      location contact start_date end_date tags type title description status
-      capacity
-    ))
+    IO.inspect description
+    # %{body: created} = Proxy.post("events", body: ~m(
+    #   location contact start_date end_date tags type title description status
+    #   capacity
+    # ))
 
-    if Map.keys(created) |> length() < 5 do
-      1 + "force error"
-    end
+    # if Map.keys(created) |> length() < 5 do
+    #   1 + "force error"
+    # end
 
-    IO.inspect(created)
+    # IO.inspect(created)
+    %{}
   end
 
   def construct_dt(time, date) do
@@ -177,8 +179,8 @@ defmodule Admin.FormController do
   end
 
   def do_rerun do
-    rerun_whitelist(
-      ~s()
+    rerun(
+      ~s(1/23/2018 19:13:10	Jin	Ding	jinding25@gmail.com	6179705280	Phonebank	Testing phonebank	testing phonebank	9:00:00 AM	10:10:00 AM	my house	1 main st	san francisco	ca	94110	1/25/2018)
     )
   end
 end

@@ -79,6 +79,11 @@ defmodule Admin.EventsChannel do
 
     new_event = apply_edit(id, edits)
 
+    Webhooks.on("important_change", %{
+      event: event_pipeline(new_event),
+      attendee_emails: Rsvps.emails_for(id) |> Enum.join(";")
+    })
+
     push(socket, "event", %{id: id, event: new_event})
     broadcast(socket, "event", %{id: id, event: new_event})
     {:noreply, socket}
@@ -353,7 +358,14 @@ defmodule Admin.EventsChannel do
     location_change = Map.put(%{}, key, value)
     Proxy.post("events/#{id}", body: %{location: location_change})
     %{body: event} = Proxy.get("events/#{id}")
-    event_pipeline(event)
+    new_event = event_pipeline(event)
+
+    Webhooks.on("important_change", %{
+      event: event_pipeline(new_event),
+      attendee_emails: Rsvps.emails_for(id) |> Enum.join(";")
+    })
+
+    new_event
   end
 
   def edit_tags_and_fetch(id, tags) do

@@ -69,6 +69,17 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
+  def exec("important_change", ~m(event attendee_emails)a) do
+    %{"metadata" => %{"message_attendees_date_time_changed" => hook}} = Cosmic.get(@cosmic_config_slug)
+
+    if attendee_emails == "" do
+      IO.puts "Not posting webhook to #{hook} because no one is attending"
+    else
+      IO.puts("Posting webhook to #{hook} because of important_change")
+      IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails))))
+    end
+  end
+
   def exec(other, %{event: event, team_member: _team_member}) do
     Logger.info("Untracked status change: #{other}, for event: #{inspect(event)}")
   end
