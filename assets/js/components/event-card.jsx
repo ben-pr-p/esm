@@ -36,30 +36,49 @@ export default class EventCard extends Component {
   onCalendarChange = vals =>
     this.props.channel.push(`calendars-${this.props.id}`, vals);
 
-  reject = () => this.setState({ rejecting: true, saving: true });
-  cancel = () => this.setState({ canceling: true });
-  messageAttendees = () => this.setState({ messagingAttendees: true });
-  messageHost = () => this.setState({ messagingHost: true });
+  constructInitial = (state, modifySaving) => () =>
+    this.setState(
+      Object.assign(
+        {
+          [state]: true
+        },
+        modifySaving ? { saving: true } : {}
+      )
+    );
 
-  setCancelMessage = e => this.setState({ cancelMessage: e.target.value });
-  setRejectionMessage = e =>
-    this.setState({ rejectionMessage: e.target.value });
-  setHostMessage = e => this.setState({ hostMessage: e.target.value });
-  setAttendeeMessage = e => this.setState({ attendeeMessage: e.target.value });
-
-  finishMessageAttendees = () => {
-    this.props.channel.push(`message-attendees-${this.props.id}`, {
-      message: this.state.attendeeMessage
-    });
-    this.setState({ messagingAttendees: false });
+  constructSetMessage = messageName => e =>
+    this.setState({ [messageName]: e.target.value });
+  constructFinishProcess = (state, messageName, channelEvent) => () => {
+    if (this.state[messageName] == "") {
+      this.setState({ [state]: "error" });
+    } else {
+      this.props.channel.push(`${channelEvent}-${this.props.id}`, {
+        message: this.state[messageName]
+      });
+      this.setState({ [state]: false });
+    }
   };
 
-  finishMessageHost = () => {
-    this.props.channel.push(`message-host-${this.props.id}`, {
-      message: this.state.hostMessage
-    });
-    this.setState({ messagingHost: false });
-  };
+  reject = this.constructInitial("rejecting", true);
+  cancel = this.constructInitial("canceling", true);
+  messageAttendees = this.constructInitial("messagingAttendees", false);
+  messageHost = this.constructInitial("messagingHost", false);
+
+  setCancelMessage = this.constructSetMessage("cancelMessage");
+  setRejectionMessage = this.constructSetMessage("rejectionMessage");
+  setHostMessage = this.constructSetMessage("hostMessage");
+  setAttendeeMessage = this.constructSetMessage("attendeeMessage");
+
+  finishMessageAttendees = this.constructFinishProcess(
+    "messagingAttendees",
+    "attendeeMessage",
+    "message-attendees"
+  );
+  finishMessageHost = this.constructFinishProcess(
+    "messagingHost",
+    "hostMessage",
+    "message-host"
+  );
 
   rejectWithMessage = () =>
     this.props.channel.push(`action-${this.props.id}`, {
@@ -72,13 +91,18 @@ export default class EventCard extends Component {
     this.props.channel.push(`action-${this.props.id}`, {
       status: "cancelled",
       message: this.state.cancelMessage
-    })
+    });
 
-    this.setState({ saving: true })
-  }
+    this.setState({ saving: true });
+  };
 
-  cancelStage2 = () =>
-    this.setState({ verifyingCancel: true, canceling: false });
+  cancelStage2 = () => {
+    if (this.state.cancelMessage == "") {
+      this.setState({ canceling: "error" });
+    } else {
+      this.setState({ verifyingCancel: true, canceling: false, saving: false });
+    }
+  };
 
   confirm = () => {
     this.props.channel.push(`action-${this.props.id}`, {
@@ -126,13 +150,13 @@ export default class EventCard extends Component {
   checkin = () => this.props.channel.push(`checkin-${this.props.id}`);
 
   state = {
-    rejecting: false,
     rejectionMessage: "",
-    canceling: false,
-    verifyingCancel: false,
     cancelMessage: "",
     attendeeMessage: "",
     hostMessage: "",
+    rejecting: false,
+    canceling: false,
+    verifyingCancel: false,
     messagingAttendees: false,
     messagingHost: false
   };
@@ -165,6 +189,8 @@ export default class EventCard extends Component {
     } = event;
 
     const disabled = checked_out_by !== undefined && checked_out_by !== null;
+
+    console.log(this.state.messageAttendees);
 
     const isVolEvent =
       tags.filter(t => t.includes("Source: Direct Publish")).length == 0;
@@ -204,7 +230,13 @@ export default class EventCard extends Component {
           </div>
         }
         style={{ width: "100%", marginTop: 25 }}
-        bodyStyle={{ display: "flex", flexWrap: "wrap", width: "100%", height: 500, overflowY: 'scroll' }}
+        bodyStyle={{
+          display: "flex",
+          flexWrap: "wrap",
+          width: "100%",
+          height: 500,
+          overflowY: "scroll"
+        }}
       >
         <Modal
           visible={this.state.rejecting}
@@ -235,6 +267,12 @@ export default class EventCard extends Component {
           onOk={this.cancelStage2}
         >
           {`This message will be sent to all ${attendance_count} people who have already RSVPed`}
+          {this.state.canceling == "error" && (
+            <span style={{ color: "red" }}>
+              {" "}
+              Oops! Look like you forgot to put something here.{" "}
+            </span>
+          )}
           <TextArea
             rows={5}
             onChange={this.setCancelMessage}
@@ -275,7 +313,7 @@ export default class EventCard extends Component {
         </Modal>
 
         <Modal
-          visible={this.state.messagingAttendees}
+          visible={this.state.messagingAttendees != false}
           title={`Message All ${attendance_count} Attendees `}
           okText="Send"
           okType="primary"
@@ -285,6 +323,12 @@ export default class EventCard extends Component {
           cancelText="Cancel"
           onOk={this.finishMessageAttendees}
         >
+          {this.state.messagingAttendees == "error" && (
+            <span style={{ color: "red" }}>
+              {" "}
+              Oops! Look like you forgot to put something here.{" "}
+            </span>
+          )}
           <TextArea
             rows={5}
             onChange={this.setAttendeeMessage}
@@ -366,7 +410,8 @@ export default class EventCard extends Component {
           <Select
             defaultValue={type}
             style={{ width: 300 }}
-            onChange={this.onTypeChange}>
+            onChange={this.onTypeChange}
+          >
             {this.props.typeOptions.map(o => <Option value={o}>{o}</Option>)}
           </Select>
         </div>
@@ -389,7 +434,7 @@ export default class EventCard extends Component {
         <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
           <strong>Location</strong>
           <br />
-          <strong>Venue:</strong>{' '}
+          <strong>Venue:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -463,7 +508,7 @@ export default class EventCard extends Component {
             attr="contact.phone_number"
           />
           <br />
-          <strong>Email Address:</strong>{' '}
+          <strong>Email Address:</strong>{" "}
           <EditableText
             disabled={disabled}
             checkout={this.checkout}
@@ -535,9 +580,7 @@ export default class EventCard extends Component {
             )}
 
             <Menu.Item>
-              <Button
-                style={{ width: '100%' }}
-                onClick={this.messageAttendees}>
+              <Button style={{ width: "100%" }} onClick={this.messageAttendees}>
                 Message Attendees
               </Button>
             </Menu.Item>
@@ -614,7 +657,7 @@ export default class EventCard extends Component {
       </Dropdown>
     ]
       .concat(
-        category == 'ESM Call'
+        category == "ESM Call"
           ? [
               <Button onClick={this.cancel} type="danger">
                 Cancel
@@ -641,7 +684,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Ready to Go'
+        category == "Ready to Go"
           ? [
               <Button onClick={this.cancel} type="default">
                 Cancel
@@ -653,7 +696,7 @@ export default class EventCard extends Component {
           : []
       )
       .concat(
-        category == 'Needs Logistics'
+        category == "Needs Logistics"
           ? [
               <Button onClick={this.cancel} type="danger">
                 Cancel

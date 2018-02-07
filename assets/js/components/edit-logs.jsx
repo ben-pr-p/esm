@@ -15,8 +15,6 @@ export default class EditLogs extends Component {
   };
 
   render() {
-    console.log(this.props.edits);
-
     if (!this.state.open) {
       return <Button onClick={this.openMe}>Edit History</Button>;
     } else {
