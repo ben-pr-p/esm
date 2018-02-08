@@ -36,30 +36,49 @@ export default class EventCard extends Component {
   onCalendarChange = vals =>
     this.props.channel.push(`calendars-${this.props.id}`, vals);
 
-  reject = () => this.setState({ rejecting: true, saving: true });
-  cancel = () => this.setState({ canceling: true });
-  messageAttendees = () => this.setState({ messagingAttendees: true });
-  messageHost = () => this.setState({ messagingHost: true });
+  constructInitial = (state, modifySaving) => () =>
+    this.setState(
+      Object.assign(
+        {
+          [state]: true
+        },
+        modifySaving ? { saving: true } : {}
+      )
+    );
 
-  setCancelMessage = e => this.setState({ cancelMessage: e.target.value });
-  setRejectionMessage = e =>
-    this.setState({ rejectionMessage: e.target.value });
-  setHostMessage = e => this.setState({ hostMessage: e.target.value });
-  setAttendeeMessage = e => this.setState({ attendeeMessage: e.target.value });
-
-  finishMessageAttendees = () => {
-    this.props.channel.push(`message-attendees-${this.props.id}`, {
-      message: this.state.attendeeMessage
-    });
-    this.setState({ messagingAttendees: false });
+  constructSetMessage = messageName => e =>
+    this.setState({ [messageName]: e.target.value });
+  constructFinishProcess = (state, messageName, channelEvent) => () => {
+    if (this.state[messageName] == "") {
+      this.setState({ [state]: "error" });
+    } else {
+      this.props.channel.push(`${channelEvent}-${this.props.id}`, {
+        message: this.state[messageName]
+      });
+      this.setState({ [state]: false });
+    }
   };
 
-  finishMessageHost = () => {
-    this.props.channel.push(`message-host-${this.props.id}`, {
-      message: this.state.hostMessage
-    });
-    this.setState({ messagingHost: false });
-  };
+  reject = this.constructInitial("rejecting", true);
+  cancel = this.constructInitial("canceling", true);
+  messageAttendees = this.constructInitial("messagingAttendees", false);
+  messageHost = this.constructInitial("messagingHost", false);
+
+  setCancelMessage = this.constructSetMessage("cancelMessage");
+  setRejectionMessage = this.constructSetMessage("rejectionMessage");
+  setHostMessage = this.constructSetMessage("hostMessage");
+  setAttendeeMessage = this.constructSetMessage("attendeeMessage");
+
+  finishMessageAttendees = this.constructFinishProcess(
+    "messagingAttendees",
+    "attendeeMessage",
+    "message-attendees"
+  );
+  finishMessageHost = this.constructFinishProcess(
+    "messagingHost",
+    "hostMessage",
+    "message-host"
+  );
 
   rejectWithMessage = () =>
     this.props.channel.push(`action-${this.props.id}`, {
@@ -73,10 +92,17 @@ export default class EventCard extends Component {
       status: "cancelled",
       message: this.state.cancelMessage
     });
+
+    this.setState({ saving: true });
   };
 
-  cancelStage2 = () =>
-    this.setState({ verifyingCancel: true, canceling: false });
+  cancelStage2 = () => {
+    if (this.state.cancelMessage == "") {
+      this.setState({ canceling: "error" });
+    } else {
+      this.setState({ verifyingCancel: true, canceling: false, saving: false });
+    }
+  };
 
   confirm = () => {
     this.props.channel.push(`action-${this.props.id}`, {
