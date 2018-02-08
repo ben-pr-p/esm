@@ -39,6 +39,7 @@ defmodule Admin.EventsChannel do
   # Starting sending events
   def handle_in("ready", %{"page" => "esm"}, socket) do
     send_esm_events(socket)
+    send_potential_hosts(socket)
     {:noreply, socket}
   end
 
@@ -239,6 +240,13 @@ defmodule Admin.EventsChannel do
       end)
 
     broadcast(socket, "events", %{all_events: all_events})
+  end
+
+  defp send_potential_hosts(socket) do
+    IO.puts "doing it first"
+    potential_hosts = PotentialHosts.get_potential_hosts()
+    IO.puts "doing it second"
+    broadcast(socket, "potential-hosts", %{potential_hosts: potential_hosts})
   end
 
   defp send_list_events(socket) do
