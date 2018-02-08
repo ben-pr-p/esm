@@ -259,6 +259,12 @@ export default class EventCard extends Component {
           onOk={this.cancelStage2}
         >
           {`This message will be sent to all ${attendance_count} people who have already RSVPed`}
+          {this.state.canceling == "error" && (
+            <span style={{ color: "red" }}>
+              {" "}
+              Oops! Look like you forgot to put something here.{" "}
+            </span>
+          )}
           <TextArea
             rows={5}
             onChange={this.setCancelMessage}
