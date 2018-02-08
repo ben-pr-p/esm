@@ -315,6 +315,12 @@ export default class EventCard extends Component {
           cancelText="Cancel"
           onOk={this.finishMessageAttendees}
         >
+          {this.state.messagingAttendees == "error" && (
+            <span style={{ color: "red" }}>
+              {" "}
+              Oops! Look like you forgot to put something here.{" "}
+            </span>
+          )}
           <TextArea
             rows={5}
             onChange={this.setAttendeeMessage}
