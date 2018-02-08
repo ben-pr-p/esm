@@ -118,6 +118,11 @@ config :rollbax,
 
 config :maps, key: System.get_env("MAPS_KEY")
 
+config :actionkit,
+  base: System.get_env("AK_BASE"),
+  username: System.get_env("AK_USERNAME"),
+  password: System.get_env("AK_PASSWORD")
+
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_AUTH_CLIENT_ID"),
   client_secret: System.get_env("GOOGLE_AUTH_CLIENT_SECRET")

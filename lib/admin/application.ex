@@ -1,6 +1,8 @@
 defmodule Admin.Application do
   use Application
 
+  @instance Application.get_env(:admin, :instance, "jd")
+
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -9,25 +11,33 @@ defmodule Admin.Application do
     Cosmic.update()
 
     # Define workers and child supervisors to be supervised
-    children = [
-      # Start the endpoint when the application starts
-      supervisor(Admin.Endpoint, []),
-      worker(Admin.Scheduler, []),
-      worker(Admin.EditAgent, []),
-      worker(Admin.CheckoutAgent, []),
-      worker(Mongo, [
+    children =
+      Enum.concat(
         [
-          name: :mongo,
-          database: "esm",
-          username: Application.get_env(:admin, :mongodb_username),
-          password: Application.get_env(:admin, :mongodb_password),
-          hostname: Application.get_env(:admin, :mongodb_hostname),
-          port: Application.get_env(:admin, :mongodb_port)
-        ]
-      ])
-      # Start your own worker by calling: Admin.Worker.start_link(arg1, arg2, arg3)
-      # worker(Admin.Worker, [arg1, arg2, arg3]),
-    ]
+          # Start the endpoint when the application starts
+          supervisor(Admin.Endpoint, []),
+          worker(Admin.Scheduler, []),
+          worker(Admin.EditAgent, []),
+          worker(Admin.CheckoutAgent, []),
+          worker(Mongo, [
+            [
+              name: :mongo,
+              database: "esm",
+              username: Application.get_env(:admin, :mongodb_username),
+              password: Application.get_env(:admin, :mongodb_password),
+              hostname: Application.get_env(:admin, :mongodb_hostname),
+              port: Application.get_env(:admin, :mongodb_port)
+            ]
+          ])
+          # Start your own worker by calling: Admin.Worker.start_link(arg1, arg2, arg3)
+          # worker(Admin.Worker, [arg1, arg2, arg3]),
+        ],
+        if @instance == "jd" do
+          [worker(Ak.Signup, [])]
+        else
+          []
+        end
+      )
 
     Application.put_env(
       :ueberauth,
