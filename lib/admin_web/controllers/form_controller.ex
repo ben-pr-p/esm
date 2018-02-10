@@ -30,7 +30,9 @@ defmodule Admin.FormController do
         |> HTTPotion.post(body: params |> Poison.encode!())
         |> IO.inspect()
 
-        json(conn, %{"ok" => "But error"})
+        conn
+        |> put_status(500)
+        |> json(%{"error" => e, "event" => params})
     end
   end
 
@@ -62,18 +64,16 @@ defmodule Admin.FormController do
     type = event_type
     status = if Map.has_key?(body, "whitelist"), do: "confirmed", else: "tentative"
 
-    IO.inspect description
-    # %{body: created} = Proxy.post("events", body: ~m(
-    #   location contact start_date end_date tags type title description status
-    #   capacity
-    # ))
+    %{body: created} = Proxy.post("events", body: ~m(
+      location contact start_date end_date tags type title description status
+      capacity
+    ))
 
-    # if Map.keys(created) |> length() < 5 do
-    #   1 + "force error"
-    # end
+    if Map.keys(created) |> length() < 5 do
+      1 + "force error"
+    end
 
-    # IO.inspect(created)
-    %{}
+    IO.inspect(created)
   end
 
   def construct_dt(time, date) do
@@ -145,10 +145,12 @@ defmodule Admin.FormController do
         city,
         state,
         zip,
-        date
+        date,
+        _,
+        capacity
       ]) do
     do_create(~m(first_name last_name email phone city state zip event_type zip title date
-       start_time end_time venue address description))
+       start_time end_time venue address description capacity))
   end
 
   def rerun_whitelist(line) when is_binary(line) do
@@ -180,7 +182,7 @@ defmodule Admin.FormController do
 
   def do_rerun do
     rerun(
-      ~s(1/23/2018 19:13:10	Jin	Ding	jinding25@gmail.com	6179705280	Phonebank	Testing phonebank	testing phonebank	9:00:00 AM	10:10:00 AM	my house	1 main st	san francisco	ca	94110	1/25/2018)
+      ~s(2/9/2018 11:34:48	Travis	Boldt	Tboldt@gmail.com	2819893675	Canvass	Block-walking for Beto in Shadow Creek Ranch	We will be canvassing local neighborhoods spreading the word about Beto and registering new-voters. This is the weekend during early-voting so we can directly encourage people to go out and vote that day!	11:00:00 AM	3:00:00 PM	Travis' House	11607 Cross Spring Dr	Pearland	Tx	77584	2/24/2018		30)
     )
   end
 end
