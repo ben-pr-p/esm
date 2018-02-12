@@ -195,6 +195,7 @@ defmodule Admin.Webhooks do
 
   def flatten(%{} = map) do
     map
+    |> Map.drop(~w(name))
     |> Map.to_list()
     |> to_flat_map(%{})
   end
