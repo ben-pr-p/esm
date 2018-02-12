@@ -25,14 +25,14 @@ defmodule Admin.FormController do
 
       json(conn, created)
     rescue
-      e ->
+      error ->
         failure_hook
-        |> HTTPotion.post(body: params |> Poison.encode!())
+        |> HTTPotion.post(body: Map.put(params, "error", error) |> Poison.encode!())
         |> IO.inspect()
 
         conn
         |> put_status(500)
-        |> json(%{"error" => e, "event" => params})
+        |> json(%{"error" => error, "event" => params})
     end
   end
 
