@@ -1,5 +1,6 @@
 defmodule Admin.PageController do
   use Admin, :controller
+  import ShortMaps
 
   alias Osdi.{Repo, Tag}
   alias Guardian.Plug
@@ -83,4 +84,22 @@ defmodule Admin.PageController do
     |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}.csv\"")
     |> send_resp(200, csv_content)
   end
+
+  def events_api(conn, %{"secret" => input_secret}) do
+    if secret() == input_secret do
+      events =
+        Proxy.stream("events")
+        |> Enum.map(&Admin.EventsChannel.event_pipeline/1)
+
+      json(conn, events)
+    else
+      text(conn, "Wrong secret.")
+    end
+  end
+
+  def events_api(conn, _) do
+    text(conn, "Missing secret – please visit /api/events?secret=thethingigotfromben")
+  end
+
+  def secret, do: Application.get_env(:admin, :proxy_secret)
 end

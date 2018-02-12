@@ -40,6 +40,7 @@ defmodule Admin.Router do
   scope "/api", Admin do
     pipe_through(:api)
 
+    get("/events", PageController, :events_api)
     post("/events/create", FormController, :create)
   end
 
