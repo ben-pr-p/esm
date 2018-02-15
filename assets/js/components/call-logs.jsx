@@ -26,6 +26,12 @@ export default class CallLogs extends Component {
       note: this.state.logNote
     });
 
+  wrapAddCallLog = wrapped => () =>
+    this.props.channel.push(`add-call-log-${this.props.id}`, {
+      note: this.state.logNote,
+      result: wrapped
+    });
+
   setLogNote = e => this.setState({ logNote: e.target.value });
 
   render() {
@@ -40,9 +46,32 @@ export default class CallLogs extends Component {
         <Modal
           visible={this.state.adding}
           title="Add Call Notes"
-          okText="Record Call with Note"
-          onCancel={() => this.setState({ adding: false })}
-          onOk={this.addCallLog}
+          footer={[
+            <Button onClick={() => this.setState({ adding: false })}>
+              Cancel
+            </Button>,
+            <Button type="primary" onClick={this.addCallLog}>
+              {" "}
+              Record Call{" "}
+            </Button>
+          ].concat(
+            this.props.category
+              ? [
+                  <Button
+                    type="danger"
+                    onClick={this.wrapAddCallLog("not-interested")}
+                  >
+                    Record Call and Mark as Not Interested
+                  </Button>,
+                  <Button onClick={this.wrapAddCallLog("call-back-later")}>
+                    Record Call and Mark as Call Back Later
+                  </Button>,
+                  <Button onClick={this.wrapAddCallLog("success")}>
+                    Record Call and Mark as Success
+                  </Button>
+                ]
+              : []
+          )}
         >
           <TextArea
             rows={5}
@@ -71,21 +100,34 @@ export default class CallLogs extends Component {
             <Icon type="loading" />
           ) : (
             <Table
+              size="small"
               columns={[
                 {
                   title: "Caller",
                   dataIndex: "actor",
                   key: "actor",
-                  width: 300
+                  width: 200
                 },
                 {
                   title: "Called At",
                   dataIndex: "timestamp",
                   key: "timestamp",
-                  width: 200
-                },
-                { title: "Notes", dataIndex: "note", key: "note" }
-              ]}
+                  width: 125
+                }
+              ].concat(
+                this.props.category
+                  ? [
+                      {
+                        title: "Result",
+                        dataIndex: "result",
+                        key: "result",
+                        width: 125
+                      },
+
+                      { title: "Notes", dataIndex: "note", key: "note" }
+                    ]
+                  : [{ title: "Notes", dataIndex: "note", key: "note" }]
+              )}
               dataSource={this.props.calls.map(c =>
                 Object.assign(c, {
                   timestamp: new Date(c.timestamp).toString()

@@ -1,18 +1,18 @@
 /*
  * Modules
  **/
-const path = require('path')
-const webpack = require('webpack')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const autoprefixer = require('autoprefixer')
+const path = require("path");
+const webpack = require("webpack");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const autoprefixer = require("autoprefixer");
 
 /*
  * Configuration
  **/
 module.exports = env => {
-  const isDev = !(env && env.prod)
-  const devtool = isDev ? 'eval' : 'source-map'
+  const isDev = !(env && env.prod);
+  const devtool = isDev ? "eval" : "source-map";
 
   return {
     devtool: devtool,
@@ -20,21 +20,23 @@ module.exports = env => {
     context: __dirname,
 
     entry: {
-      esm: ['js/esm.js', 'stylus/app.styl'],
-      list: ['js/list.js', 'stylus/app.styl'],
-      'my-events': ['js/my-events.js', 'stylus/app.styl'],
-      'candidate-events': ['js/candidate-events.js', 'stylus/app.styl'],
+      esm: ["js/esm.js", "stylus/app.styl"],
+      list: ["js/list.js", "stylus/app.styl"],
+      index: ["js/index.js", "stylus/app.styl"],
+      hosts: ["js/hosts.js", "stylus/app.styl"],
+      "my-events": ["js/my-events.js", "stylus/app.styl"],
+      "candidate-events": ["js/candidate-events.js", "stylus/app.styl"]
     },
 
     output: {
-      path: path.resolve(__dirname, '../priv/static'),
-      filename: 'js/[name].js',
-      publicPath: 'http://localhost:8080/'
+      path: path.resolve(__dirname, "../priv/static"),
+      filename: "js/[name].js",
+      publicPath: "http://localhost:8080/"
     },
 
     devServer: {
       headers: {
-        'Access-Control-Allow-Origin': '*'
+        "Access-Control-Allow-Origin": "*"
       }
     },
 
@@ -43,16 +45,16 @@ module.exports = env => {
         {
           test: /\.(jsx?)$/,
           exclude: /node_modules/,
-          loader: 'babel-loader'
+          loader: "babel-loader"
         },
 
         {
           test: /\.(gif|png|jpe?g|svg)$/i,
           exclude: /node_modules/,
           loaders: [
-            'file-loader?name=images/[name].[ext]',
+            "file-loader?name=images/[name].[ext]",
             {
-              loader: 'image-webpack-loader',
+              loader: "image-webpack-loader",
               options: {
                 query: {
                   mozjpeg: {
@@ -65,7 +67,7 @@ module.exports = env => {
                     optimizationLevel: 7
                   },
                   pngquant: {
-                    quality: '65-90',
+                    quality: "65-90",
                     speed: 4
                   }
                 }
@@ -77,17 +79,17 @@ module.exports = env => {
         {
           test: /\.(ttf|woff2?|eot|svg)$/,
           exclude: /node_modules/,
-          query: { name: 'fonts/[hash].[ext]' },
-          loader: 'file-loader'
+          query: { name: "fonts/[hash].[ext]" },
+          loader: "file-loader"
         },
 
         {
           test: /\.less$/,
           use: [
-            'style-loader',
-            { loader: 'css-loader', options: { sourceMap: 1 } },
-            'postcss-loader',
-            'less-loader'
+            "style-loader",
+            { loader: "css-loader", options: { sourceMap: 1 } },
+            "postcss-loader",
+            "less-loader"
           ]
         },
 
@@ -95,39 +97,39 @@ module.exports = env => {
           test: /\.(css|styl)$/,
           exclude: /node_modules/,
           use: isDev
-            ? ['style-loader', 'css-loader', 'postcss-loader', 'stylus-loader']
+            ? ["style-loader", "css-loader", "postcss-loader", "stylus-loader"]
             : ExtractTextPlugin.extract({
-                fallback: 'style-loader',
-                use: ['css-loader', 'postcss-loader', 'stylus-loader']
+                fallback: "style-loader",
+                use: ["css-loader", "postcss-loader", "stylus-loader"]
               })
         }
       ]
     },
 
     resolve: {
-      modules: ['node_modules', __dirname],
-      extensions: ['.js', '.json', '.jsx', '.css', '.styl']
+      modules: ["node_modules", __dirname],
+      extensions: [".js", ".json", ".jsx", ".css", ".styl"]
     },
 
     plugins: isDev
       ? [
           new CopyWebpackPlugin([
             {
-              from: './static',
-              to: path.resolve(__dirname, '../priv/static')
+              from: "./static",
+              to: path.resolve(__dirname, "../priv/static")
             }
           ])
         ]
       : [
           new CopyWebpackPlugin([
             {
-              from: './static',
-              to: path.resolve(__dirname, '../priv/static')
+              from: "./static",
+              to: path.resolve(__dirname, "../priv/static")
             }
           ]),
 
           new ExtractTextPlugin({
-            filename: 'css/[name].css',
+            filename: "css/[name].css",
             allChunks: true
           }),
 
@@ -141,11 +143,11 @@ module.exports = env => {
               drop_console: true
             },
             mangle: {
-              except: ['$'],
+              except: ["$"],
               screw_ie8: true,
               keep_fnames: true
             }
           })
         ]
-  }
-}
+  };
+};

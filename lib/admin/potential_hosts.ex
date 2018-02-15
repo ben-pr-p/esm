@@ -1,26 +1,43 @@
 defmodule PotentialHosts do
   use Agent
   import ShortMaps
+  require Logger
 
   def start_link do
-    Agent.start_link(fn -> nil end, name: __MODULE__)
+    Agent.start_link(
+      fn ->
+        async_update()
+        nil
+      end,
+      name: __MODULE__
+    )
   end
 
   def get_potential_hosts do
-    case Agent.get(__MODULE__, & &1) do
-      nil -> Agent.get_and_update(__MODULE__, fn _ ->
-          actions = do_get_potential_hosts
-          {actions, actions}
-        end, 100_000)
+    current_state = Agent.get(__MODULE__, & &1)
+
+    case current_state do
+      nil ->
+        actions = do_get_potential_hosts()
+        Agent.update(__MODULE__, fn _ -> actions end)
+        actions
+
       actions ->
-        spawn(fn ->
-          Agent.update(__MODULE__, fn _ -> do_get_potential_hosts() end, 100_000)
-        end)
-        Agent.get(__MODULE__, & &1)
-      end
+        async_update()
+        actions
+    end
+  end
+
+  def async_update do
+    spawn(fn ->
+      hosts = do_get_potential_hosts()
+      Agent.update(__MODULE__, fn _ -> hosts end, 100_000)
+    end)
   end
 
   def do_get_potential_hosts do
+    Logger.info("[phosts] Starting fetch")
+
     [form_one, form_two] =
       [
         Task.async(fn ->
@@ -35,21 +52,27 @@ defmodule PotentialHosts do
       |> Enum.map(fn t -> Task.await(t, :infinity) end)
       |> Enum.map(&into_most_recent_per_user/1)
 
-    form_one
-    |> Enum.filter(fn {user, %{"created_at" => one_date}} ->
-      case form_two[user] do
-        nil -> true
-        %{"created_at" => two_date} -> Timex.after?(datify(one_date), datify(two_date))
-      end
-    end)
-    |> Flow.from_enumerable()
-    |> Flow.map(&format_action/1)
-    |> Enum.to_list()
+    Logger.info("[phosts] finished fetch. Starting comparison and user fetching")
+
+    results =
+      form_one
+      |> Enum.filter(fn {user, %{"created_at" => one_date}} ->
+        case form_two[user] do
+          nil -> true
+          %{"created_at" => two_date} -> Timex.after?(datify(one_date), datify(two_date))
+        end
+      end)
+      |> Flow.from_enumerable()
+      |> Flow.map(&format_action/1)
+      |> Enum.to_list()
+
+    Logger.info("[phosts] Done here")
+    results
   end
 
   # action_list is already sorted by date created (recent first)
   def into_most_recent_per_user(action_list) do
-    Enum.reduce(action_list, %{}, fn a = ~m(user created_at), acc ->
+    Enum.reduce(action_list, %{}, fn a = ~m(user), acc ->
       Map.update(acc, user, a, & &1)
     end)
   end
@@ -66,12 +89,16 @@ defmodule PotentialHosts do
 
     %{
       "id" => "interest-#{action["id"]}",
-      "contact" => %{
-        "email_address" => email,
-        "phone_number" => normalized_phone,
-        "name" => "#{first_name} #{last_name}"
-      },
-      "type" => get_in(action, ~w(fields type))
+      "host" => %{
+        "id" => "interest-#{action["id"]}",
+        "contact" => %{
+          "email_address" => email,
+          "phone_number" => normalized_phone,
+          "name" => "#{first_name} #{last_name}"
+        },
+        "type" => get_in(action, ~w(fields type)),
+        "created_at" => action["created_at"]
+      }
     }
   end
 end

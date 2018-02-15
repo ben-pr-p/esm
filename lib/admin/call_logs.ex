@@ -9,8 +9,8 @@ defmodule Admin.CallLogs do
     |> Enum.map(&Map.drop(&1, ["_id"]))
   end
 
-  def add_to(~m(event_id note actor)) do
+  def add_to(record = ~m(event_id note actor)) do
     timestamp = DateTime.utc_now() |> DateTime.to_iso8601()
-    Mongo.insert_one(:mongo, collection(), ~m(event_id note actor timestamp))
+    Mongo.insert_one(:mongo, collection(), Map.merge(record, ~m(timestamp)))
   end
 end

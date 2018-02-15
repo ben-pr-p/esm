@@ -1,26 +1,6 @@
 import React, { Component } from "react";
-import {
-  Button,
-  Card,
-  Checkbox,
-  Dropdown,
-  Icon,
-  Input,
-  Layout,
-  Menu,
-  Modal,
-  Tabs,
-  Select,
-  message
-} from "antd";
-import EditableText from "./editable-text";
-import EditableNumber from "./editable-number";
-import EditableDateRange from "./editable-date-range";
+import { Button, Card, Table, message } from "antd";
 import CallLogs from "./call-logs";
-import EditLogs from "./edit-logs";
-
-const { TextArea } = Input;
-const { Option } = Select;
 
 export default class EventCard extends Component {
   onSave = kv => {
@@ -91,294 +71,40 @@ export default class EventCard extends Component {
 
     return (
       <Card
-        title={
-          <EditableText
-            disabled={disabled}
-            checkout={this.checkout}
-            checkin={this.checkin}
-            onSave={this.onSave}
-            value={contact.name}
-            attr="title"
-          />
-        }
+        title={contact.name}
         extra={
           <div style={{ display: "flex" }}>
-            <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
+            <div style={{ marginLeft: 30 }}>
+              <CallLogs
+                id={this.props.id}
+                channel={this.props.channel}
+                calls={this.props.calls}
+                category={this.props.category}
+              />
+            </div>
           </div>
         }
-        style={{ width: "100%", marginTop: 25 }}
+        style={{ width: "45%", marginTop: 25 }}
         bodyStyle={{
           display: "flex",
           flexWrap: "wrap",
           width: "100%",
-          height: 300,
+          height: 150,
           overflowY: "scroll"
         }}
       >
-        <div
-          className="field-group"
-          style={{ margin: 10, minWidth: 250, width: "100%" }}
-        >
-          <strong>Type:</strong>
-          {type}
-        </div>
-
-        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
-          <strong>Host</strong>
-          <br />
-          <strong>Name:</strong>{" "}
-          <EditableText
-            disabled={disabled}
-            checkout={this.checkout}
-            checkin={this.checkin}
-            onSave={this.onSave}
-            value={contact.name}
-            attr="contact.name"
-          />
-          <br />
-          <strong>Phone Number:</strong>{" "}
-          <EditableText
-            disabled={disabled}
-            checkout={this.checkout}
-            checkin={this.checkin}
-            onSave={this.onSave}
-            value={contact.phone_number}
-            attr="contact.phone_number"
-          />
-          <br />
-          {/* <Checkbox
-            checked={contact.public}
-            onChange={e => this.onSave(["contact.public", e.target.checked])}
-          >
-            Phone Public?
-          </Checkbox> */}
-          {/* <br />
-          <br /> */}
-          <strong>Email Address:</strong>{" "}
-          <EditableText
-            disabled={disabled}
-            checkout={this.checkout}
-            checkin={this.checkin}
-            onSave={this.onSave}
-            value={contact.email_address}
-            attr="contact.email_address"
-          />
-        </div>
-
-        {!this.props.hostEdit && (
-          <div>
-            <EditLogs
-              id={this.props.id}
-              channel={this.props.channel}
-              edits={this.props.edits}
-            />
-            <CallLogs
-              id={this.props.id}
-              channel={this.props.channel}
-              calls={this.props.calls}
-            />
-          </div>
-        )}
+        <Table
+          pagination={false}
+          size="small"
+          width="100%"
+          columns={[
+            { key: "type", title: "Type", dataIndex: "type" },
+            { key: "phone_number", title: "Phone", dataIndex: "phone_number" },
+            { key: "email_address", title: "Email", dataIndex: "email_address" }
+          ]}
+          dataSource={[Object.assign(contact, { type })]}
+        />
       </Card>
     );
-  }
-
-  renderButtons() {
-    const {
-      category,
-      ph: { rsvp_download_url, organizer_edit_url }
-    } = this.props;
-
-    return [
-      <Dropdown
-        overlay={
-          <Menu>
-            {category !== undefined && (
-              <Menu.Item>
-                <Button style={{ width: "100%" }} onClick={this.messageHost}>
-                  Message Host
-                </Button>
-              </Menu.Item>
-            )}
-
-            {category !== undefined && (
-              <Menu.Item>
-                <Button
-                  style={{ width: "100%" }}
-                  onClick={this.messageAttendees}
-                >
-                  Message Attendees
-                </Button>
-              </Menu.Item>
-            )}
-
-            <Menu.Item>
-              <Button
-                style={{ width: "100%" }}
-                onClick={() => window.open(rsvp_download_url)}
-              >
-                Download RSVPs
-              </Button>
-            </Menu.Item>
-
-            <Menu.Item>
-              <Button
-                style={{ width: "100%" }}
-                onClick={() =>
-                  clipboard
-                    .copy(rsvp_download_url)
-                    .then(() =>
-                      message.success("RSVP download link copied to clipboard")
-                    )
-                }
-              >
-                Copy RSVP Download Link
-              </Button>
-            </Menu.Item>
-
-            <Menu.Item>
-              <Button
-                style={{ width: "100%" }}
-                onClick={() =>
-                  clipboard
-                    .copy(organizer_edit_url)
-                    .then(() =>
-                      message.success("Organizer edit link copied to clipboard")
-                    )
-                }
-              >
-                Copy Organizer Edit Link
-              </Button>
-            </Menu.Item>
-
-            {this.props.ph.candidate_phs_url && (
-              <Menu.Item>
-                <Button
-                  style={{ width: "100%" }}
-                  onClick={() =>
-                    clipboard
-                      .copy(this.props.ph.candidate_phs_url)
-                      .then(() =>
-                        message.success(
-                          "Organizer edit link copied to clipboard"
-                        )
-                      )
-                  }
-                >
-                  Copy Candidate Events View Link
-                </Button>
-              </Menu.Item>
-            )}
-
-            <Menu.Item>
-              <Button style={{ width: "100%" }} onClick={this.duplicate}>
-                Duplicate
-              </Button>
-            </Menu.Item>
-          </Menu>
-        }
-      >
-        <Button>
-          More <Icon type="down" />
-        </Button>
-      </Dropdown>
-    ]
-      .concat(
-        category == "ESM Call #1"
-          ? [
-              <Button onClick={this.reject} type="danger">
-                Reject
-              </Button>,
-              <Button onClick={this.markCalled} type="default">
-                Mark Called
-              </Button>,
-              <Button onClick={this.markCalledAndConfirm} type="primary">
-                Mark Called and Confirm Event
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == "Needs Approval"
-          ? [
-              <Button onClick={this.reject} type="danger">
-                Reject
-              </Button>,
-              <Button onClick={this.confirm} type="primary">
-                Confirm
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == "Needs Logistics"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.markLogistics} type="primary">
-                Mark Did Logistics Call
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == "Needs Debrief"
-          ? [
-              <Button onClick={this.markDebriefed} type="primary">
-                Mark Debriefed
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == "Rejected"
-          ? [
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == "Cancelled"
-          ? [
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == "Upcoming"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == "Today"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
-      )
-      .concat(
-        category == undefined && [
-          <Button onClick={this.cancel} type="danger">
-            Cancel
-          </Button>
-        ]
-      );
   }
 }

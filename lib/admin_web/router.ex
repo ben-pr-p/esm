@@ -27,9 +27,10 @@ defmodule Admin.Router do
     get("/auth/:provider/callback", AuthController, :callback)
     post("/auth/:provider/callback", AuthController, :callback)
 
-    get("/events", PageController, :events)
-    get("/events/esm", PageController, :esm)
-    get("/events/list", PageController, :list)
+    get("/", PageController, :index)
+    get("/esm", PageController, :esm)
+    get("/list", PageController, :list)
+    get("/hosts", PageController, :hosts)
 
     get("/my-events/:token", PageController, :my_events)
     get("/candidate-events/:token", PageController, :candidate_events)

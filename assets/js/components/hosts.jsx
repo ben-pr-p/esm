@@ -3,9 +3,8 @@ import Infinite from "react-infinite";
 import { Card, Input, Layout, LocaleProvider, Select, Tabs } from "antd";
 import enUS from "antd/lib/locale-provider/en_US";
 import socket from "../socket";
-import EventCard from "./event-card";
 import PotentialHost from "./potential-host";
-import tabSpec from "./tab-spec";
+import tabSpec from "./host-tab-spec";
 import FilterHeader from "./header/index";
 
 const { Content } = Layout;
@@ -13,9 +12,8 @@ const { Search } = Input;
 const { TabPane } = Tabs;
 const { Option } = Select;
 
-export default class Esm extends Component {
+export default class Hosts extends Component {
   state = {
-    events: {},
     channel: null,
     search: "",
     calls: {},
@@ -24,40 +22,53 @@ export default class Esm extends Component {
     calendars: [],
     globalFilterFn: () => true,
     upper: 10,
-    potential_hosts: []
+    hosts: {}
   };
 
   setSearch = value => this.setState({ search: value });
   setStateFilter = state => this.setState({ state });
   setCalendarFilter = calendars => this.setState({ calendars });
 
-  filteredEvents = fn =>
-    Object.keys(this.state.events).filter(e => {
-      const event = this.state.events[e];
-      return fn(event) && this.state.globalFilterFn(event);
+  filteredHosts = fn =>
+    Object.keys(this.state.hosts).filter(e => {
+      const host = this.state.hosts[e];
+      return fn(host) && this.state.globalFilterFn(host);
     });
 
-  countEventsFor = fn => this.filteredEvents(fn).length;
+  countHostsFor = fn => this.filteredHosts(fn).length;
 
   setGlobalFilterFn = globalFilterFn => this.setState({ globalFilterFn });
 
-  eventsFor = (fn, category) =>
-    this.filteredEvents(fn)
-      .sort(
-        (a, b) =>
-          new Date(this.state.events[a].start_date) -
-          new Date(this.state.events[b].start_date)
-      )
-      .map(id => (
-        <EventCard
-          key={id}
-          event={this.state.events[id]}
-          id={id}
-          calls={this.state.calls[id]}
-          edits={this.state.edits[id]}
-          channel={this.state.channel}
-          category={category}
-        />
+  hostsFor = (fn, category) =>
+    this.filteredHosts(fn)
+      .chunk(2)
+      .map(([id1, id2]) => (
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-around"
+          }}
+        >
+          <PotentialHost
+            id={id1}
+            ph={this.state.hosts[id1]}
+            channel={this.state.channel}
+            calls={this.state.calls[id1]}
+            edits={this.state.edits[id1]}
+            category={category}
+          />
+          {id2 && (
+            <PotentialHost
+              id={id2}
+              ph={this.state.hosts[id2]}
+              channel={this.state.channel}
+              calls={this.state.calls[id2]}
+              edits={this.state.edits[id2]}
+              category={category}
+            />
+          )}
+        </div>
       ));
 
   componentWillMount() {
@@ -69,7 +80,7 @@ export default class Esm extends Component {
       .querySelector("#guardian_token")
       .getAttribute("content");
 
-    this.state.channel = socket.channel("events", { guardian_token: token });
+    this.state.channel = socket.channel("hosts", { guardian_token: token });
 
     this.state.channel
       .join()
@@ -80,22 +91,16 @@ export default class Esm extends Component {
         console.log("Unable to join", resp);
       });
 
-    this.state.channel.on("event", ({ id, event }) => {
-      this.state.events[id] = event;
-      event.tags.forEach(t => window.tagOptions.push(t));
+    this.state.channel.on("host", ({ id, host }) => {
+      this.state.host[id] = host;
       this.forceUpdate();
     });
 
-    this.state.channel.on("events", ({ all_events }) => {
-      all_events.forEach(({ id, event }) => {
-        this.state.events[id] = event;
-        event.tags.forEach(t => window.tagOptions.push(t));
+    this.state.channel.on("hosts", ({ all_hosts }) => {
+      all_hosts.forEach(({ id, host }) => {
+        this.state.hosts[id] = host;
       });
       this.forceUpdate();
-    });
-
-    this.state.channel.on("potential-hosts", ({ potential_hosts }) => {
-      this.setState({ potential_hosts });
     });
 
     this.state.channel.on("call-logs", ({ id, calls }) => {
@@ -103,22 +108,17 @@ export default class Esm extends Component {
       this.forceUpdate();
     });
 
-    this.state.channel.on("edit-logs", ({ id, edits }) => {
-      this.state.edits[id] = edits;
-      this.forceUpdate();
-    });
-
     this.state.channel.on("checkout", ({ id, actor }) => {
-      this.state.events[id].checked_out_by = actor;
+      this.state.hosts[id].checked_out_by = actor;
       this.forceUpdate();
     });
 
     this.state.channel.on("checkin", ({ id }) => {
-      this.state.events[id].checked_out_by = undefined;
+      this.state.hosts[id].checked_out_by = undefined;
       this.forceUpdate();
     });
 
-    this.state.channel.push("ready", { page: "esm" });
+    this.state.channel.push("ready");
   }
 
   render() {
@@ -130,7 +130,7 @@ export default class Esm extends Component {
             <Tabs>
               {tabSpec.map(({ title, fn }) => (
                 <TabPane
-                  tab={title + ` (${this.countEventsFor(fn)})`}
+                  tab={title + ` (${this.countHostsFor(fn)})`}
                   key={title}
                 >
                   <div
@@ -142,10 +142,12 @@ export default class Esm extends Component {
                     }}
                   >
                     <Infinite
+                      style={{ width: "100%" }}
+                      className="infinite-container"
                       useWindowAsScrollContainer={true}
-                      elementHeight={634}
+                      elementHeight={217 + 25}
                     >
-                      {this.eventsFor(fn, title)}
+                      {this.hostsFor(fn, title)}
                     </Infinite>
                   </div>
                 </TabPane>
@@ -157,3 +159,17 @@ export default class Esm extends Component {
     );
   }
 }
+
+Array.prototype.chunk = function(groupsize) {
+  var sets = [],
+    chunks,
+    i = 0;
+  chunks = this.length / groupsize;
+
+  while (i < chunks) {
+    sets[i] = this.splice(0, groupsize);
+    i++;
+  }
+
+  return sets;
+};

@@ -8,10 +8,10 @@ defmodule Admin.PageController do
   plug(
     Plug.EnsureAuthenticated,
     [handler: __MODULE__]
-    when action in ~w(esm list)a
+    when action in ~w(esm list hosts index)a
   )
 
-  def events(conn, _params) do
+  def index(conn, _params) do
     render(conn, "index.html")
   end
 
@@ -31,6 +31,10 @@ defmodule Admin.PageController do
 
   def list(conn, _params) do
     render(conn, "list.html")
+  end
+
+  def hosts(conn, _params) do
+    render(conn, "hosts.html")
   end
 
   def my_events(conn, %{"token" => token}) do
