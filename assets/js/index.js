@@ -23,10 +23,6 @@ render(
         Event Management
       </Button>
       <div style={{ width: "100px" }} />
-      <Button icon="user-add" size="large" href="/hosts">
-        Potential Hosts
-      </Button>
-      <div style={{ width: "100px" }} />
       <Button icon="bars" size="large" href="/list">
         All Events
       </Button>
