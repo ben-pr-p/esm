@@ -15,6 +15,11 @@ use Mix.Config
 # which you typically run after static files are built.
 config :admin, Admin.Endpoint,
   load_from_system_env: true,
+  check_origin: [
+    "https://admin.justicedemocrats.com",
+    "https://esm.betofortexas.com",
+    "https://beto-esm.gigalixirapp.com"
+  ],
   url: [host: "turnout.justicedemocrats.com", port: 4000],
   cache_static_manifest: "priv/static/cache_manifest.json",
   server: true
