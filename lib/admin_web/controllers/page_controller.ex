@@ -92,7 +92,7 @@ defmodule Admin.PageController do
   def events_api(conn, %{"secret" => input_secret}) do
     if secret() == input_secret do
       events =
-        Proxy.stream("events")
+        OsdiClient.stream(client(), "events")
         |> Enum.map(&Admin.EventsChannel.event_pipeline/1)
 
       json(conn, events)
@@ -105,5 +105,12 @@ defmodule Admin.PageController do
     text(conn, "Missing secret – please visit /api/events?secret=thethingigotfromben")
   end
 
-  def secret, do: Application.get_env(:admin, :proxy_secret)
+  def secret, do: Application.get_env(:admin, :osdi_api_token)
+
+  def client,
+    do:
+      OsdiClient.build_client(
+        Application.get_env(:admin, :osdi_base_url),
+        Application.get_env(:admin, :osdi_api_token)
+      )
 end

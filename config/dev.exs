@@ -104,8 +104,8 @@ config :cipher,
 
 # Proxy layer + mongo
 config :admin,
-  proxy_base_url: System.get_env("PROXY_BASE_URL"),
-  proxy_secret: System.get_env("PROXY_SECRET"),
+  osdi_base_url: System.get_env("OSDI_BASE_URL"),
+  osdi_api_token: System.get_env("OSDI_API_TOKEN"),
   mongodb_username: System.get_env("MONGO_USERNAME"),
   mongodb_hostname: System.get_env("MONGO_HOSTNAME"),
   mongodb_password: System.get_env("MONGO_PASSWORD"),

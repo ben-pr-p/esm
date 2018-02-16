@@ -98,8 +98,8 @@ config :cipher,
 
 # Proxy layer + mongo
 config :admin,
-  proxy_base_url: "${PROXY_BASE_URL}",
-  proxy_secret: "${PROXY_SECRET}",
+  osdi_base_url: "${OSDI_BASE_URL}",
+  osdi_api_token: "${OSDI_API_TOKEN}",
   mongodb_username: "${MONGO_USERNAME}",
   mongodb_hostname: "${MONGO_HOSTNAME}",
   mongodb_password: "${MONGO_PASSWORD}",

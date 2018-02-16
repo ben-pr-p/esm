@@ -104,7 +104,7 @@ defmodule Admin.EventsChannel do
   def handle_in("tags-" <> id, tags, socket) do
     insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
 
-    %{body: event} = Proxy.get("events/#{id}")
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     calendar_tags = Enum.filter(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(tags, calendar_tags)
@@ -122,7 +122,7 @@ defmodule Admin.EventsChannel do
       actor: current_resource(socket)
     })
 
-    %{body: event} = Proxy.get("events/#{id}")
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
 
     as_tags = Enum.map(calendars, &"Calendar: #{&1}")
     regular_tags = Enum.reject(event.tags, &String.contains?(&1, "Calendar: "))
@@ -172,7 +172,7 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("message-host-" <> id, %{"message" => message}, socket) do
-    %{body: event} = Proxy.get("events/#{id}")
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
 
     Webhooks.on("message_host", %{
       event: event_pipeline(event),
@@ -217,7 +217,7 @@ defmodule Admin.EventsChannel do
   def do_message_attendees(hook_type, event_id, message) do
     [%{body: event}, attendee_emails] =
       [
-        Task.async(fn -> Proxy.get("events/#{event_id}") end),
+        Task.async(fn -> OsdiClient.get(client(), "events/#{event_id}") end),
         Task.async(fn -> Rsvps.emails_for(event_id) end)
       ]
       |> Enum.map(fn t -> Task.await(t, :infinity) end)
@@ -231,7 +231,7 @@ defmodule Admin.EventsChannel do
 
   defp send_esm_events(socket) do
     all_events =
-      Proxy.stream("events")
+      OsdiClient.stream(client(), "events")
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event ->
         id = event.identifiers |> List.first() |> String.split(":") |> List.last()
@@ -250,7 +250,7 @@ defmodule Admin.EventsChannel do
 
   defp send_list_events(socket) do
     all_events =
-      Proxy.stream("events")
+      OsdiClient.stream(client(), "events")
       |> Enum.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event = %{id: id} ->
@@ -261,7 +261,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
-    Proxy.stream("events")
+    OsdiClient.stream(client(), "events")
     |> Flow.from_enumerable()
     |> Flow.filter(&(&1.organizer_id == organizer_id))
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
@@ -274,7 +274,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_candidate_events(socket = %{assigns: %{candidate_tag: candidate_tag}}) do
-    Proxy.stream("events")
+    OsdiClient.stream(client(), "events")
     |> Flow.from_enumerable()
     |> Flow.filter(&Enum.member?(&1.tags, candidate_tag))
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
@@ -331,22 +331,22 @@ defmodule Admin.EventsChannel do
 
   defp apply_edit(id, [key, value]) do
     change = Map.put(%{}, key, value)
-    Proxy.post("events/#{id}", body: change)
-    %{body: event} = Proxy.get("events/#{id}")
+    OsdiClient.post(client(), "events/#{id}", body: change)
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   defp apply_edit(id, change) when is_map(change) do
-    Proxy.post("events/#{id}", body: change)
-    %{body: event} = Proxy.get("events/#{id}")
+    OsdiClient.post(client(), "events/#{id}", body: change)
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   defp apply_contact_edit(id, [raw_key, value]) do
     "contact." <> key = raw_key
     contact_change = Map.put(%{}, key, value)
-    Proxy.post("events/#{id}", body: %{contact: contact_change})
-    %{body: event} = Proxy.get("events/#{id}")
+    OsdiClient.post(client(), "events/#{id}", body: %{contact: contact_change})
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
@@ -358,34 +358,34 @@ defmodule Admin.EventsChannel do
       end
 
     location_change = Map.put(%{}, key, value)
-    Proxy.post("events/#{id}", body: %{location: location_change})
-    %{body: event} = Proxy.get("events/#{id}")
+    OsdiClient.post(client(), "events/#{id}", body: %{location: location_change})
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   def edit_tags_and_fetch(id, tags) do
-    Proxy.post("events/#{id}", body: %{tags: tags})
-    %{body: event} = Proxy.get("events/#{id}")
+    OsdiClient.post(client(), "events/#{id}", body: %{tags: tags})
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   defp set_status(id, status) do
-    Proxy.post("events/#{id}", body: %{status: status})
-    %{body: event} = Proxy.get("events/#{id}")
+    OsdiClient.post(client(), "events/#{id}", body: %{status: status})
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   defp mark_action(id, action) do
-    %{body: %{tags: current_tags}} = Proxy.get("events/#{id}")
+    %{body: %{tags: current_tags}} = OsdiClient.get(client(), "events/#{id}")
     tag = "Event: Action: #{String.capitalize(action)}"
     new_tags = Enum.concat(current_tags, [tag])
-    Proxy.post("events/#{id}", body: %{tags: new_tags})
-    %{body: event} = Proxy.get("events/#{id}")
+    OsdiClient.post(client(), "events/#{id}", body: %{tags: new_tags})
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   defp duplicate(id) do
-    %{body: old} = Proxy.get("events/#{id}")
+    %{body: old} = OsdiClient.get(client(), "events/#{id}")
 
     to_create =
       old
@@ -394,7 +394,7 @@ defmodule Admin.EventsChannel do
       |> Map.put(:status, "tentative")
       |> Map.drop([:identifiers])
 
-    %{body: new} = Proxy.post("events", body: to_create)
+    %{body: new} = OsdiClient.post(client(), "events", body: to_create)
     new
   end
 
@@ -460,4 +460,11 @@ defmodule Admin.EventsChannel do
     push(socket, "events", payload)
     {:noreply, socket}
   end
+
+  def client,
+    do:
+      OsdiClient.build_client(
+        Application.get_env(:admin, :osdi_base_url),
+        Application.get_env(:admin, :osdi_api_token)
+      )
 end

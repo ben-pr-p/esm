@@ -55,7 +55,7 @@ defmodule Admin.FormController do
     type = event_type
     status = if Map.has_key?(body, "whitelist"), do: "confirmed", else: "tentative"
 
-    %{body: created} = Proxy.post("events", body: ~m(
+    %{body: created} = OsdiClient.post(client(), "events", ~m(
       location contact start_date end_date tags type title description status
       capacity
     ))
@@ -107,4 +107,11 @@ defmodule Admin.FormController do
   end
 
   def easy_int(int), do: int
+
+  def client,
+    do:
+      OsdiClient.build_client(
+        Application.get_env(:admin, :osdi_base_url),
+        Application.get_env(:admin, :osdi_api_token)
+      )
 end
