@@ -13,7 +13,7 @@ defmodule Admin.AuthController do
       {:ok, user} ->
         conn
         |> Plug.sign_in(user)
-        |> redirect(to: "/events")
+        |> redirect(to: "/")
 
       {:error, email} when is_binary(email) ->
         json(conn, %{
