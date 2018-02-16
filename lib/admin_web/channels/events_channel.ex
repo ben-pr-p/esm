@@ -331,13 +331,13 @@ defmodule Admin.EventsChannel do
 
   defp apply_edit(id, [key, value]) do
     change = Map.put(%{}, key, value)
-    OsdiClient.post(client(), "events/#{id}", body: change)
+    OsdiClient.put(client(), "events/#{id}", change)
     %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   defp apply_edit(id, change) when is_map(change) do
-    OsdiClient.post(client(), "events/#{id}", body: change)
+    OsdiClient.put(client(), "events/#{id}", change)
     %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
@@ -345,7 +345,7 @@ defmodule Admin.EventsChannel do
   defp apply_contact_edit(id, [raw_key, value]) do
     "contact." <> key = raw_key
     contact_change = Map.put(%{}, key, value)
-    OsdiClient.post(client(), "events/#{id}", body: %{contact: contact_change})
+    OsdiClient.put(client(), "events/#{id}", %{contact: contact_change})
     %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
@@ -358,19 +358,19 @@ defmodule Admin.EventsChannel do
       end
 
     location_change = Map.put(%{}, key, value)
-    OsdiClient.post(client(), "events/#{id}", body: %{location: location_change})
+    OsdiClient.put(client(), "events/#{id}", %{location: location_change})
     %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   def edit_tags_and_fetch(id, tags) do
-    OsdiClient.post(client(), "events/#{id}", body: %{tags: tags})
+    OsdiClient.put(client(), "events/#{id}", %{tags: tags})
     %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
 
   defp set_status(id, status) do
-    OsdiClient.post(client(), "events/#{id}", body: %{status: status})
+    OsdiClient.put(client(), "events/#{id}", %{status: status})
     %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
@@ -379,7 +379,7 @@ defmodule Admin.EventsChannel do
     %{body: %{tags: current_tags}} = OsdiClient.get(client(), "events/#{id}")
     tag = "Event: Action: #{String.capitalize(action)}"
     new_tags = Enum.concat(current_tags, [tag])
-    OsdiClient.post(client(), "events/#{id}", body: %{tags: new_tags})
+    OsdiClient.put(client(), "events/#{id}", %{tags: new_tags})
     %{body: event} = OsdiClient.get(client(), "events/#{id}")
     event_pipeline(event)
   end
@@ -394,7 +394,7 @@ defmodule Admin.EventsChannel do
       |> Map.put(:status, "tentative")
       |> Map.drop([:identifiers])
 
-    %{body: new} = OsdiClient.post(client(), "events", body: to_create)
+    %{body: new} = OsdiClient.post(client(), "events", to_create)
     new
   end
 

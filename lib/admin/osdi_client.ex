@@ -8,7 +8,6 @@ defmodule OsdiClient do
       {Tesla.Middleware.Headers, %{"OSDI-API-Token" => osdi_api_token}},
       {Tesla.Middleware.BaseUrl, base}
     ])
-    |> IO.inspect()
   end
 
   def stream(client, url) do
