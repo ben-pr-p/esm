@@ -66,6 +66,11 @@ config :admin,
   deployed_url: "${DEPLOYED_URL}",
   instance: "beto"
 
+config :actionkit,
+  base: "${AK_BASE}",
+  username: "${AK_USERNAME}",
+  password: "${AK_PASSWORD}"
+
 config :rollbax,
   access_token: "${ROLLBAR_TOKEN}",
   environment: "production"

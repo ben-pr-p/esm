@@ -2,6 +2,7 @@ defmodule Admin.Webhooks do
   require Logger
   import ShortMaps
 
+  @instance Application.get_env(:admin, :instance, "jd")
   @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
 
   def on(hook, body = %{event: event}) do
@@ -12,43 +13,86 @@ defmodule Admin.Webhooks do
     |> exec(Map.put(body, :event, processed))
   end
 
-  def exec("confirmed", %{event: event, team_member: team_member}) do
-    %{"metadata" => %{"event_publish" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of confirmed")
-    IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
+  def exec("confirmed", contents = %{event: event, team_member: team_member}) do
+    if @instance != "jd" do
+      %{"metadata" => %{"event_publish" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts("Posting webhook to #{hook} because of confirmed")
+      IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
+    else
+      email = event.contact.email_address
+
+      info =
+        flatten(contents)
+        |> Enum.map(fn {key, val} ->
+          {"action_#{key}", val}
+        end)
+        |> Enum.into(~m(email))
+
+      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Published"), info)
+    end
   end
 
-  def exec("rejected", %{event: event, reason: reason, team_member: team_member}) do
-    %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of rejected")
+  def exec("rejected", contents = %{event: event, reason: reason, team_member: team_member}) do
+    if @instance != "jd" do
+      %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts("Posting webhook to #{hook} because of rejected")
 
-    IO.inspect(
-      HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
-    )
+      IO.inspect(
+        HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
+      )
+    else
+      email = event.contact.email_address
+
+      info =
+        flatten(contents)
+        |> Enum.map(fn {key, val} ->
+          {"action_#{key}", val}
+        end)
+        |> Enum.into(~m(email))
+
+      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Rejected"), info)
+    end
   end
 
-  def exec("cancelled", %{event: event, team_member: team_member, reason: reason}) do
-    %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of cancelled")
+  def exec("cancelled", contents = %{event: event, team_member: team_member, reason: reason}) do
+    if @instance != "jd" do
+      %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts("Posting webhook to #{hook} because of cancelled")
 
-    IO.inspect(
-      HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
-    )
+      IO.inspect(
+        HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
+      )
+    else
+      email = event.contact.email_address
+
+      info =
+        flatten(contents)
+        |> Enum.map(fn {key, val} ->
+          {"action_#{key}", val}
+        end)
+        |> Enum.into(~m(email))
+
+      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Cancelled"), info)
+    end
   end
 
-  def exec("cancelled", %{event: event, team_member: team_member, reason: reason}) do
-    %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of cancelled")
+  def exec("tentative", contents = %{event: event, team_member: team_member}) do
+    if @instance != "jd" do
+      %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts("Posting webhook to #{hook} because of tentative")
+      IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
+    else
+      email = event.contact.email_address
 
-    IO.inspect(
-      HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
-    )
-  end
+      info =
+        flatten(contents)
+        |> Enum.map(fn {key, val} ->
+          {"action_#{key}", val}
+        end)
+        |> Enum.into(~m(email))
 
-  def exec("tentative", %{event: event, team_member: team_member}) do
-    %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of tentative")
-    IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
+      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Unpublished"), info)
+    end
   end
 
   def exec("edit", %{event: event, edits: edits}) do
@@ -57,10 +101,23 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(%{event: event, edits: edits})))
   end
 
-  def exec("message_host", ~m(event host message)a) do
-    %{"metadata" => %{"message_host" => hook}} = Cosmic.get(@cosmic_config_slug)
-    IO.puts("Posting webhook to #{hook} because of message-host")
-    IO.inspect(HTTPotion.post(hook, bodify(~m(event host message))))
+  def exec("message_host", contents = ~m(event host message)a) do
+    if @instance != "jd" do
+      %{"metadata" => %{"message_host" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts("Posting webhook to #{hook} because of message-host")
+      IO.inspect(HTTPotion.post(hook, bodify(~m(event host message))))
+    else
+      email = event.contact.email_address
+
+      info =
+        flatten(contents)
+        |> Enum.map(fn {key, val} ->
+          {"action_#{key}", val}
+        end)
+        |> Enum.into(~m(email))
+
+      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Message Host"), info)
+    end
   end
 
   def exec(hook_type = "message_attendees" <> _rest, ~m(event attendee_emails message)a) do
@@ -167,4 +224,17 @@ defmodule Admin.Webhooks do
         result
     end
   end
+
+  def flatten(%{} = map) do
+    map
+    |> Map.drop(~w(name))
+    |> Map.to_list()
+    |> to_flat_map(%{})
+  end
+
+  def flatten(%{} = map) when map == %{}, do: %{}
+
+  defp to_flat_map([{_k, %{} = v} | t], acc), do: to_flat_map(Map.to_list(v), to_flat_map(t, acc))
+  defp to_flat_map([{k, v} | t], acc), do: to_flat_map(t, Map.put_new(acc, k, v))
+  defp to_flat_map([], acc), do: acc
 end

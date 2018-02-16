@@ -246,6 +246,13 @@ defmodule Admin.EventsChannel do
     broadcast(socket, "events", %{all_events: all_events})
   end
 
+  defp send_potential_hosts(socket) do
+    IO.puts("doing it first")
+    potential_hosts = PotentialHosts.get_potential_hosts()
+    IO.puts("doing it second")
+    broadcast(socket, "potential-hosts", %{potential_hosts: potential_hosts})
+  end
+
   defp send_list_events(socket) do
     all_events =
       Proxy.stream("events")

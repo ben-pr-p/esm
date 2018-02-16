@@ -55,7 +55,8 @@ defmodule Admin.Mixfile do
       {:timex, "~> 3.1"},
       {:short_maps, "~> 0.1.2"},
       {:flow, "~> 0.11"},
-      {:rollbax, "~> 0.6"}
+      {:rollbax, "~> 0.6"},
+      {:actionkit, git: "https://github.com/justicedemocrats/actionkit_ex.git"}
     ]
   end
 

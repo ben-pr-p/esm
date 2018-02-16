@@ -1,9 +1,2 @@
-<h1> Hey there! </h1>
-
-<p>
-  To enter the event management portal, click <a href="/events/esm">here</a>.
-</p>
-
-<p>
-  To view the master list of upcoming events, click <a href="/events/list">here</a>.
-</p>
+<div id="app"></div>
+<%= {:safe, js_script_tag("index.js") } %>

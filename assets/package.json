@@ -10,7 +10,7 @@
     "deploy": "MIX_ENV=prod NODE_ENV=prod webpack -p"
   },
   "dependencies": {
-    "antd": "^2.13.0",
+    "antd": "^3.2.1",
     "babel-cli": "^6.24.1",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.0.0",

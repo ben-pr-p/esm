@@ -3,6 +3,7 @@ defmodule Admin.UserSocket do
 
   ## Channels
   channel("events", Admin.EventsChannel)
+  channel("hosts", Admin.HostsChannel)
 
   ## Transports
   transport(:websocket, Phoenix.Transports.WebSocket)
