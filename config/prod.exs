@@ -17,6 +17,7 @@ config :admin, Admin.Endpoint,
   load_from_system_env: true,
   check_origin: [
     "https://admin.justicedemocrats.com",
+    "https://turnout.justicedemocrats.com",
     "https://esm.betofortexas.com",
     "https://beto-esm.gigalixirapp.com"
   ],
