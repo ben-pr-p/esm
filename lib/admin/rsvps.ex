@@ -1,6 +1,6 @@
 defmodule Rsvps do
   def csv_for(id) do
-    all_attendances = OsdiClient.stream(client(), "events/#{id}/rsvps")
+    all_attendances = OsdiClient.stream(client(), "events/#{id}/attendances")
     people_ids = Enum.map(all_attendances, & &1.person)
 
     people_fetch_tasks =
@@ -34,7 +34,7 @@ defmodule Rsvps do
   end
 
   def emails_for(id) do
-    all_attendances = OsdiClient.stream(client(), "events/#{id}/rsvps")
+    all_attendances = OsdiClient.stream(client(), "events/#{id}/attendances")
     people_ids = Enum.map(all_attendances, & &1.person)
 
     people_ids
