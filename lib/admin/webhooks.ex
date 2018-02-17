@@ -18,6 +18,10 @@ defmodule Admin.Webhooks do
       IO.puts("Posting webhook to #{hook} because of confirmed")
       IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
     else
+      %{"metadata" => %{"vol_event_submission" => hook}} = Cosmic.get(@cosmic_config_slug)
+      IO.puts("Posting webhook to #{hook} because of confirmed vol event")
+      IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
+
       email = event.contact.email_address
 
       info =
@@ -27,7 +31,9 @@ defmodule Admin.Webhooks do
         end)
         |> Enum.into(~m(email))
 
-      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Published"), info)
+      IO.inspect(
+        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Published"), info)
+      )
     end
   end
 
@@ -49,7 +55,9 @@ defmodule Admin.Webhooks do
         end)
         |> Enum.into(~m(email))
 
-      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Rejected"), info)
+      IO.inspect(
+        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Rejected"), info)
+      )
     end
   end
 
@@ -71,7 +79,9 @@ defmodule Admin.Webhooks do
         end)
         |> Enum.into(~m(email))
 
-      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Cancelled"), info)
+      IO.inspect(
+        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Cancelled"), info)
+      )
     end
   end
 
@@ -90,7 +100,9 @@ defmodule Admin.Webhooks do
         end)
         |> Enum.into(~m(email))
 
-      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Unpublished"), info)
+      IO.inspect(
+        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Unpublished"), info)
+      )
     end
   end
 
@@ -115,7 +127,9 @@ defmodule Admin.Webhooks do
         end)
         |> Enum.into(~m(email))
 
-      IO.inspect Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Message Host"), info)
+      IO.inspect(
+        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Message Host"), info)
+      )
     end
   end
 
