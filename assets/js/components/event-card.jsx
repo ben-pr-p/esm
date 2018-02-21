@@ -18,6 +18,7 @@ import EditableNumber from "./editable-number";
 import EditableDateRange from "./editable-date-range";
 import CallLogs from "./call-logs";
 import EditLogs from "./edit-logs";
+import Turnout from "./turnout";
 import clipboard from "clipboard-js";
 import mtz from "moment-timezone";
 
@@ -228,7 +229,13 @@ export default class EventCard extends Component {
           </div>
         }
         style={{ width: "100%", marginTop: 25 }}
-        bodyStyle={{ display: "flex", flexWrap: "wrap", width: "100%", height: 500, overflowY: 'scroll' }}
+        bodyStyle={{
+          display: "flex",
+          flexWrap: "wrap",
+          width: "100%",
+          height: 500,
+          overflowY: "scroll"
+        }}
       >
         <Modal
           visible={this.state.rejecting}
@@ -791,6 +798,15 @@ export default class EventCard extends Component {
           <Button onClick={this.cancel} type="danger">
             Cancel
           </Button>
+        ]
+      )
+      .concat(
+        this.props.candidate && [
+          <Turnout
+            event_id={this.props.id}
+            survey={this.props.survey}
+            channel={this.props.channel}
+          />
         ]
       );
   }

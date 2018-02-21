@@ -214,6 +214,18 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
+  def handle_in("turnout-survey-for-" <> id, _payload, socket) do
+    survey = Turnout.survey_for_event(id)
+    push(socket, "turnout-survey", ~m(survey id) |> IO.inspect())
+    {:noreply, socket}
+  end
+
+  def handle_in("edit-turnout-survey-for-" <> id, changes, socket) do
+    survey = Turnout.edit_survey_for_event(id, changes)
+    push(socket, "turnout-survey", ~m(survey id))
+    {:noreply, socket}
+  end
+
   def do_message_attendees(hook_type, event_id, message) do
     [%{body: event}, attendee_emails] =
       [

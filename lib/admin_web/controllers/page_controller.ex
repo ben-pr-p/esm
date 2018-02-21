@@ -46,8 +46,16 @@ defmodule Admin.PageController do
 
   def candidate_events(conn, %{"token" => token}) do
     case token |> URI.encode_www_form() |> MyCipher.decrypt() do
-      {:error, _message} -> alert_user_edit(conn)
-      _candidate_tag -> render(conn, "candidate-events.html", candidate_token: token)
+      {:error, _message} ->
+        alert_user_edit(conn)
+
+      candidate_tag ->
+        render(
+          conn,
+          "candidate-events.html",
+          candidate_token: token,
+          candidate_tag: candidate_tag
+        )
     end
   end
 

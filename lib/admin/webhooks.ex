@@ -139,6 +139,12 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
+  def exec(hook_type = "turnout_request_edit" <> _rest, ~m(event old_survey new_survey changes)) do
+    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", hook_type])
+    IO.puts("Posting webhook to #{hook} because of #{hook_type}")
+    IO.inspect(HTTPotion.post(hook, bodify(~m(event old_survey new_survey changes))))
+  end
+
   def exec(other, %{event: event, team_member: _team_member}) do
     Logger.info("Untracked status change: #{other}, for event: #{inspect(event)}")
   end
