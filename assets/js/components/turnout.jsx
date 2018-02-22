@@ -7,7 +7,8 @@ import {
   Modal,
   Table,
   Spin,
-  Switch
+  Switch,
+  message
 } from "antd";
 
 const booleanize = val =>
@@ -26,6 +27,11 @@ export default class Turnout extends Component {
   componentWillReceiveProps(nextProps) {
     this.state.loading = false;
     this.state.survey = nextProps.survey;
+
+    if (Object.keys(this.state.changes).length > 0) {
+      message.success("Your turnout request was successfully updated");
+      this.state.changes = {};
+    }
   }
 
   loadTurnoutRequest = () => {
@@ -49,13 +55,20 @@ export default class Turnout extends Component {
       survey: Object.assign(prevState.survey, { [attr]: val })
     }));
 
+  setSurveyRegInput = attr => ev => {
+    this.setState({
+      changes: Object.assign(this.state.changes, { [attr]: ev.target.value }),
+      survey: Object.assign(this.state.survey, { [attr]: ev.target.value })
+    });
+  };
+
   saveChanges = () => {
     this.props.channel.push(
       `edit-turnout-survey-for-${this.props.event_id}`,
       this.state.changes
     );
 
-    this.setState({ loading: true, changes: {} });
+    this.setState({ loading: true });
   };
 
   render() {
@@ -143,7 +156,7 @@ export default class Turnout extends Component {
     return (
       <div style={{ padding: 10 }}>
         <Switch
-          checkeed={booleanize(this.state.survey[section.toggle])}
+          checked={booleanize(this.state.survey[section.toggle])}
           onChange={this.setSurveyBool(section.toggle)}
         />
         <label> {section.name}? </label>
@@ -158,7 +171,7 @@ export default class Turnout extends Component {
                 {section.options[opt_key].type == "string" ? (
                   <Input
                     value={this.state.survey[opt_key]}
-                    onChange={this.setSurveyReg(opt_key)}
+                    onChange={this.setSurveyRegInput(opt_key)}
                   />
                 ) : (
                   <InputNumber

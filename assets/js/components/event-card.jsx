@@ -222,8 +222,13 @@ export default class EventCard extends Component {
               </div>
             ) : (
               [
-                <span> {attendance_count || 0} RSVPs </span>,
-                <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
+                <span key="attendance-count">
+                  {" "}
+                  {attendance_count || 0} RSVPs{" "}
+                </span>,
+                <div key="buttons" style={{ marginLeft: 30 }}>
+                  {this.renderButtons()}
+                </div>
               ]
             )}
           </div>
@@ -324,8 +329,7 @@ export default class EventCard extends Component {
         >
           {this.state.messagingAttendees == "error" && (
             <span style={{ color: "red" }}>
-              {" "}
-              Oops! Look like you forgot to put something here.{" "}
+              Oops! Look like you forgot to put something here.
             </span>
           )}
           <TextArea
@@ -418,7 +422,11 @@ export default class EventCard extends Component {
               "Canvass",
               "Rally, march, or protest",
               "Other"
-            ].map(o => <Option value={o}>{o}</Option>)}
+            ].map(o => (
+              <Option key={o} value={o}>
+                {o}
+              </Option>
+            ))}
           </Select>
         </div>
 
@@ -435,9 +443,14 @@ export default class EventCard extends Component {
               onChange={this.onCalendarChange}
               defaultValue={tags
                 .filter(t => t.includes("Calendar:"))
-                .map(t => t.split(":")[1].trim())}
+                .map(t => t.split(":")[1].trim())
+                .filter(s => s != "")}
             >
-              {calendarOptions.map(c => <Option key={c}>{c}</Option>)}
+              {calendarOptions.map(c => (
+                <Option key={c} value={c}>
+                  {c}
+                </Option>
+              ))}
             </Select>
           </div>
         )}
@@ -542,14 +555,6 @@ export default class EventCard extends Component {
             attr="contact.phone_number"
           />
           <br />
-          {/* <Checkbox
-            checked={contact.public}
-            onChange={e => this.onSave(["contact.public", e.target.checked])}
-          >
-            Phone Public?
-          </Checkbox> */}
-          {/* <br />
-          <br /> */}
           <strong>Email Address:</strong>{" "}
           <EditableText
             disabled={disabled}
@@ -611,6 +616,7 @@ export default class EventCard extends Component {
 
     return [
       <Dropdown
+        key="dropdown-options"
         overlay={
           <Menu>
             {category !== undefined && (
@@ -704,98 +710,90 @@ export default class EventCard extends Component {
       </Dropdown>
     ]
       .concat(
-        category == "ESM Call #1"
-          ? [
-              <Button onClick={this.reject} type="danger">
-                Reject
-              </Button>,
-              <Button onClick={this.markCalled} type="default">
-                Mark Called
-              </Button>,
-              <Button onClick={this.markCalledAndConfirm} type="primary">
-                Mark Called and Confirm Event
-              </Button>
-            ]
-          : []
+        category == "ESM Call #1" && [
+          <Button key="reject" onClick={this.reject} type="danger">
+            Reject
+          </Button>,
+          <Button key="mark-called" onClick={this.markCalled} type="default">
+            Mark Called
+          </Button>,
+          <Button
+            key="mark-called-confirm"
+            onClick={this.markCalledAndConfirm}
+            type="primary"
+          >
+            Mark Called and Confirm Event
+          </Button>
+        ]
       )
       .concat(
-        category == "Needs Approval"
-          ? [
-              <Button onClick={this.reject} type="danger">
-                Reject
-              </Button>,
-              <Button onClick={this.confirm} type="primary">
-                Confirm
-              </Button>
-            ]
-          : []
+        category == "Needs Approval" && [
+          <Button key="reject" onClick={this.reject} type="danger">
+            Reject
+          </Button>,
+          <Button key="confirm" onClick={this.confirm} type="primary">
+            Confirm
+          </Button>
+        ]
       )
       .concat(
-        category == "Needs Logistics"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.markLogistics} type="primary">
-                Mark Did Logistics Call
-              </Button>
-            ]
-          : []
+        category == "Needs Logistics" && [
+          <Button key="cancel" onClick={this.cancel} type="danger">
+            Cancel
+          </Button>,
+          <Button
+            key="mark-logistics"
+            onClick={this.markLogistics}
+            type="primary"
+          >
+            Mark Did Logistics Call
+          </Button>
+        ]
       )
       .concat(
-        category == "Needs Debrief"
-          ? [
-              <Button onClick={this.markDebriefed} type="primary">
-                Mark Debriefed
-              </Button>
-            ]
-          : []
+        category == "Needs Debrief" && [
+          <Button key="debriefed" onClick={this.markDebriefed} type="primary">
+            Mark Debriefed
+          </Button>
+        ]
       )
       .concat(
-        category == "Rejected"
-          ? [
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Rejected" && [
+          <Button key="rejected" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
-        category == "Cancelled"
-          ? [
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Cancelled" && [
+          <Button key="tentative" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
-        category == "Upcoming"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Upcoming" && [
+          <Button key="cancel" onClick={this.cancel} type="danger">
+            Cancel
+          </Button>,
+          <Button key="tentative" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
-        category == "Today"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Today" && [
+          <Button key="cancel" onClick={this.cancel} type="danger">
+            Cancel
+          </Button>,
+          <Button key="tentative" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
         category == undefined && [
-          <Button onClick={this.cancel} type="danger">
+          <Button key="cancel" onClick={this.cancel} type="danger">
             Cancel
           </Button>
         ]

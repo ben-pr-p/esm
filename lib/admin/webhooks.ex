@@ -46,6 +46,7 @@ defmodule Admin.Webhooks do
         HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
       )
     else
+      spawn(fn -> send_not_live(event) end)
       email = event.contact.email_address
 
       info =
@@ -70,6 +71,7 @@ defmodule Admin.Webhooks do
         HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
       )
     else
+      spawn(fn -> send_not_live(event) end)
       email = event.contact.email_address
 
       info =
@@ -91,6 +93,7 @@ defmodule Admin.Webhooks do
       IO.puts("Posting webhook to #{hook} because of tentative")
       IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
     else
+      spawn(fn -> send_not_live(event) end)
       email = event.contact.email_address
 
       info =
@@ -139,7 +142,7 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
-  def exec(hook_type = "turnout_request_edit" <> _rest, ~m(event old_survey new_survey changes)) do
+  def exec(hook_type = "turnout_request_edit" <> _rest, ~m(event old_survey new_survey changes)a) do
     hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", hook_type])
     IO.puts("Posting webhook to #{hook} because of #{hook_type}")
     IO.inspect(HTTPotion.post(hook, bodify(~m(event old_survey new_survey changes))))
@@ -147,6 +150,12 @@ defmodule Admin.Webhooks do
 
   def exec(other, %{event: event, team_member: _team_member}) do
     Logger.info("Untracked status change: #{other}, for event: #{inspect(event)}")
+  end
+
+  def send_not_live(event) do
+    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", "event_made_not_live"])
+    IO.puts("Posting webhook to #{hook} because of event_made_not_live")
+    IO.inspect(HTTPotion.post(hook, bodify(~m(event))))
   end
 
   defp bodify(body), do: [body: Poison.encode!(IO.inspect(body))]
