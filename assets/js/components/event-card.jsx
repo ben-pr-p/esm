@@ -227,16 +227,14 @@ export default class EventCard extends Component {
                   : `Not Editable`}
               </div>
             ) : (
-              [
-                <span key="attendance-count">
-                  {" "}
-                  {attendance_count || 0} RSVPs{" "}
-                </span>,
-                <div key="buttons" style={{ marginLeft: 30 }}>
-                  {this.renderButtons()}
-                </div>
-              ]
+              <span key="attendance-count">
+                {" "}
+                {attendance_count || 0} RSVPs{" "}
+              </span>
             )}
+            <div key="buttons" style={{ marginLeft: 30 }}>
+              {this.renderButtons({ disabled })}
+            </div>
           </div>
         }
         style={{ width: "100%", marginTop: 25 }}
@@ -614,13 +612,13 @@ export default class EventCard extends Component {
     );
   }
 
-  renderButtons() {
+  renderButtons({ disabled }) {
     const {
       category,
       event: { rsvp_download_url, organizer_edit_url }
     } = this.props;
 
-    return [
+    const dropdown = [
       <Dropdown
         key="dropdown-options"
         overlay={
@@ -714,7 +712,13 @@ export default class EventCard extends Component {
           More <Icon type="down" />
         </Button>
       </Dropdown>
-    ]
+    ];
+
+    if (disabled) {
+      return dropdown;
+    }
+
+    return dropdown
       .concat(
         category == "ESM Call #1" && [
           <Button key="reject" onClick={this.reject} type="danger">
