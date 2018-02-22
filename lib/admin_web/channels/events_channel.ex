@@ -246,8 +246,7 @@ defmodule Admin.EventsChannel do
       OsdiClient.stream(client(), "events")
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event ->
-        id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-        %{id: id, event: event}
+        %{id: event.id, event: event}
       end)
 
     broadcast(socket, "events", %{all_events: all_events})
@@ -279,8 +278,7 @@ defmodule Admin.EventsChannel do
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
     |> Flow.map(&event_pipeline/1)
     |> Flow.each(fn event ->
-      id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-      push(socket, "event", %{id: id, event: event})
+      push(socket, "event", %{id: event.id, event: event})
     end)
     |> Flow.run()
   end
@@ -292,8 +290,7 @@ defmodule Admin.EventsChannel do
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
     |> Flow.map(&event_pipeline/1)
     |> Flow.each(fn event ->
-      id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-      push(socket, "event", %{id: id, event: event})
+      push(socket, "event", %{id: event.id, event: event})
     end)
     |> Flow.run()
   end
@@ -313,8 +310,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp add_rsvp_download_url(event) do
-    id = event.identifiers |> List.first() |> String.split(":") |> List.last()
-    encrypted_id = Cipher.encrypt(id)
+    encrypted_id = Cipher.encrypt("#{event.id}")
 
     Map.put(event, :rsvp_download_url, "#{deployed_url()}/rsvps/#{encrypted_id}")
   end

@@ -7,7 +7,7 @@ defmodule Turnout do
   end
 
   def get_survey_id_for_event(event_id) do
-    %{body: event} = Ak.Api.get("event/#{event_id}")
+    %{body: event} = Ak.Api.get("event/#{event_id}") |> IO.inspect()
 
     event["fields"]
     |> Enum.filter(fn ~m(name) -> name == "survey_id" end)

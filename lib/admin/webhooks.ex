@@ -220,8 +220,7 @@ defmodule Admin.Webhooks do
   end
 
   def parse(dt) do
-    iso = if String.ends_with?(dt, "Z"), do: dt, else: dt <> "Z"
-    {:ok, result, _} = DateTime.from_iso8601(iso)
+    {:ok, result, _} = DateTime.from_iso8601(dt)
     result
   end
 

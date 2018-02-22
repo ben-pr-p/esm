@@ -1,35 +1,37 @@
-import React, { Component } from 'react'
-import { Button, InputNumber } from 'antd'
-import enhanceWithClickOutside from 'react-click-outside'
+import React, { Component } from "react";
+import { Button, InputNumber } from "antd";
+import enhanceWithClickOutside from "react-click-outside";
 
 class EditableNumber extends Component {
   state = {
     editing: false,
     newVal: undefined
-  }
+  };
 
-  onChange = int => this.setState({ newVal: int})
+  onChange = int => this.setState({ newVal: int });
 
   editOn = () => {
-    this.props.checkout()
-    this.setState({ editing: true })
-  }
+    if (!this.props.disabled) {
+      this.props.checkout();
+      this.setState({ editing: true });
+    }
+  };
 
   handleClickOutside = () => {
     if (this.state.editing) {
-      this.props.checkin()
-      this.setState({ editing: false })
+      this.props.checkin();
+      this.setState({ editing: false });
     }
-  }
+  };
 
   onSave = attr => () => {
-    this.setState({ editing: false })
-    this.props.onSave([attr, this.state.newVal])
-  }
+    this.setState({ editing: false });
+    this.props.onSave([attr, this.state.newVal]);
+  };
 
   render = () => {
     const result = (
-      <div onDoubleClick={this.editOn} style={{ whiteSpace: 'pre-wrap' }}>
+      <div onDoubleClick={this.editOn} style={{ whiteSpace: "pre-wrap" }}>
         {this.state.editing ? (
           <div>
             <InputNumber
@@ -46,12 +48,12 @@ class EditableNumber extends Component {
             />
           </div>
         ) : (
-          <span>{this.props.value || 'No Value'}</span>
+          <span>{this.props.value || "No Value"}</span>
         )}
       </div>
-    )
-    return result
-  }
+    );
+    return result;
+  };
 }
 
-export default enhanceWithClickOutside(EditableNumber)
+export default enhanceWithClickOutside(EditableNumber);

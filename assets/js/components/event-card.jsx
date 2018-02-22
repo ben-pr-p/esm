@@ -186,10 +186,13 @@ export default class EventCard extends Component {
       rsvp_download_url,
       attendance_count,
       browser_url,
-      checked_out_by
+      checked_out_by,
+      identifiers
     } = event;
 
-    const disabled = checked_out_by !== undefined && checked_out_by !== null;
+    const disabled =
+      (identifiers.length > 1 && this.props.candidate === undefined) ||
+      (checked_out_by !== undefined && checked_out_by !== null);
 
     const isVolEvent =
       tags.filter(t => t.includes("Source: Direct Publish")).length == 0;
@@ -217,8 +220,11 @@ export default class EventCard extends Component {
                 <Icon type="loading" /> Saving{" "}
               </div>
             ) : disabled ? (
-              <div>
-                <Icon type="lock" /> Being edited by {checked_out_by}
+              <div style={{ fontSize: 20, fontWeight: "bold" }}>
+                <Icon type="lock" />{" "}
+                {checked_out_by
+                  ? `Being edited by ${checked_out_by}`
+                  : `Not Editable`}
               </div>
             ) : (
               [
