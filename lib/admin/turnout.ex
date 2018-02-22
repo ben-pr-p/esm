@@ -35,9 +35,26 @@ defmodule Turnout do
 
     spawn(fn ->
       %{body: event} = OsdiClient.get(Admin.EventsChannel.client(), "events/#{event_id}")
-      Admin.Webhooks.on("turnout_request_edit", ~m(event old_survey new_survey changes)a)
+      IO.inspect(event)
+      candidate = event.tags |> Enum.filter(&is_candidate_tag/1) |> extract_candidate()
+
+      Admin.Webhooks.on(
+        "turnout_request_edit",
+        ~m(event old_survey new_survey changes candidate)a
+      )
     end)
 
     new_survey
   end
+
+  def is_candidate_tag("Calendar: " <> candidate) do
+    not Enum.member?(["Brand New Congress", "Justice Democrats", "Local Chapter"], candidate)
+  end
+
+  def is_candidate_tag(_other) do
+    false
+  end
+
+  def extract_candidate(["Calendar: " <> candidate | _]), do: candidate
+  def extract_candiate(_other), do: nil
 end

@@ -142,10 +142,13 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
-  def exec(hook_type = "turnout_request_edit" <> _rest, ~m(event old_survey new_survey changes)a) do
+  def exec(
+        hook_type = "turnout_request_edit" <> _rest,
+        ~m(event old_survey new_survey changes candidate)a
+      ) do
     hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", hook_type])
     IO.puts("Posting webhook to #{hook} because of #{hook_type}")
-    IO.inspect(HTTPotion.post(hook, bodify(~m(event old_survey new_survey changes))))
+    IO.inspect(HTTPotion.post(hook, bodify(~m(event old_survey new_survey changes candidate))))
   end
 
   def exec(other, %{event: event, team_member: _team_member}) do

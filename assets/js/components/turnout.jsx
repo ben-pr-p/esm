@@ -78,6 +78,29 @@ export default class Turnout extends Component {
           My Turnout Request
         </Button>
       );
+    } else if (this.state.survey === null) {
+      return (
+        <Modal
+          title="We don't have a turnout request on file for you yet!"
+          okText="Submit a Turnout Request"
+          visible={true}
+          onOk={() =>
+            window.open(
+              `https://go.justicedemocrats.com/survey/event-turnout-request/?event_id=${
+                this.props.event_id
+              }`
+            )
+          }
+          onCancel={this.close}
+        >
+          Please submit an initial request. After you do so, you will be able to
+          view and edit it here.
+          <br />
+          <br />
+          If you believe this is a mistake, and that you have already submitted
+          a request, please contact ben@justicedemocrats.com.
+        </Modal>
+      );
     } else {
       return (
         <Modal
