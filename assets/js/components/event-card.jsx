@@ -275,6 +275,12 @@ export default class EventCard extends Component {
           onOk={this.cancelStage2}
         >
           {`This message will be sent to all ${attendance_count} people who have already RSVPed`}
+          {identifiers.length > 1 && (
+            <p style={{ color: "red" }}>
+              {" "}
+              If you cancel event your event here, it NOT will be synced again.
+            </p>
+          )}
           {this.state.canceling == "error" && (
             <span style={{ color: "red" }}>
               {" "}
