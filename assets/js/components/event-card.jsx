@@ -62,6 +62,7 @@ export default class EventCard extends Component {
 
   reject = this.constructInitial("rejecting", true);
   cancel = this.constructInitial("canceling", true);
+  duplicate = this.constructInitial("duplicating", false);
   messageAttendees = this.constructInitial("messagingAttendees", false);
   messageHost = this.constructInitial("messagingHost", false);
 
@@ -146,11 +147,28 @@ export default class EventCard extends Component {
     this.setState({ saving: true });
   };
 
-  duplicate = () => this.props.channel.push(`duplicate-${this.props.id}`);
+  setDuplicateRange = ([[_a, dup_start_date], [_b, dup_end_date]]) =>
+    this.setState({
+      dup_start_date,
+      dup_end_date
+    });
+
+  finishDuplicate = () =>
+    this.setState({ doing_duplicating: true }, () =>
+      this.props.channel.push(`duplicate-${this.props.id}`, {
+        start_date: this.state.dup_start_date,
+        end_date: this.state.dup_end_date
+      })
+    );
+
   checkout = () => this.props.channel.push(`checkout-${this.props.id}`);
   checkin = () => this.props.channel.push(`checkin-${this.props.id}`);
 
   state = {
+    duplicating: false,
+    dup_start_date: undefined,
+    dup_end_date: undefined,
+    doing_duplicating: false,
     rejecting: false,
     rejectionMessage: "",
     canceling: false,
@@ -164,6 +182,22 @@ export default class EventCard extends Component {
 
   componentWillReceiveProps(_nextProps) {
     this.state.saving = false;
+    this.state.duplicating = false;
+  }
+
+  componentWillMount() {
+    this.state.dup_start_date = mtz(this.props.event.start_date)
+      .add(7, "days")
+      .format();
+
+    this.state.dup_end_date = this.props.event.end_date
+      ? mtz(this.props.event.end_date)
+          .add(7, "days")
+          .format()
+      : mtz(this.props.event.start_date)
+          .add(7, "days")
+          .add(3, "hours")
+          .format();
   }
 
   render() {
@@ -292,6 +326,25 @@ export default class EventCard extends Component {
             rows={5}
             onChange={this.setCancelMessage}
             value={this.state.cancelMessage}
+          />
+        </Modal>
+
+        <Modal
+          visible={this.state.duplicating}
+          title="Are you sure?"
+          okText={this.state.doing_duplicating ? "Working..." : "Duplicate"}
+          onCancel={() => this.setState({ duplicating: false })}
+          cancelText="Cancel"
+          onOk={this.finishDuplicate}
+        >
+          <EditableDateRange
+            start_date={this.state.dup_start_date}
+            end_date={this.state.dup_end_date}
+            time_zone={location.time_zone}
+            time_zone_display={this.props.event.time_zone}
+            checkout={() => true}
+            onSave={this.setDuplicateRange}
+            attr="new_date"
           />
         </Modal>
 

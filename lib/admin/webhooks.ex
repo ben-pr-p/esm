@@ -151,6 +151,15 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(~m(event old_survey new_survey changes candidate))))
   end
 
+  def exec(hook_type = "duplicate", ~m(event)a) do
+    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", "event_duplicated"])
+
+    if hook != nil do
+      IO.puts("Posting webhook to #{hook} because of #{hook_type}")
+      IO.inspect(HTTPotion.post(hook, bodify(~m(event))))
+    end
+  end
+
   def exec(other, %{event: event, team_member: _team_member}) do
     Logger.info("Untracked status change: #{other}, for event: #{inspect(event)}")
   end

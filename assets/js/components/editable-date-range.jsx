@@ -4,7 +4,8 @@ import moment from "moment-timezone";
 
 const friendly = {
   start_date: "Starting Date and Time",
-  end_date: "Ending Date and Time"
+  end_date: "Ending Date and Time",
+  new_date: "Dates of Duplicate Event"
 };
 
 export default class EditableDate extends Component {
@@ -15,12 +16,13 @@ export default class EditableDate extends Component {
     newEnd: undefined
   };
 
-  constructMoment = time =>
-    time
+  constructMoment = time => {
+    return time
       ? this.props.time_zone
         ? moment.tz(time, this.props.time_zone)
         : moment(time)
       : null;
+  };
 
   combineDateAndTime = (date, time) => {
     date.hours(time.hours());

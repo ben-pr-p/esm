@@ -164,10 +164,11 @@ defmodule Admin.EventsChannel do
     {:noreply, socket}
   end
 
-  def handle_in("duplicate-" <> id, _payload, socket) do
-    new_event = %{id: new_id} = duplicate(id)
-    push(socket, "event", %{id: new_id, event: new_event})
-    broadcast(socket, "event", %{id: new_id, event: new_event})
+  def handle_in("duplicate-" <> id, overrides, socket) do
+    {old, new} = duplicate(id, overrides)
+    push(socket, "event", %{id: id, event: old})
+    push(socket, "event", %{id: new.id, event: new})
+    broadcast(socket, "event", %{id: new.id, event: new})
     {:noreply, socket}
   end
 
@@ -392,18 +393,19 @@ defmodule Admin.EventsChannel do
     event_pipeline(event)
   end
 
-  defp duplicate(id) do
+  defp duplicate(id, overrides) do
     %{body: old} = OsdiClient.get(client(), "events/#{id}")
 
     to_create =
-      old
-      |> Map.put(:start_date, Timex.now() |> Timex.shift(days: 7))
-      |> Map.put(:end_date, Timex.now() |> Timex.shift(days: 7))
+      Enum.reduce(old, %{}, fn {key, val}, acc ->
+        Map.put(acc, key, Map.get(overrides, Atom.to_string(key), val))
+      end)
       |> Map.put(:status, "tentative")
-      |> Map.drop([:identifiers])
+      |> Map.drop([:identifiers, :id])
 
     %{body: new} = OsdiClient.post(client(), "events", to_create)
-    new
+    Webhooks.on("duplicate", %{event: new})
+    {new, old}
   end
 
   defp insert_edit(%{event_id: event_id, edit: edit, actor: actor}) do

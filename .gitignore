@@ -31,3 +31,4 @@ cosmic_cache
 .env
 .jd-env
 .beto-env
+.elixir_ls
