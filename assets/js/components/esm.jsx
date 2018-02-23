@@ -24,7 +24,8 @@ export default class Esm extends Component {
     calendars: [],
     globalFilterFn: () => true,
     upper: 10,
-    potential_hosts: []
+    potential_hosts: [],
+    sortFn: (a, b) => a.created_date - b.created_date
   };
 
   setSearch = value => this.setState({ search: value });
@@ -40,13 +41,12 @@ export default class Esm extends Component {
   countEventsFor = fn => this.filteredEvents(fn).length;
 
   setGlobalFilterFn = globalFilterFn => this.setState({ globalFilterFn });
+  setSortFn = sortFn => this.setState({ sortFn });
 
   eventsFor = (fn, category) =>
     this.filteredEvents(fn)
-      .sort(
-        (a, b) =>
-          new Date(this.state.events[a].start_date) -
-          new Date(this.state.events[b].start_date)
+      .sort((aid, bid) =>
+        this.state.sortFn(this.state.events[aid], this.state.events[bid])
       )
       .map(id => (
         <EventCard
@@ -125,7 +125,10 @@ export default class Esm extends Component {
     return (
       <LocaleProvider locale={enUS}>
         <Layout style={{ width: "100%", height: "100%" }}>
-          <FilterHeader setGlobalFilterFn={this.setGlobalFilterFn} />
+          <FilterHeader
+            setGlobalFilterFn={this.setGlobalFilterFn}
+            setSortFn={this.setSortFn}
+          />
           <Content>
             <Tabs>
               {tabSpec.map(({ title, fn }) => (

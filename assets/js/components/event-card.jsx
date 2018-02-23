@@ -181,6 +181,7 @@ export default class EventCard extends Component {
       location,
       start_date,
       end_date,
+      created_date,
       contact,
       type,
       rsvp_download_url,
@@ -381,6 +382,11 @@ export default class EventCard extends Component {
               checkin={this.checkin}
             />
           </div>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Submitted At:</strong>
+          <div>{new Date(created_date).toString()}</div>
         </div>
 
         <div
