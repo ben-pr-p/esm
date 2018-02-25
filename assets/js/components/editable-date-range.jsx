@@ -17,11 +17,12 @@ export default class EditableDate extends Component {
   };
 
   constructMoment = time => {
-    return time
-      ? this.props.time_zone
-        ? moment.tz(time, this.props.time_zone)
-        : moment(time)
-      : null;
+    return moment(time).tz(this.props.time_zone);
+    // return time
+    //   ? this.props.time_zone
+    //     ? moment.tz(time, this.props.time_zone)
+    //     : moment(time)
+    //   : null;
   };
 
   combineDateAndTime = (date, time) => {

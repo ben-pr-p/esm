@@ -341,7 +341,7 @@ export default class EventCard extends Component {
             start_date={this.state.dup_start_date}
             end_date={this.state.dup_end_date}
             time_zone={location.time_zone}
-            time_zone_display={this.props.event.time_zone}
+            time_zone_display={this.props.event.location.time_zone}
             checkout={() => true}
             onSave={this.setDuplicateRange}
             attr="new_date"
@@ -533,7 +533,7 @@ export default class EventCard extends Component {
             start_date={start_date}
             end_date={end_date}
             time_zone={location.time_zone}
-            time_zone_display={this.props.event.time_zone}
+            time_zone_display={this.props.event.location.time_zone}
             onSave={this.onSave}
             attr="start_date"
           />
