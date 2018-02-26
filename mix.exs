@@ -56,7 +56,9 @@ defmodule Admin.Mixfile do
       {:short_maps, "~> 0.1.2"},
       {:flow, "~> 0.11"},
       {:rollbax, "~> 0.6"},
-      {:actionkit, git: "https://github.com/justicedemocrats/actionkit_ex.git"}
+      {:actionkit, git: "https://github.com/justicedemocrats/actionkit_ex.git"},
+      {:tesla, "~> 0.10.0"},
+      {:poison, ">= 1.0.0"}
     ]
   end
 

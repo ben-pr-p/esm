@@ -45,7 +45,7 @@ defmodule Admin.EditAgent do
   end
 
   defp send_edits({id, edits}) do
-    %{body: event} = Proxy.get("events/#{id}")
+    %{body: event} = OsdiClient.get(client(), "events/#{id}")
     Webhooks.on("edit", %{event: Admin.EventsChannel.event_pipeline(event), edits: edits})
   end
 
@@ -70,4 +70,11 @@ defmodule Admin.EditAgent do
     })
     |> Enum.to_list()
   end
+
+  def client,
+    do:
+      OsdiClient.build_client(
+        Application.get_env(:admin, :osdi_base_url),
+        Application.get_env(:admin, :osdi_api_token)
+      )
 end

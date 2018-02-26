@@ -1,11 +1,12 @@
-import React, { Component } from 'react'
-import { Modal, DatePicker, TimePicker } from 'antd'
-import moment from 'moment-timezone'
+import React, { Component } from "react";
+import { Modal, DatePicker, TimePicker } from "antd";
+import moment from "moment-timezone";
 
 const friendly = {
-  start_date: 'Starting Date and Time',
-  end_date: 'Ending Date and Time'
-}
+  start_date: "Starting Date and Time",
+  end_date: "Ending Date and Time",
+  new_date: "Dates of Duplicate Event"
+};
 
 export default class EditableDate extends Component {
   state = {
@@ -13,60 +14,65 @@ export default class EditableDate extends Component {
     newDate: undefined,
     newStart: undefined,
     newEnd: undefined
-  }
+  };
 
-  constructMoment = time =>
-    time
-      ? this.props.time_zone
-        ? moment.tz(time, this.props.time_zone)
-        : moment(time)
-      : null
+  constructMoment = time => {
+    return moment(time).tz(this.props.time_zone);
+    // return time
+    //   ? this.props.time_zone
+    //     ? moment.tz(time, this.props.time_zone)
+    //     : moment(time)
+    //   : null;
+  };
 
   combineDateAndTime = (date, time) => {
-    date.hours(time.hours())
-    date.minutes(time.minutes())
-    return date
-  }
+    date.hours(time.hours());
+    date.minutes(time.minutes());
+    return date;
+  };
 
   componentWillMount() {
-    this.state.newDate = this.constructMoment(this.props.start_date)
-    this.state.newStart = this.constructMoment(this.props.start_date)
-    this.state.newEnd = this.constructMoment(this.props.end_date)
+    this.state.newDate = this.constructMoment(this.props.start_date);
+    this.state.newStart = this.constructMoment(this.props.start_date);
+    this.state.newEnd = this.constructMoment(this.props.end_date);
   }
 
-  onDateChange = newDate => this.setState({ newDate })
-  onStartChange = newStart => this.setState({ newStart })
-  onEndChange = newEnd => this.setState({ newEnd })
+  onDateChange = newDate => this.setState({ newDate });
+  onStartChange = newStart => this.setState({ newStart });
+  onEndChange = newEnd => this.setState({ newEnd });
 
-  onChange = e => this.setState({ newVal: e.target.value })
+  onChange = e => this.setState({ newVal: e.target.value });
 
   editOn = () => {
-    this.props.checkout()
-    this.setState({ editing: true })
-  }
+    if (!this.props.disabled) {
+      this.props.checkout();
+      this.setState({ editing: true });
+    }
+  };
 
   handleClickOutside = () => {
-    this.props.checkin()
-    this.setState({ editing: false })
-  }
+    this.props.checkin();
+    this.setState({ editing: false });
+  };
 
   onSave = attr => () => {
-    this.setState({ editing: false })
+    this.setState({ editing: false });
 
-    const { newDate, newStart, newEnd } = this.state
-    const start_date = this.combineDateAndTime(newDate.clone(), newStart)
-    const end_date = this.combineDateAndTime(newDate.clone(), newEnd)
+    const { newDate, newStart, newEnd } = this.state;
+    const start_date = this.combineDateAndTime(newDate.clone(), newStart);
+    const end_date = this.combineDateAndTime(newDate.clone(), newEnd);
 
     this.props.onSave([
-      ['start_date', start_date.format()],
-      ['end_date', end_date.format()]
-    ])
-  }
+      ["start_date", start_date.format()],
+      ["end_date", end_date.format()]
+    ]);
+  };
 
   render = () => {
-    const start_moment = this.constructMoment(this.props.start_date)
+    const start_moment = this.constructMoment(this.props.start_date);
     const end_moment =
-      this.constructMoment(this.props.end_date) || start_moment.clone().add(2, 'hours')
+      this.constructMoment(this.props.end_date) ||
+      start_moment.clone().add(2, "hours");
 
     return (
       <div onDoubleClick={this.editOn}>
@@ -74,7 +80,8 @@ export default class EditableDate extends Component {
           title={`Edit ${friendly[this.props.attr]}`}
           visible={this.state.editing}
           onOk={this.onSave(this.props.attr)}
-          onCancel={this.handleClickOutside}>
+          onCancel={this.handleClickOutside}
+        >
           <strong> Date: </strong>
           <DatePicker
             defaultValue={start_moment}
@@ -113,14 +120,18 @@ export default class EditableDate extends Component {
           />
         </Modal>
 
-        {start_moment.format('dddd, MMMM Do YYYY')}
+        {start_moment.format("dddd, MMMM Do YYYY")}
         <br />
-        <span style={{ userSelect: 'none' }}>
-          {`From ${start_moment.format('h:mm A')} to ${
-            end_moment ? end_moment.format('h:mm A') : 'unspecified'
-          } in ${this.props.time_zone_display ? moment.tz.zone(this.props.time_zone_display).abbrs[0] : 'Unknown (add a zip code)'}`}
+        <span style={{ userSelect: "none" }}>
+          {`From ${start_moment.format("h:mm A")} to ${
+            end_moment ? end_moment.format("h:mm A") : "unspecified"
+          } in ${
+            this.props.time_zone_display
+              ? moment.tz.zone(this.props.time_zone_display).abbrs[0]
+              : "Unknown (add a zip code)"
+          }`}
         </span>
       </div>
-    )
-  }
+    );
+  };
 }

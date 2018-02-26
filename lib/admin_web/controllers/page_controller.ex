@@ -46,8 +46,16 @@ defmodule Admin.PageController do
 
   def candidate_events(conn, %{"token" => token}) do
     case token |> URI.encode_www_form() |> MyCipher.decrypt() do
-      {:error, _message} -> alert_user_edit(conn)
-      _candidate_tag -> render(conn, "candidate-events.html", candidate_token: token)
+      {:error, _message} ->
+        alert_user_edit(conn)
+
+      candidate_tag ->
+        render(
+          conn,
+          "candidate-events.html",
+          candidate_token: token,
+          candidate_tag: candidate_tag
+        )
     end
   end
 
@@ -92,7 +100,7 @@ defmodule Admin.PageController do
   def events_api(conn, %{"secret" => input_secret}) do
     if secret() == input_secret do
       events =
-        Proxy.stream("events")
+        OsdiClient.stream(client(), "events")
         |> Enum.map(&Admin.EventsChannel.event_pipeline/1)
 
       json(conn, events)
@@ -105,5 +113,12 @@ defmodule Admin.PageController do
     text(conn, "Missing secret – please visit /api/events?secret=thethingigotfromben")
   end
 
-  def secret, do: Application.get_env(:admin, :proxy_secret)
+  def secret, do: Application.get_env(:admin, :osdi_api_token)
+
+  def client,
+    do:
+      OsdiClient.build_client(
+        Application.get_env(:admin, :osdi_base_url),
+        Application.get_env(:admin, :osdi_api_token)
+      )
 end

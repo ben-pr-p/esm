@@ -97,7 +97,8 @@ defmodule PotentialHosts do
           "name" => "#{first_name} #{last_name}"
         },
         "type" => get_in(action, ~w(fields type)),
-        "created_at" => action["created_at"]
+        "created_at" => action["created_at"],
+        "created_date" => action["created_at"]
       }
     }
   end

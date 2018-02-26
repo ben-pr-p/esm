@@ -18,6 +18,7 @@ import EditableNumber from "./editable-number";
 import EditableDateRange from "./editable-date-range";
 import CallLogs from "./call-logs";
 import EditLogs from "./edit-logs";
+import Turnout from "./turnout";
 import clipboard from "clipboard-js";
 import mtz from "moment-timezone";
 
@@ -61,6 +62,7 @@ export default class EventCard extends Component {
 
   reject = this.constructInitial("rejecting", true);
   cancel = this.constructInitial("canceling", true);
+  duplicate = this.constructInitial("duplicating", false);
   messageAttendees = this.constructInitial("messagingAttendees", false);
   messageHost = this.constructInitial("messagingHost", false);
 
@@ -145,11 +147,29 @@ export default class EventCard extends Component {
     this.setState({ saving: true });
   };
 
-  duplicate = () => this.props.channel.push(`duplicate-${this.props.id}`);
+  setDuplicateRange = ([[_a, dup_start_date], [_b, dup_end_date]]) =>
+    this.setState({
+      dup_start_date,
+      dup_end_date
+    });
+
+  finishDuplicate = () =>
+    this.setState({ doing_duplicating: true }, () =>
+      this.props.channel.push(`duplicate-${this.props.id}`, {
+        start_date: this.state.dup_start_date,
+        end_date: this.state.dup_end_date
+      })
+    );
+
   checkout = () => this.props.channel.push(`checkout-${this.props.id}`);
   checkin = () => this.props.channel.push(`checkin-${this.props.id}`);
 
   state = {
+    duplicating: false,
+    dup_start_date: undefined,
+    dup_end_date: undefined,
+    doing_duplicating: false,
+    rejecting: false,
     rejectionMessage: "",
     cancelMessage: "",
     attendeeMessage: "",
@@ -163,6 +183,22 @@ export default class EventCard extends Component {
 
   componentWillReceiveProps(_nextProps) {
     this.state.saving = false;
+    this.state.duplicating = false;
+  }
+
+  componentWillMount() {
+    this.state.dup_start_date = mtz(this.props.event.start_date)
+      .add(7, "days")
+      .format();
+
+    this.state.dup_end_date = this.props.event.end_date
+      ? mtz(this.props.event.end_date)
+          .add(7, "days")
+          .format()
+      : mtz(this.props.event.start_date)
+          .add(7, "days")
+          .add(3, "hours")
+          .format();
   }
 
   render() {
@@ -180,15 +216,19 @@ export default class EventCard extends Component {
       location,
       start_date,
       end_date,
+      created_date,
       contact,
       type,
       rsvp_download_url,
       attendance_count,
       browser_url,
-      checked_out_by
+      checked_out_by,
+      identifiers
     } = event;
 
-    const disabled = checked_out_by !== undefined && checked_out_by !== null;
+    const disabled =
+      (identifiers.length > 1 && this.props.candidate === undefined) ||
+      (checked_out_by !== undefined && checked_out_by !== null);
 
     console.log(this.state.messageAttendees);
 
@@ -218,15 +258,21 @@ export default class EventCard extends Component {
                 <Icon type="loading" /> Saving{" "}
               </div>
             ) : disabled ? (
-              <div>
-                <Icon type="lock" /> Being edited by {checked_out_by}
+              <div style={{ fontSize: 20, fontWeight: "bold" }}>
+                <Icon type="lock" />{" "}
+                {checked_out_by
+                  ? `Being edited by ${checked_out_by}`
+                  : `Not Editable`}
               </div>
             ) : (
-              [
-                <span> {attendance_count || 0} RSVPs </span>,
-                <div style={{ marginLeft: 30 }}>{this.renderButtons()}</div>
-              ]
+              <span key="attendance-count">
+                {" "}
+                {attendance_count || 0} RSVPs{" "}
+              </span>
             )}
+            <div key="buttons" style={{ marginLeft: 30 }}>
+              {this.renderButtons({ disabled })}
+            </div>
           </div>
         }
         style={{ width: "100%", marginTop: 25 }}
@@ -267,6 +313,12 @@ export default class EventCard extends Component {
           onOk={this.cancelStage2}
         >
           {`This message will be sent to all ${attendance_count} people who have already RSVPed`}
+          {identifiers.length > 1 && (
+            <p style={{ color: "red" }}>
+              {" "}
+              If you cancel event your event here, it NOT will be synced again.
+            </p>
+          )}
           {this.state.canceling == "error" && (
             <span style={{ color: "red" }}>
               {" "}
@@ -277,6 +329,25 @@ export default class EventCard extends Component {
             rows={5}
             onChange={this.setCancelMessage}
             value={this.state.cancelMessage}
+          />
+        </Modal>
+
+        <Modal
+          visible={this.state.duplicating}
+          title="Are you sure?"
+          okText={this.state.doing_duplicating ? "Working..." : "Duplicate"}
+          onCancel={() => this.setState({ duplicating: false })}
+          cancelText="Cancel"
+          onOk={this.finishDuplicate}
+        >
+          <EditableDateRange
+            start_date={this.state.dup_start_date}
+            end_date={this.state.dup_end_date}
+            time_zone={location.time_zone}
+            time_zone_display={this.props.event.location.time_zone}
+            checkout={() => true}
+            onSave={this.setDuplicateRange}
+            attr="new_date"
           />
         </Modal>
 
@@ -325,8 +396,7 @@ export default class EventCard extends Component {
         >
           {this.state.messagingAttendees == "error" && (
             <span style={{ color: "red" }}>
-              {" "}
-              Oops! Look like you forgot to put something here.{" "}
+              Oops! Look like you forgot to put something here.
             </span>
           )}
           <TextArea
@@ -368,6 +438,11 @@ export default class EventCard extends Component {
               checkin={this.checkin}
             />
           </div>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Submitted At:</strong>
+          <div>{new Date(created_date).toString()}</div>
         </div>
 
         <div
@@ -527,7 +602,7 @@ export default class EventCard extends Component {
               style={{ width: "100%" }}
               placeholder="Tags"
               onChange={this.onTagsChange}
-              tokenSeparators={[',']}
+              tokenSeparators={[","]}
               defaultValue={tags.filter(
                 t => !t.includes("Calendar") && !t.includes("Event Type:")
               )}
@@ -562,14 +637,15 @@ export default class EventCard extends Component {
     );
   }
 
-  renderButtons() {
+  renderButtons({ disabled }) {
     const {
       category,
       event: { rsvp_download_url, organizer_edit_url }
     } = this.props;
 
-    return [
+    const dropdown = [
       <Dropdown
+        key="dropdown-options"
         overlay={
           <Menu>
             {category !== undefined && (
@@ -656,41 +732,53 @@ export default class EventCard extends Component {
           More <Icon type="down" />
         </Button>
       </Dropdown>
-    ]
+    ];
+
+    if (disabled) {
+      return dropdown;
+    }
+
+    return dropdown
       .concat(
         category == "ESM Call"
           ? [
-              <Button onClick={this.cancel} type="danger">
+              <Button key="cancel" onClick={this.cancel} type="danger">
                 Cancel
               </Button>,
-              <Button onClick={this.makeTentative} type="default">
+              <Button
+                key="tentative"
+                onClick={this.makeTentative}
+                type="default"
+              >
                 Back to Tentative
               </Button>,
-              <Button onClick={this.markLogistics} type="primary">
+              <Button key="called" onClick={this.markLogistics} type="primary">
                 Mark Called
               </Button>
             ]
           : []
       )
       .concat(
-        category == "Needs Approval"
-          ? [
-              <Button onClick={this.reject} type="danger">
-                Reject
-              </Button>,
-              <Button onClick={this.confirm} type="primary">
-                Confirm
-              </Button>
-            ]
-          : []
+        category == "Needs Approval" && [
+          <Button key="reject" onClick={this.reject} type="danger">
+            Reject
+          </Button>,
+          <Button key="confirm" onClick={this.confirm} type="primary">
+            Confirm
+          </Button>
+        ]
       )
       .concat(
         category == "Ready to Go"
           ? [
-              <Button onClick={this.cancel} type="default">
+              <Button key="cancel" onClick={this.cancel} type="default">
                 Cancel
               </Button>,
-              <Button onClick={this.makeTentative} type="primary">
+              <Button
+                key="tentative"
+                onClick={this.makeTentative}
+                type="primary"
+              >
                 Back to Tentative
               </Button>
             ]
@@ -699,71 +787,74 @@ export default class EventCard extends Component {
       .concat(
         category == "Needs Logistics"
           ? [
-              <Button onClick={this.cancel} type="danger">
+              <Button key="cancel" onClick={this.cancel} type="danger">
                 Cancel
               </Button>,
-              <Button onClick={this.markLogistics} type="primary">
+              <Button
+                key="mark-logistics"
+                onClick={this.markLogistics}
+                type="primary"
+              >
                 Mark Did Logistics Call
               </Button>
             ]
           : []
       )
       .concat(
-        category == "Needs Debrief"
-          ? [
-              <Button onClick={this.markDebriefed} type="primary">
-                Mark Debriefed
-              </Button>
-            ]
-          : []
+        category == "Needs Debrief" && [
+          <Button key="debriefed" onClick={this.markDebriefed} type="primary">
+            Mark Debriefed
+          </Button>
+        ]
       )
       .concat(
-        category == "Rejected"
-          ? [
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Rejected" && [
+          <Button key="rejected" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
-        category == "Cancelled"
-          ? [
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Cancelled" && [
+          <Button key="tentative" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
-        category == "Upcoming"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Upcoming" && [
+          <Button key="cancel" onClick={this.cancel} type="danger">
+            Cancel
+          </Button>,
+          <Button key="tentative" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
-        category == "Today"
-          ? [
-              <Button onClick={this.cancel} type="danger">
-                Cancel
-              </Button>,
-              <Button onClick={this.makeTentative} type="primary">
-                Back to Tentative
-              </Button>
-            ]
-          : []
+        category == "Today" && [
+          <Button key="cancel" onClick={this.cancel} type="danger">
+            Cancel
+          </Button>,
+          <Button key="tentative" onClick={this.makeTentative} type="primary">
+            Back to Tentative
+          </Button>
+        ]
       )
       .concat(
         category == undefined && [
-          <Button onClick={this.cancel} type="danger">
+          <Button key="cancel" onClick={this.cancel} type="danger">
             Cancel
           </Button>
+        ]
+      )
+      .concat(
+        this.props.candidate && [
+          <Turnout
+            event_id={this.props.id}
+            survey={this.props.survey}
+            channel={this.props.channel}
+          />
         ]
       );
   }
