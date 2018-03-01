@@ -334,12 +334,18 @@ export default class EventCard extends Component {
 
         <Modal
           visible={this.state.duplicating}
-          title="Are you sure?"
+          title="Are you sure you want to duplicate this event?"
           okText={this.state.doing_duplicating ? "Working..." : "Duplicate"}
           onCancel={() => this.setState({ duplicating: false })}
           cancelText="Cancel"
           onOk={this.finishDuplicate}
         >
+          <span style={{ fontWeight: "bold" }}>
+            Double click on the date or time to set a new date or time for
+            duplicate that will be created.
+          </span>
+          <br />
+          <br />
           <EditableDateRange
             start_date={this.state.dup_start_date}
             end_date={this.state.dup_end_date}

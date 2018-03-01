@@ -51,7 +51,7 @@ export default class EditableDate extends Component {
   };
 
   handleClickOutside = () => {
-    this.props.checkin();
+    if (this.props.checkin) this.props.checkin();
     this.setState({ editing: false });
   };
 
@@ -75,7 +75,7 @@ export default class EditableDate extends Component {
       start_moment.clone().add(2, "hours");
 
     return (
-      <div onDoubleClick={this.editOn}>
+      <div onDoubleClick={this.editOn} style={{ cursor: "pointer" }}>
         <Modal
           title={`Edit ${friendly[this.props.attr]}`}
           visible={this.state.editing}

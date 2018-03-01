@@ -32,7 +32,10 @@ class EditableText extends Component {
 
   render = () => {
     const result = (
-      <div onDoubleClick={this.editOn} style={{ whiteSpace: "pre-wrap" }}>
+      <div
+        onDoubleClick={this.editOn}
+        style={{ whiteSpace: "pre-wrap", cursor: "pointer" }}
+      >
         {this.state.editing ? (
           <div>
             {this.props.textarea ? (

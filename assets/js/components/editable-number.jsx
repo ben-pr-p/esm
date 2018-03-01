@@ -12,14 +12,12 @@ class EditableNumber extends Component {
 
   editOn = () => {
     if (!this.props.disabled) {
-      this.props.checkout();
       this.setState({ editing: true });
     }
   };
 
   handleClickOutside = () => {
     if (this.state.editing) {
-      this.props.checkin();
       this.setState({ editing: false });
     }
   };
@@ -31,7 +29,10 @@ class EditableNumber extends Component {
 
   render = () => {
     const result = (
-      <div onDoubleClick={this.editOn} style={{ whiteSpace: "pre-wrap" }}>
+      <div
+        onDoubleClick={this.editOn}
+        style={{ whiteSpace: "pre-wrap", cursor: "pointer" }}
+      >
         {this.state.editing ? (
           <div>
             <InputNumber
