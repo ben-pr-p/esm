@@ -355,6 +355,14 @@ export default class EventCard extends Component {
             onSave={this.setDuplicateRange}
             attr="new_date"
           />
+          <br />
+          <br />
+          {this.state.doing_duplicating && (
+            <span style={{ fontWeight: "bold" }}>
+              After this popup dissapears, refresh to find your event in Needs
+              Approval
+            </span>
+          )}
         </Modal>
 
         <Modal

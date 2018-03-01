@@ -120,6 +120,17 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(%{event: event, edits: edits})))
   end
 
+  def exec("duplicate", %{event: event}) do
+    case Cosmic.get(@cosmic_config_slug) do
+      %{"metadata" => %{"event_duplicated" => hook}} ->
+        IO.puts("Posting webhook to #{hook} because of edit")
+        IO.inspect(HTTPotion.post(hook, bodify(%{event: event})))
+
+      _ ->
+        nil
+    end
+  end
+
   def exec("message_host", contents = ~m(event host message)a) do
     if @instance != "jd" do
       %{"metadata" => %{"message_host" => hook}} = Cosmic.get(@cosmic_config_slug)
