@@ -14,6 +14,14 @@ defmodule Admin.HostStatus do
   end
 
   def set_for(event_id, result) do
-    Mongo.update_many(:mongo, collection(), ~m(event_id), %{"$set" => ~m(result)}, upsert: true)
+    updated_at = DateTime.utc_now()
+
+    Mongo.update_many(
+      :mongo,
+      collection(),
+      ~m(event_id),
+      %{"$set" => ~m(result updated_at)},
+      upsert: true
+    )
   end
 end

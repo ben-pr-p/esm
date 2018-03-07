@@ -268,7 +268,6 @@ defmodule Admin.EventsChannel do
   defp send_list_events(socket) do
     all_events =
       OsdiClient.stream(client(), "events")
-      |> Enum.filter(&(&1.status == "confirmed" and &1.end_date > DateTime.utc_now()))
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event = %{id: id} ->
         %{id: event.id, event: event}
