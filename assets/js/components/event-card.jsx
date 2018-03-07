@@ -359,8 +359,9 @@ export default class EventCard extends Component {
           <br />
           {this.state.doing_duplicating && (
             <span style={{ fontWeight: "bold" }}>
-              After this popup dissapears, refresh to find your event in Needs
-              Approval
+              {!this.props.hostEdit
+                ? "After this popup disapears, refresh to find your event in Needs Approval"
+                : "After this popup disapears, refresh to see your event"}
             </span>
           )}
         </Modal>
