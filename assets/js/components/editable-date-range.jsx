@@ -85,6 +85,7 @@ export default class EditableDate extends Component {
           <strong> Date: </strong>
           <DatePicker
             defaultValue={start_moment}
+            disabledDate={disabledDate}
             onChange={this.onDateChange}
           />
           <br />
@@ -134,4 +135,9 @@ export default class EditableDate extends Component {
       </div>
     );
   };
+}
+
+function disabledDate(current) {
+  // Can not select days before today and today
+  return current && current < moment().endOf("day");
 }
