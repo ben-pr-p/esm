@@ -146,7 +146,7 @@ export default class Esm extends Component {
                   >
                     <Infinite
                       useWindowAsScrollContainer={true}
-                      elementHeight={634}
+                      elementHeight={680}
                     >
                       {this.eventsFor(fn, title)}
                     </Infinite>
