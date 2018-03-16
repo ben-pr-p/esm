@@ -115,6 +115,48 @@ defmodule Admin.PageController do
 
   def secret, do: Application.get_env(:admin, :osdi_api_token)
 
+  def internal_events_api(conn, %{"secret" => input_secret}) do
+    if secret() == input_secret do
+      events =
+        OsdiClient.stream(client(), "events")
+        |> Enum.map(&Admin.EventsChannel.event_pipeline/1)
+        |> Enum.map(fn ev ->
+          tags = Map.get(ev, "tags", [])
+
+          candidate_tag =
+            Enum.filter(
+              tags,
+              &(String.contains?(&1, "Calendar:") and
+                  not (String.contains?(&1, "Justice Democrats") or
+                         String.contains?(&1, "Brand New Congress") or
+                         String.contains?(&1, "Local Chapter")))
+            )
+            |> List.first()
+
+          candidate =
+            case candidate_tag do
+              nil -> nil
+              "Calendar: " <> c -> c
+            end
+
+          ev
+          |> Map.put("direct_publish", Enum.member?(tags, "Source: Direct Publish"))
+          |> Map.put("synced", Enum.member?(tags, "Source: Sync"))
+          |> Map.put("editable", not Enum.member?(tags, "Source: Sync"))
+          |> Map.put("local_chapter", Enum.member?(tags, "Calendar: Local Chapter"))
+          |> Map.put("candidate", candidate)
+        end)
+
+      json(conn, events)
+    else
+      text(conn, "Wrong secret.")
+    end
+  end
+
+  def interval_events_api(conn, _) do
+    text(conn, "Missing secret – please visit /api/events?secret=thethingigotfromben")
+  end
+
   def client,
     do:
       OsdiClient.build_client(

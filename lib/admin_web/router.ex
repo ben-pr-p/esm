@@ -42,10 +42,11 @@ defmodule Admin.Router do
     pipe_through(:api)
 
     get("/events", PageController, :events_api)
+    get("/events-internal", PageController, :internal_events_api)
     post("/events/create", FormController, :create)
   end
 
-  defp handle_errors(conn, %{kind: kind, reason: reason, stack: stacktrace}) do
+  defp handle_errors(_conn, %{kind: kind, reason: reason, stack: stacktrace}) do
     Rollbax.report(kind, reason, stacktrace)
   end
 end
