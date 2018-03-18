@@ -1,6 +1,8 @@
 defmodule Admin.FormController do
   use Admin, :controller
 
+  @max_delay_time 120
+
   import ShortMaps
 
   @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
@@ -18,6 +20,9 @@ defmodule Admin.FormController do
 
       IO.puts("Posting webhook to #{success_hook}")
       IO.inspect(created)
+
+      sleep_time = Enum.random(1..@max_delay_time) * 1000
+      :timer.sleep(sleep_time)
 
       success_hook
       |> HTTPotion.post(body: created |> Poison.encode!())

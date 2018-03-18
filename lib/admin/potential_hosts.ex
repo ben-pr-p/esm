@@ -38,7 +38,7 @@ defmodule PotentialHosts do
   def do_get_potential_hosts do
     Logger.info("[phosts] Starting fetch")
 
-    [form_one, form_two] =
+    [form_one, form_two, main_form] =
       [
         Task.async(fn ->
           Ak.Api.stream("action", query: %{page: 753, order_by: "-created_at"})
@@ -47,6 +47,13 @@ defmodule PotentialHosts do
         Task.async(fn ->
           Ak.Api.stream("action", query: %{page: 742, order_by: "-created_at"})
           |> Enum.to_list()
+        end),
+        Task.async(fn ->
+          %{body: body} = Ak.Api.post("report/run/679")
+
+          Enum.map(body, fn [user_id, created_at] ->
+            %{"user" => "/rest/v1/user/#{user_id}", "created_at" => created_at}
+          end)
         end)
       ]
       |> Enum.map(fn t -> Task.await(t, :infinity) end)
