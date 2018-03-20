@@ -785,7 +785,7 @@ export default class EventCard extends Component {
 
     return dropdown
       .concat(
-        category == "ESM Call #1" && [
+        category == "ESM Call" && [
           <Button key="reject" onClick={this.reject} type="danger">
             Reject
           </Button>,

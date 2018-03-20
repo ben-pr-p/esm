@@ -30,28 +30,22 @@ const isInFuture = ev => {
 
 export default [
   {
-    title: "ESM Call #1",
-    fn: ev =>
-      isInFuture(ev) &&
-      ev.tags.includes(ESM_TAG) &&
-      ev.status == "tentative" &&
-      !ev.tags.includes("Event: Action: Called")
-  },
-  {
     title: "Needs Approval",
     fn: ev =>
       isInFuture(ev) &&
       ev.status == "tentative" &&
       (!ev.tags.includes(ESM_TAG) || ev.tags.includes("Event: Action: Called"))
   },
+
   {
-    title: "Needs Logistics",
+    title: "ESM Call",
     fn: ev =>
       isInFuture(ev) &&
       ev.tags.includes(ESM_TAG) &&
       ev.status == "confirmed" &&
       !ev.tags.includes("Event: Action: Logisticsed")
   },
+
   {
     title: "Upcoming",
     fn: ev => {
@@ -64,12 +58,14 @@ export default [
       );
     }
   },
+
   {
     title: "Today",
     fn: ev => {
       return ev.status == "confirmed" && isToday(ev);
     }
   },
+
   {
     title: "Needs Debrief",
     fn: ev => {
@@ -84,6 +80,7 @@ export default [
       );
     }
   },
+
   {
     title: "Past",
     fn: ev => {
@@ -91,6 +88,7 @@ export default [
       return isInPast(ev) && ev.tags.includes("Event: Action: Debriefed");
     }
   },
+
   {
     title: "Rejected",
     fn: ev => ev.status == "rejected"
@@ -99,6 +97,7 @@ export default [
     title: "Cancelled",
     fn: ev => ev.status == "cancelled"
   },
+
   {
     title: "Unapproved in the Past",
     fn: ev => ev.status == "tentative" && isInPast(ev)
