@@ -115,13 +115,17 @@ defmodule Admin.PageController do
 
   def secret, do: Application.get_env(:admin, :osdi_api_token)
 
-  def internal_events_api(conn, %{"secret" => input_secret}) do
+  def internal_events_api(conn, params = %{"secret" => input_secret}) do
     if secret() == input_secret do
       events =
         OsdiClient.stream(client(), "events")
         |> Enum.map(&Admin.EventsChannel.event_pipeline/1)
+        |> Enum.filter(fn ev -> if params["future"], do: is_in_future?(ev), else: true end)
+        |> Enum.filter(fn ev ->
+          if params["confirmed"], do: ev.status == "confirmed", else: true
+        end)
         |> Enum.map(fn ev ->
-          tags = Map.get(ev, "tags", [])
+          tags = Map.get(ev, :tags, [])
 
           candidate_tag =
             Enum.filter(
@@ -139,12 +143,15 @@ defmodule Admin.PageController do
               "Calendar: " <> c -> c
             end
 
-          ev
-          |> Map.put("direct_publish", Enum.member?(tags, "Source: Direct Publish"))
-          |> Map.put("synced", Enum.member?(tags, "Source: Sync"))
-          |> Map.put("editable", not Enum.member?(tags, "Source: Sync"))
-          |> Map.put("local_chapter", Enum.member?(tags, "Calendar: Local Chapter"))
-          |> Map.put("candidate", candidate)
+          flags =
+            %{}
+            |> Map.put("direct_publish", Enum.member?(tags, "Source: Direct Publish"))
+            |> Map.put("synced", Enum.member?(tags, "Source: Sync"))
+            |> Map.put("editable", not Enum.member?(tags, "Source: Sync"))
+            |> Map.put("local_chapter", Enum.member?(tags, "Calendar: Local Chapter"))
+            |> Map.put("candidate", candidate)
+
+          Map.merge(ev, flags)
         end)
 
       json(conn, events)
@@ -155,6 +162,13 @@ defmodule Admin.PageController do
 
   def interval_events_api(conn, _) do
     text(conn, "Missing secret – please visit /api/events?secret=thethingigotfromben")
+  end
+
+  def is_in_future?(ev) do
+    case DateTime.from_iso8601(ev.start_date) do
+      {:ok, dt, _} -> Timex.now() |> Timex.before?(dt)
+      _ -> false
+    end
   end
 
   def client,
