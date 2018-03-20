@@ -42,7 +42,7 @@ export default class Filter extends Component {
       value = value
         ? Array.isArray(value)
           ? JSON.stringify(value).toLowerCase()
-          : value.toLowerCase()
+          : value.toString().toLowerCase()
         : value;
 
       if (this.state.value == undefined) {

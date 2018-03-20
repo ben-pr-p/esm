@@ -79,7 +79,8 @@ export default [
         ev.status == "confirmed" &&
         isInPast(ev) &&
         !isToday(ev) &&
-        !ev.tags.includes("Event: Action: Debriefed")
+        !ev.tags.includes("Event: Action: Debriefed") &&
+        !ev.tags.includes("Source: Sync")
       );
     }
   },

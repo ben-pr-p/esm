@@ -17,24 +17,31 @@ export default class FilterHeader extends Component {
   chooseField = field =>
     this.setState({
       filters: this.state.filters.concat([
-        { field, value: undefined, options: {} }
+        {
+          field,
+          value: undefined,
+          options: {},
+          rand_id: Math.random()
+            .toString()
+            .split(".")[1]
+        }
       ]),
       adding: false
     });
 
-  wrapDeleteMe = (idx, field) => () => {
+  wrapDeleteMe = (idx, rand_id) => () => {
     const filters = this.state.filters.slice();
     const removed = filters.splice(idx, 1);
-    delete this.state.filterFns[field];
+    delete this.state.filterFns[rand_id];
     this.props.setGlobalFilterFn(this.constructGlobalFilter());
     this.setState({
       filters
     });
   };
 
-  wrapUpdateFilter = field => fn => {
+  wrapUpdateFilter = rand_id => fn => {
     const filterFns = Object.assign({}, this.state.filterFns);
-    filterFns[field] = fn;
+    filterFns[rand_id] = fn;
     this.state.filterFns = filterFns;
     this.props.setGlobalFilterFn(this.constructGlobalFilter());
   };
@@ -74,14 +81,15 @@ export default class FilterHeader extends Component {
               justifyContent: "space-between"
             }}
           >
-            {filters.map(({ field, value, options }, idx) => (
+            {filters.map(({ field, value, options, rand_id }, idx) => (
               <Filter
                 field={field}
                 value={value}
+                rand_id={rand_id}
                 options={options}
                 filterSpec={filterSpec}
-                deleteMe={this.wrapDeleteMe(idx, field)}
-                updateFilter={this.wrapUpdateFilter(field)}
+                deleteMe={this.wrapDeleteMe(idx, rand_id)}
+                updateFilter={this.wrapUpdateFilter(rand_id)}
               />
             ))}
           </div>
@@ -124,6 +132,7 @@ export default class FilterHeader extends Component {
 }
 
 const filterSpec = {
+  id: { type: "string", display: "ID" },
   title: { type: "string", display: "Title" },
   start_date: { type: "date", display: "Date" },
   created_date: { type: "date", display: "Submitted At" },
