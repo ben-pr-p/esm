@@ -85,7 +85,11 @@ export default [
     title: "Past",
     fn: ev => {
       const match_date = ev.end_date || ev.start_date;
-      return isInPast(ev) && ev.tags.includes("Event: Action: Debriefed");
+      return (
+        isInPast(ev) &&
+        (ev.tags.includes("Event: Action: Debriefed") ||
+          ev.tags.includes("Source: Sync"))
+      );
     }
   },
 
