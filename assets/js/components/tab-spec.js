@@ -55,6 +55,7 @@ export default [
       return ev.status == "confirmed" && isInFuture(ev) && !isIn5Days(ev);
     }
   },
+
   {
     title: "ESM Call",
     fn: ev =>
@@ -64,6 +65,7 @@ export default [
       !ev.tags.includes("Event: Action: Logisticsed") &&
       !isStaff(ev)
   },
+
   {
     title: "Ready to Go",
     fn: ev =>
@@ -73,6 +75,7 @@ export default [
       !isToday(ev) &&
       (ev.tags.includes("Event: Action: Logisticsed") || isStaff(ev))
   },
+
   {
     title: "Today",
     fn: ev => {
@@ -93,13 +96,19 @@ export default [
       );
     }
   },
+
   {
     title: "Past",
     fn: ev => {
       const match_date = ev.end_date || ev.start_date;
-      return isInPast(ev) && ev.tags.includes("Event: Action: Debriefed");
+      return (
+        isInPast(ev) &&
+        (ev.tags.includes("Event: Action: Debriefed") ||
+          ev.tags.includes("Source: Sync"))
+      );
     }
   },
+
   {
     title: "Rejected",
     fn: ev => ev.status == "rejected"
@@ -108,6 +117,7 @@ export default [
     title: "Cancelled",
     fn: ev => ev.status == "cancelled"
   },
+
   {
     title: "Unapproved in the Past",
     fn: ev => ev.status == "tentative" && isInPast(ev)
