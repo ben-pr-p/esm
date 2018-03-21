@@ -400,6 +400,7 @@ defmodule Admin.EventsChannel do
         Map.put(acc, key, Map.get(overrides, Atom.to_string(key), val))
       end)
       |> Map.put(:status, "tentative")
+      |> Map.put(:tags, Enum.reject(old.tags, &String.contains?(&1, "Action:")))
       |> Map.drop([:identifiers, :id])
 
     %{body: new} = OsdiClient.post(client(), "events", to_create)
