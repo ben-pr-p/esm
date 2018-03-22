@@ -39,11 +39,17 @@ export default [
 
   {
     title: "ESM Call",
-    fn: ev =>
-      isInFuture(ev) &&
-      ev.tags.includes(ESM_TAG) &&
-      ev.status == "confirmed" &&
-      !ev.tags.includes("Event: Action: Logisticsed")
+    fn: ev => {
+      if (ev.id == "1411" || ev.id == 1411) {
+        console.log(ev);
+        debugger;
+      }
+      return (
+        isInFuture(ev) &&
+        ev.tags.includes(ESM_TAG) &&
+        !ev.tags.includes("Event: Action: Logisticsed")
+      );
+    }
   },
 
   {
