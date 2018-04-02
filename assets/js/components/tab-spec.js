@@ -40,10 +40,6 @@ export default [
   {
     title: "ESM Call",
     fn: ev => {
-      if (ev.id == "1411" || ev.id == 1411) {
-        console.log(ev);
-        debugger;
-      }
       return (
         isInFuture(ev) &&
         ev.tags.includes(ESM_TAG) &&

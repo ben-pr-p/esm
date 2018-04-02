@@ -18,7 +18,7 @@ defmodule Admin.Webhooks do
       IO.puts("Posting webhook to #{hook} because of confirmed")
       IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
     else
-      if Enum.member?(event["tags"], "Source: Direct Publish") do
+      if Enum.member?(event.tags || [], "Source: Direct Publish") do
         IO.puts("Not sending published webhook because this is a direct publish event")
       else
         %{"metadata" => %{"vol_event_submission" => hook}} = Cosmic.get(@cosmic_config_slug)

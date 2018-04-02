@@ -22,7 +22,7 @@ defmodule Rsvps do
             Enum.join([p.given_name, p.family_name], " "),
             List.first(p.email_addresses) |> get_email(),
             List.first(p.phone_numbers) |> get_number(),
-            List.first(p.postal_addresses) |> get_zip()
+            Map.get(p, :postal_addresses, []) |> List.first() |> get_zip()
           ],
           ","
         )
