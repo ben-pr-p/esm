@@ -286,7 +286,7 @@ defmodule Admin.EventsChannel do
   defp send_candidate_events(socket = %{assigns: %{candidate_tag: candidate_tag}}) do
     OsdiClient.stream(client(), "events")
     |> Flow.from_enumerable()
-    |> Flow.filter(&Enum.member?(&1.tags, candidate_tag))
+    |> Flow.filter(&Enum.member?(&1.tags || [], candidate_tag))
     |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
     |> Flow.map(&event_pipeline/1)
     |> Flow.each(fn event ->
@@ -448,7 +448,7 @@ defmodule Admin.EventsChannel do
         payload = %{event: event},
         socket = %{assigns: %{candidate_tag: candidate_tag}}
       ) do
-    if event.tags |> Enum.member?(candidate_tag) do
+    if (event.tags || []) |> Enum.member?(candidate_tag) do
       push(socket, "event", payload)
     end
 
