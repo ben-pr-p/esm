@@ -23,7 +23,7 @@ defmodule Admin.PageController do
       |> Cosmic.get_type()
       |> Enum.filter(&(not is_nil(&1["metadata"]["district"])))
       |> Enum.map(& &1["title"])
-      |> Enum.concat(["Brand New Congress", "Justice Democrats"])
+      |> Enum.concat(["Brand New Congress", "Justice Democrats", "Local Chapter"])
       |> Poison.encode!()
 
     render(conn, "esm.html", calendars: calendars, email: email)
