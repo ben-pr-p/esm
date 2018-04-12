@@ -74,7 +74,12 @@ export default class MyEvents extends Component {
         return new Date(this.state.events[id].start_date) > new Date();
       })
       .sort(
-        (a, b) => (moment(a.start_date).isBefore(moment(b.start_date)) ? 1 : -1)
+        (a, b) =>
+          moment(this.state.events[a].start_date).isBefore(
+            moment(this.state.events[b].start_date)
+          )
+            ? -1
+            : 1
       );
 
     const past = events
@@ -82,7 +87,12 @@ export default class MyEvents extends Component {
         return new Date(this.state.events[idx].start_date) < new Date();
       })
       .sort(
-        (a, b) => (moment(a.start_date).isBefore(moment(b.start_date)) ? -1 : 1)
+        (a, b) =>
+          moment(this.state.events[a].start_date).isBefore(
+            moment(this.state.events[b].start_date)
+          )
+            ? 1
+            : -1
       );
 
     return (
