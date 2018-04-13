@@ -28,8 +28,6 @@ defmodule Admin.FormController do
       |> HTTPotion.post(body: created |> Poison.encode!())
       |> IO.inspect()
 
-      Admin.Webhooks.on("confirmed", %{event: created, team_member: nil})
-
       json(conn, created)
     rescue
       error ->
