@@ -12,23 +12,25 @@ defmodule Admin.FormController do
       Cosmic.get(@cosmic_config_slug)
 
     try do
-      created =
-        params
+      spawn(fn ->
+        created =
+          params
+          |> IO.inspect()
+          |> do_create()
+          |> Admin.Webhooks.process_event()
+
+        IO.puts("Posting webhook to #{success_hook}")
+        IO.inspect(created)
+
+        sleep_time = Enum.random(1..@max_delay_time) * 1000
+        :timer.sleep(sleep_time)
+
+        success_hook
+        |> HTTPotion.post(body: created |> Poison.encode!())
         |> IO.inspect()
-        |> do_create()
-        |> Admin.Webhooks.process_event()
+      end)
 
-      IO.puts("Posting webhook to #{success_hook}")
-      IO.inspect(created)
-
-      sleep_time = Enum.random(1..@max_delay_time) * 1000
-      :timer.sleep(sleep_time)
-
-      success_hook
-      |> HTTPotion.post(body: created |> Poison.encode!())
-      |> IO.inspect()
-
-      json(conn, created)
+      text(conn, "OK")
     rescue
       error ->
         failure_hook
@@ -186,7 +188,9 @@ defmodule Admin.FormController do
   end
 
   def do_rerun do
-    rerun(~s())
+    ~s[]
+    |> String.split("\n")
+    |> Enum.map(&IO.inspect(rerun(&1)))
   end
 
   def client,
