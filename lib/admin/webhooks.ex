@@ -199,10 +199,10 @@ defmodule Admin.Webhooks do
 
   def get_date_line(event) do
     date_line =
-      humanize_date(event["start_date"]) <>
+      humanize_date(event.start_date) <>
         "from " <>
-        humanize_time(event["start_date"], get_in(event, ~w(location time_zone))) <>
-        " - " <> humanize_time(event["end_date"], get_in(event, ~w(location time_zone)))
+        humanize_time(event.start_date, get_in(event, ~w(location time_zone)a)) <>
+        " - " <> humanize_time(event.end_date, get_in(event, ~w(location time_zone)a))
 
     Map.put(event, "date_line", date_line)
   end
