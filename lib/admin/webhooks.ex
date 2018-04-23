@@ -188,19 +188,17 @@ defmodule Admin.Webhooks do
   end
 
   def get_date_line(event) do
-    time_zone = Timex.Timezone.get(event.location.time_zone)
+    date_line =
+      humanize_date(event["start_date"]) <>
+        "from " <>
+        humanize_time(event["start_date"], get_in(event, ~w(location time_zone))) <>
+        " - " <> humanize_time(event["end_date"], get_in(event, ~w(location time_zone)))
 
-    humanize_date(event.start_date, time_zone) <>
-      "from " <>
-      humanize_time(event.start_date, time_zone) <>
-      "-" <> humanize_time(event.end_date, time_zone)
+    Map.put(event, "date_line", date_line)
   end
 
-  defp humanize_date(dt, time_zone) do
-    %DateTime{month: month, day: day} =
-      dt
-      |> parse()
-      |> Timex.Timezone.convert(time_zone)
+  defp humanize_date(dt) do
+    %DateTime{month: month, day: day} = parse(dt)
 
     month =
       [
@@ -219,42 +217,45 @@ defmodule Admin.Webhooks do
       ]
       |> Enum.at(month - 1)
 
-    "#{month} #{day} "
+    "#{month}, #{day} "
   end
 
-  defp humanize_time(dt, time_zone) do
-    %DateTime{hour: hour, minute: minute} =
-      dt
-      |> parse()
-      |> Timex.Timezone.convert(time_zone)
+  defp humanize_time(dt, tz) do
+    zone = Timex.Timezone.get(tz)
+    %DateTime{hour: hour, minute: minute} = parse(dt) |> Timex.Timezone.convert(zone)
+    hour = if hour == 0, do: 12, else: hour
+    minute = if minute == 0, do: "", else: ":#{minute}"
+    {hour, am_pm} = if hour >= 12, do: {hour - 12, "PM"}, else: {hour, "AM"}
+    hour = if hour == 0, do: 12, else: hour
+    "#{hour}#{minute} " <> am_pm
+  end
+
+  defp humanize_time(dt) do
+    %DateTime{hour: hour, minute: minute} = parse(dt)
 
     {hour, am_pm} = if hour >= 12, do: {hour - 12, "PM"}, else: {hour, "AM"}
     hour = if hour == 0, do: 12, else: hour
-    hour = "#{hour}"
-    hour = if String.length(hour) == 2, do: hour, else: "0#{hour}"
-    minute = if minute == 0, do: "", else: "#{minute}"
-    minute = if String.length(minute) == 2, do: minute, else: "0#{minute}"
-    minute = if String.length(minute) == 2, do: minute, else: "0#{minute}"
+    minute = if minute == 0, do: "", else: ":#{minute}"
 
-    "#{hour}:#{minute}" <> am_pm
+    "#{hour}#{minute} " <> am_pm
   end
 
-  def parse(nil) do
-    DateTime.utc_now()
+  def parse(dt, _offset \\ 0) do
+    case DateTime.from_iso8601(dt) do
+      {:ok, result, _} ->
+        result
+
+      _ ->
+        case DateTime.from_iso8601(dt <> "Z") do
+          {:ok, result, _} -> result
+          _ -> Timex.now()
+        end
+    end
   end
 
   def zero_pad(int) do
     str = "#{int}"
     if String.length(str), do: str, else: "0#{str}"
-  end
-
-  def parse(dt = %DateTime{}) do
-    dt
-  end
-
-  def parse(dt) do
-    {:ok, result, _} = DateTime.from_iso8601(dt)
-    result
   end
 
   def flatten(%{} = map) do
