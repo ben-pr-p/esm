@@ -18,7 +18,7 @@ defmodule Admin.Webhooks do
       IO.puts("Posting webhook to #{hook} because of confirmed")
       IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
     else
-      if Enum.member?(event.tags || [], "Source: Direct Publish") do
+      if Enum.member?(event["tags"] || [], "Source: Direct Publish") do
         IO.puts("Not sending published webhook because this is a direct publish event")
       else
         %{"metadata" => %{"vol_event_submission" => hook}} = Cosmic.get(@cosmic_config_slug)
@@ -119,6 +119,19 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(%{event: event, edits: edits})))
   end
 
+  def exec("duplicate", %{event: event}) do
+    spawn(fn ->
+      case Cosmic.get(@cosmic_config_slug) do
+        %{"metadata" => %{"event_duplicated" => hook}} ->
+          IO.puts("Posting webhook to #{hook} because of edit")
+          IO.inspect(HTTPotion.post(hook, bodify(%{event: event})))
+
+        _ ->
+          nil
+      end
+    end)
+  end
+
   def exec("message_host", contents = ~m(event host message)a) do
     if @instance != "jd" do
       %{"metadata" => %{"message_host" => hook}} = Cosmic.get(@cosmic_config_slug)
@@ -140,12 +153,6 @@ defmodule Admin.Webhooks do
     end
   end
 
-  def exec(hook_type = "message_attendees" <> _rest, ~m(event attendee_emails message)a) do
-    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", hook_type])
-    IO.puts("Posting webhook to #{hook} because of #{hook_type}")
-    IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
-  end
-
   def exec(
         hook_type = "turnout_request_edit" <> _rest,
         ~m(event old_survey new_survey changes candidate)a
@@ -155,12 +162,21 @@ defmodule Admin.Webhooks do
     IO.inspect(HTTPotion.post(hook, bodify(~m(event old_survey new_survey changes candidate))))
   end
 
-  def exec(hook_type = "duplicate", ~m(event)a) do
-    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", "event_duplicated"])
+  def exec(hook_type = "message_attendees" <> _rest, ~m(event attendee_emails message)a) do
+    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", hook_type])
+    IO.puts("Posting webhook to #{hook} because of #{hook_type}")
+    IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
+  end
 
-    if hook != nil do
-      IO.puts("Posting webhook to #{hook} because of #{hook_type}")
-      IO.inspect(HTTPotion.post(hook, bodify(~m(event))))
+  def exec("important_change", ~m(event attendee_emails)a) do
+    %{"metadata" => %{"message_attendees_date_time_changed" => hook}} =
+      Cosmic.get(@cosmic_config_slug)
+
+    if attendee_emails == "" do
+      IO.puts("Not posting webhook to #{hook} because no one is attending")
+    else
+      IO.puts("Posting webhook to #{hook} because of important_change")
+      IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails))))
     end
   end
 
@@ -176,14 +192,19 @@ defmodule Admin.Webhooks do
 
   defp bodify(body), do: [body: Poison.encode!(IO.inspect(body))]
 
-  defp process_event(event) do
+  def process_event(event) do
     event
     |> Map.put(:date_line, get_date_line(event))
   end
 
   def get_date_line(event) do
-    humanize_date(event.start_date) <>
-      "from " <> humanize_time(event.start_date) <> " - " <> humanize_time(event.end_date)
+    date_line =
+      humanize_date(event["start_date"]) <>
+        "from " <>
+        humanize_time(event["start_date"], get_in(event, ~w(location time_zone))) <>
+        " - " <> humanize_time(event["end_date"], get_in(event, ~w(location time_zone)))
+
+    Map.put(event, "date_line", date_line)
   end
 
   defp humanize_date(dt) do
@@ -206,7 +227,17 @@ defmodule Admin.Webhooks do
       ]
       |> Enum.at(month - 1)
 
-    "#{month} #{day} "
+    "#{month}, #{day} "
+  end
+
+  defp humanize_time(dt, tz) do
+    zone = Timex.Timezone.get(tz)
+    %DateTime{hour: hour, minute: minute} = parse(dt) |> Timex.Timezone.convert(zone)
+    hour = if hour == 0, do: 12, else: hour
+    minute = if minute == 0, do: "", else: ":#{minute}"
+    {hour, am_pm} = if hour >= 12, do: {hour - 12, "PM"}, else: {hour, "AM"}
+    hour = if hour == 0, do: 12, else: hour
+    "#{hour}#{minute} " <> am_pm
   end
 
   defp humanize_time(dt) do
@@ -219,22 +250,22 @@ defmodule Admin.Webhooks do
     "#{hour}#{minute} " <> am_pm
   end
 
-  def parse(nil) do
-    DateTime.utc_now()
+  def parse(dt, _offset \\ 0) do
+    case DateTime.from_iso8601(dt) do
+      {:ok, result, _} ->
+        result
+
+      _ ->
+        case DateTime.from_iso8601(dt <> "Z") do
+          {:ok, result, _} -> result
+          _ -> Timex.now()
+        end
+    end
   end
 
   def zero_pad(int) do
     str = "#{int}"
     if String.length(str), do: str, else: "0#{str}"
-  end
-
-  def parse(dt = %DateTime{}) do
-    dt
-  end
-
-  def parse(dt) do
-    {:ok, result, _} = DateTime.from_iso8601(dt)
-    result
   end
 
   def flatten(%{} = map) do
