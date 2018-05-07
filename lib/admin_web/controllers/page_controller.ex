@@ -164,6 +164,11 @@ defmodule Admin.PageController do
     text(conn, "Missing secret – please visit /api/events?secret=thethingigotfromben")
   end
 
+  def update_cosmic(conn, _) do
+    Cosmic.update()
+    text(conn, "OK")
+  end
+
   def is_in_future?(ev) do
     case DateTime.from_iso8601(ev.start_date) do
       {:ok, dt, _} -> Timex.now() |> Timex.before?(dt)

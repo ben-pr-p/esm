@@ -44,6 +44,9 @@ defmodule Admin.Router do
     get("/events", PageController, :events_api)
     get("/events-internal", PageController, :internal_events_api)
     post("/events/create", FormController, :create)
+
+    get("/update/cosmic", PageController, :update_cosmic)
+    post("/update/cosmic", PageController, :update_cosmic)
   end
 
   defp handle_errors(_conn, %{kind: kind, reason: reason, stack: stacktrace}) do
