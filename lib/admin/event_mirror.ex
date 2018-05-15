@@ -10,6 +10,10 @@ defmodule EventMirror do
     all =
       OsdiClient.stream(client(), "events")
       |> Enum.reduce(%{}, fn event, acc ->
+        if event.id == "2103" do
+          IO.inspect(event)
+        end
+
         Map.put(acc, event.id, event)
       end)
 
@@ -30,8 +34,11 @@ defmodule EventMirror do
 
   def one(id) do
     Agent.get(__MODULE__, fn evs ->
-      Enum.filter(evs, &("#{&1.id}" == id))
-      |> List.first()
+      case Enum.filter(evs, fn {ev_id, _ev} -> "#{ev_id}" == "#{id}" end)
+           |> List.first() do
+        {_, ev} -> ev
+        nil -> nil
+      end
     end)
   end
 
@@ -42,7 +49,7 @@ defmodule EventMirror do
 
     Agent.get_and_update(__MODULE__, fn state ->
       new_state = Map.update!(state, "#{id}", &deep_merge(&1, edits))
-      {state[id], new_state}
+      {new_state[id], new_state}
     end)
   end
 

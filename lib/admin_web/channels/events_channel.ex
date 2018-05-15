@@ -104,7 +104,7 @@ defmodule Admin.EventsChannel do
   def handle_in("tags-" <> id, tags, socket) do
     insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
 
-    event = EventMirror.get(id)
+    event = EventMirror.one(id)
     calendar_tags = Enum.filter(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(tags, calendar_tags)
@@ -122,7 +122,7 @@ defmodule Admin.EventsChannel do
       actor: current_resource(socket)
     })
 
-    event = EventMirror.get(id)
+    event = EventMirror.one(id)
 
     as_tags = Enum.map(calendars, &"Calendar: #{&1}")
     regular_tags = Enum.reject(event.tags, &String.contains?(&1, "Calendar: "))
@@ -173,7 +173,7 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("message-host-" <> id, %{"message" => message}, socket) do
-    event = EventMirror.get(id)
+    event = EventMirror.one(id)
 
     Webhooks.on("message_host", %{
       event: event_pipeline(event),
@@ -228,7 +228,7 @@ defmodule Admin.EventsChannel do
   end
 
   def do_message_attendees(hook_type, event_id, message) do
-    event = EventMirror.get(event_id)
+    event = EventMirror.one(event_id)
     attendee_emails = Rsvps.emails_for(event_id)
 
     Webhooks.on(hook_type, %{
@@ -378,7 +378,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp duplicate(id, overrides) do
-    old = EventMirror.get(id)
+    old = EventMirror.one(id)
 
     to_create =
       Enum.reduce(old, %{}, fn {key, val}, acc ->
