@@ -29,6 +29,6 @@ npm-debug.log
 cosmic_cache
 /priv/static
 .env
-.jd-env
-.beto-env
+envs/
 .elixir_ls
+NOTES.md
