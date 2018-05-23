@@ -6,6 +6,7 @@ import socket from "../socket";
 import PotentialHost from "./potential-host";
 import tabSpec from "./host-tab-spec";
 import FilterHeader from "./header/index";
+import FileSaver from "file-saver";
 
 const { Content } = Layout;
 const { Search } = Input;
@@ -121,11 +122,34 @@ export default class Hosts extends Component {
     this.state.channel.push("ready");
   }
 
+  download = () => {
+    const as_csv =
+      "Submitted At, Name, Phone Number, Email Address, Zip, Type\n" +
+      this.filteredHosts(() => true)
+        .map(id => {
+          const {
+            submitted_at,
+            contact: { name, phone_number, email_address, zip },
+            type
+          } = this.state.hosts[id];
+          return [submitted_at, name, phone_number, email_address, zip, type]
+            .map(s => `"${s}"`)
+            .join(",");
+        })
+        .join("\n");
+
+    const blob = new Blob([as_csv], { type: "text/csv;charset=utf-8" });
+    FileSaver.saveAs(blob, `${Date.now()}-hosts-export.csv`);
+  };
+
   render() {
     return (
       <LocaleProvider locale={enUS}>
         <Layout style={{ width: "100%", height: "100%" }}>
-          <FilterHeader setGlobalFilterFn={this.setGlobalFilterFn} />
+          <FilterHeader
+            setGlobalFilterFn={this.setGlobalFilterFn}
+            download={this.download}
+          />
           <Content>
             <Tabs>
               {tabSpec.map(({ title, fn }) => (

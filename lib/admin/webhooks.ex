@@ -2,8 +2,7 @@ defmodule Admin.Webhooks do
   require Logger
   import ShortMaps
 
-  @instance Application.get_env(:admin, :instance, "jd")
-  @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
+  def cosmic_config_slug, do: Application.get_env(:admin, :cosmic_config_slug)
 
   def on(hook, body = %{event: event}) do
     IO.inspect(event)
@@ -14,126 +13,57 @@ defmodule Admin.Webhooks do
   end
 
   def exec("confirmed", contents = %{event: event, team_member: team_member}) do
-    if @instance != "jd" do
-      %{"metadata" => %{"event_publish" => hook}} = Cosmic.get(@cosmic_config_slug)
-      IO.puts("Posting webhook to #{hook} because of confirmed")
-      IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
-    else
-      if Enum.member?(event["tags"], "Source: Direct Publish") do
-        IO.puts("Not sending published webhook because this is a direct publish event")
-      else
-        %{"metadata" => %{"vol_event_submission" => hook}} = Cosmic.get(@cosmic_config_slug)
-        IO.puts("Posting webhook to #{hook} because of confirmed vol event")
-        IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
-      end
-
-      email = event.contact.email_address
-
-      info =
-        flatten(contents)
-        |> Enum.map(fn {key, val} ->
-          {"action_#{key}", val}
-        end)
-        |> Enum.into(~m(email))
-
-      IO.inspect(
-        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Published"), info)
-      )
-    end
+    %{"metadata" => %{"event_publish" => hook}} = Cosmic.get(cosmic_config_slug())
+    IO.puts("Posting webhook to #{hook} because of confirmed")
+    IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
   end
 
   def exec("rejected", contents = %{event: event, reason: reason, team_member: team_member}) do
-    if @instance != "jd" do
-      %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get(@cosmic_config_slug)
-      IO.puts("Posting webhook to #{hook} because of rejected")
+    %{"metadata" => %{"event_rejected" => hook}} = Cosmic.get(cosmic_config_slug())
+    IO.puts("Posting webhook to #{hook} because of rejected")
 
-      IO.inspect(
-        HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
-      )
-    else
-      spawn(fn -> send_not_live(event) end)
-      email = event.contact.email_address
-
-      info =
-        flatten(contents)
-        |> Enum.map(fn {key, val} ->
-          {"action_#{key}", val}
-        end)
-        |> Enum.into(~m(email))
-
-      IO.inspect(
-        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Rejected"), info)
-      )
-    end
+    IO.inspect(
+      HTTPotion.post(hook, bodify(%{event: event, reason: reason, team_member: team_member}))
+    )
   end
 
   def exec("cancelled", contents = %{event: event, team_member: team_member, reason: reason}) do
-    if @instance != "jd" do
-      %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(@cosmic_config_slug)
-      IO.puts("Posting webhook to #{hook} because of cancelled")
+    %{"metadata" => %{"event_cancelled" => hook}} = Cosmic.get(cosmic_config_slug())
+    IO.puts("Posting webhook to #{hook} because of cancelled")
 
-      IO.inspect(
-        HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
-      )
-    else
-      spawn(fn -> send_not_live(event) end)
-      email = event.contact.email_address
-
-      info =
-        flatten(contents)
-        |> Enum.map(fn {key, val} ->
-          {"action_#{key}", val}
-        end)
-        |> Enum.into(~m(email))
-
-      IO.inspect(
-        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Cancelled"), info)
-      )
-    end
+    IO.inspect(
+      HTTPotion.post(hook, bodify(%{event: event, team_member: team_member, reason: reason}))
+    )
   end
 
   def exec("tentative", contents = %{event: event, team_member: team_member}) do
-    if @instance != "jd" do
-      %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get(@cosmic_config_slug)
-      IO.puts("Posting webhook to #{hook} because of tentative")
-      IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
-    else
-      spawn(fn -> send_not_live(event) end)
-      email = event.contact.email_address
-
-      info =
-        flatten(contents)
-        |> Enum.map(fn {key, val} ->
-          {"action_#{key}", val}
-        end)
-        |> Enum.into(~m(email))
-
-      IO.inspect(
-        Ak.Signup.process_signup(&String.contains?(&1["title"], "ESM: Event Unpublished"), info)
-      )
-    end
+    %{"metadata" => %{"event_unpublished" => hook}} = Cosmic.get(cosmic_config_slug())
+    IO.puts("Posting webhook to #{hook} because of tentative")
+    IO.inspect(HTTPotion.post(hook, bodify(%{event: event, team_member: team_member})))
   end
 
   def exec("edit", %{event: event, edits: edits}) do
-    %{"metadata" => %{"event_edited" => hook}} = Cosmic.get(@cosmic_config_slug)
+    %{"metadata" => %{"event_edited" => hook}} = Cosmic.get(cosmic_config_slug())
     IO.puts("Posting webhook to #{hook} because of edit")
     IO.inspect(HTTPotion.post(hook, bodify(%{event: event, edits: edits})))
   end
 
   def exec("duplicate", %{event: event}) do
-    case Cosmic.get(@cosmic_config_slug) do
-      %{"metadata" => %{"event_duplicated" => hook}} ->
-        IO.puts("Posting webhook to #{hook} because of edit")
-        IO.inspect(HTTPotion.post(hook, bodify(%{event: event})))
+    spawn(fn ->
+      case Cosmic.get(cosmic_config_slug()) do
+        %{"metadata" => %{"event_duplicated" => hook}} ->
+          IO.puts("Posting webhook to #{hook} because of duplication")
+          IO.inspect(HTTPotion.post(hook, bodify(%{event: event})))
 
-      _ ->
-        nil
-    end
+        _ ->
+          nil
+      end
+    end)
   end
 
   def exec("message_host", contents = ~m(event host message)a) do
     if @instance != "jd" do
-      %{"metadata" => %{"message_host" => hook}} = Cosmic.get(@cosmic_config_slug)
+      %{"metadata" => %{"message_host" => hook}} = Cosmic.get(cosmic_config_slug())
       IO.puts("Posting webhook to #{hook} because of message-host")
       IO.inspect(HTTPotion.post(hook, bodify(~m(event host message))))
     else
@@ -153,14 +83,14 @@ defmodule Admin.Webhooks do
   end
 
   def exec(hook_type = "message_attendees" <> _rest, ~m(event attendee_emails message)a) do
-    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", hook_type])
+    hook = Cosmic.get(cosmic_config_slug()) |> get_in(["metadata", hook_type])
     IO.puts("Posting webhook to #{hook} because of #{hook_type}")
     IO.inspect(HTTPotion.post(hook, bodify(~m(event attendee_emails message))))
   end
 
   def exec("important_change", ~m(event attendee_emails)a) do
     %{"metadata" => %{"message_attendees_date_time_changed" => hook}} =
-      Cosmic.get(@cosmic_config_slug)
+      Cosmic.get(cosmic_config_slug())
 
     if attendee_emails == "" do
       IO.puts("Not posting webhook to #{hook} because no one is attending")
@@ -175,7 +105,7 @@ defmodule Admin.Webhooks do
   end
 
   def send_not_live(event) do
-    hook = Cosmic.get(@cosmic_config_slug) |> get_in(["metadata", "event_made_not_live"])
+    hook = Cosmic.get(cosmic_config_slug()) |> get_in(["metadata", "event_made_not_live"])
     IO.puts("Posting webhook to #{hook} because of event_made_not_live")
     IO.inspect(HTTPotion.post(hook, bodify(~m(event))))
   end
@@ -189,10 +119,10 @@ defmodule Admin.Webhooks do
 
   def get_date_line(event) do
     date_line =
-      humanize_date(event["start_date"]) <>
+      humanize_date(event.start_date) <>
         "from " <>
-        humanize_time(event["start_date"], get_in(event, ~w(location time_zone))) <>
-        " - " <> humanize_time(event["end_date"], get_in(event, ~w(location time_zone)))
+        humanize_time(event.start_date, get_in(event, ~w(location time_zone)a)) <>
+        " - " <> humanize_time(event.end_date, get_in(event, ~w(location time_zone)a))
 
     Map.put(event, "date_line", date_line)
   end

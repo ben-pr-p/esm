@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import enUS from "antd/lib/locale-provider/en_US";
 import { Layout, LocaleProvider } from "antd";
+import moment from "moment";
 import socket from "../socket";
 import EventCard from "./event-card";
 import { Spin } from "antd";
@@ -68,13 +69,31 @@ export default class MyEvents extends Component {
       return this.state.events[id].status != "cancelled";
     });
 
-    const future = events.filter(id => {
-      return new Date(this.state.events[id].start_date) > new Date();
-    });
+    const future = events
+      .filter(id => {
+        return new Date(this.state.events[id].start_date) > new Date();
+      })
+      .sort(
+        (a, b) =>
+          moment(this.state.events[a].start_date).isBefore(
+            moment(this.state.events[b].start_date)
+          )
+            ? -1
+            : 1
+      );
 
-    const past = events.filter(idx => {
-      return new Date(this.state.events[idx].start_date) < new Date();
-    });
+    const past = events
+      .filter(idx => {
+        return new Date(this.state.events[idx].start_date) < new Date();
+      })
+      .sort(
+        (a, b) =>
+          moment(this.state.events[a].start_date).isBefore(
+            moment(this.state.events[b].start_date)
+          )
+            ? 1
+            : -1
+      );
 
     return (
       <LocaleProvider locale={enUS}>

@@ -1,11 +1,132 @@
 defmodule Admin.FormController do
   use Admin, :controller
-
-  @max_delay_time 120
-
+  alias Esm.{Submissions}
   import ShortMaps
 
+  @max_delay_time 120
   @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
+
+  def form_one(conn, params) do
+    submission_id =
+      if Map.has_key?(params, "submission_id"),
+        do: params["submission_id"],
+        else: get_session(conn, :submission_id)
+
+    case submission_id do
+      nil ->
+        render(conn, "form_one.html")
+
+      _submission_id ->
+        redirect(conn, to: "/event/create")
+    end
+  end
+
+  def form_one_submit(conn, params) do
+    submission_id = Submissions.start(params)
+
+    conn
+    |> put_session(:submission_id, submission_id)
+    |> render("form_two.html", type: params["type"], name: params["name"], hide_intro: true)
+  end
+
+  def form_two(conn, params) do
+    submission_id =
+      if Map.has_key?(params, "submission_id"),
+        do: params["submission_id"],
+        else: get_session(conn, :submission_id)
+
+    case submission_id do
+      nil ->
+        redirect(conn, to: "/event/host")
+
+      submission_id ->
+        case Submissions.get_fragment(submission_id) do
+          %{"data" => %{"type" => type, "contact" => ~m(name)}} ->
+            render(conn, "form_two.html", type: type, name: name, hide_intro: false)
+
+          nil ->
+            conn
+            |> delete_session(:submission_id)
+            |> redirect(to: "/event/host")
+        end
+    end
+  end
+
+  def form_two_submit(
+        conn,
+        params =
+          ~m(date start_time end_time title description venue capacity address city state zip)
+      ) do
+    data =
+      Map.merge(
+        %{
+          "status" => "tentative",
+          "location" => %{
+            "venue" => venue,
+            "address_lines" => [address],
+            "region" => state,
+            "locality" => city,
+            "postal_code" => zip
+          },
+          "tags" => ["Event: Should Contact Host", "Source: New Volunteer Form"],
+          "start_date" => combine_time_and_date(start_time, date),
+          "end_date" => combine_time_and_date(end_time, date)
+        },
+        ~m(title description capacity)
+      )
+
+    submission_id = get_session(conn, :submission_id)
+    Submissions.complete(submission_id, data)
+
+    conn
+    |> delete_session(:submission_id)
+    |> render("thanks.html")
+  end
+
+  def direct_publish(conn, _params) do
+    render(conn, "direct_publish.html")
+  end
+
+  def direct_publish_submit(
+        conn,
+        params =
+          ~m(date start_time end_time title description venue capacity address city state zip first_name last_name email phone zip type)
+      ) do
+    source = params["source"]
+
+    data =
+      Map.merge(
+        %{
+          "status" => "confirmed",
+          "location" => %{
+            "venue" => venue,
+            "address_lines" => [address],
+            "region" => state,
+            "locality" => city,
+            "postal_code" => zip
+          },
+          "contact" => %{
+            "given_name" => first_name,
+            "last_name" => last_name,
+            "email_address" => email,
+            "phone_number" => phone
+          },
+          "tags" => ["Event: Should Contact Host", "Source: New Volunteer Form"],
+          "start_date" => construct_dt(start_time, date),
+          "end_date" => construct_dt(end_time, date)
+        },
+        ~m(title description capacity type)
+      )
+
+    Submissions.start_and_complete(data)
+    render(conn, "thanks.html", direct_publish: true)
+  end
+
+  def clear_session_redirect(conn, _) do
+    conn
+    |> delete_session(:submission_id)
+    |> redirect(to: "/event/host")
+  end
 
   def create(conn, params) do
     %{"metadata" => %{"event_submitted" => success_hook, "submission_failure" => failure_hook}} =
@@ -81,6 +202,24 @@ defmodule Admin.FormController do
     end
 
     IO.inspect(created)
+  end
+
+  def combine_time_and_date(time, date) do
+    [hours, minutes] = String.split(time, ":")
+    [year, month, day] = String.split(date, "-")
+
+    %DateTime{
+      year: easy_int(year),
+      month: easy_int(month),
+      day: easy_int(day),
+      time_zone: "",
+      hour: easy_int(hours),
+      minute: easy_int(minutes),
+      second: 0,
+      std_offset: 0,
+      utc_offset: 0,
+      zone_abbr: "UTC"
+    }
   end
 
   def construct_dt(time, date) do

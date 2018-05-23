@@ -66,11 +66,12 @@ config :admin,
   deployed_url: "${DEPLOYED_URL}",
   instance: "beto"
 
-config :actionkit,
-  base: "${AK_BASE}",
-  username: "${AK_USERNAME}",
-  password: "${AK_PASSWORD}"
-
 config :rollbax,
   access_token: "${ROLLBAR_TOKEN}",
   environment: "production"
+
+config :cosmic, slug: "${COSMIC_BUCKET_SLUG}"
+
+config :admin,
+  cosmic_info_slug: "${COSMIC_CONFIG_SLUG}",
+  whitelist_domain: "${WHITELISTED_DOMAIN}"

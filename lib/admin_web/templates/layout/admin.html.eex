@@ -18,7 +18,7 @@
   </head>
 
   <body>
-    <main class="main" role="main">
+    <main class="main" role="main" style="height: 100%;">
       <%= render @view_module, @view_template, assigns %>
     </main>
   </body>

@@ -862,15 +862,15 @@ export default class EventCard extends Component {
             Cancel
           </Button>
         ]
-      )
-      .concat(
-        this.props.candidate && [
-          <Turnout
-            event_id={this.props.id}
-            survey={this.props.survey}
-            channel={this.props.channel}
-          />
-        ]
       );
+    // .concat(
+    //   this.props.candidate && [
+    //     <Turnout
+    //       event_id={this.props.id}
+    //       survey={this.props.survey}
+    //       channel={this.props.channel}
+    //     />
+    //   ]
+    // );
   }
 }

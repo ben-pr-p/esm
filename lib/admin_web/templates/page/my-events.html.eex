@@ -1,3 +1,4 @@
 <div id="app"></div>
+<div id="help-email" data-email="<%= @help_email %>">
 <div id="organizer-token" style="display:none" content="<%= @organizer_token %>"></div>
 <%= {:safe, js_script_tag("my-events.js") } %>

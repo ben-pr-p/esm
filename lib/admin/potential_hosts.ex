@@ -41,15 +41,23 @@ defmodule PotentialHosts do
     [form_one, form_two, main_form] =
       [
         Task.async(fn ->
-          Ak.Api.stream("action", query: %{page: 753, order_by: "-created_at"})
+          Ak.Api.stream(
+            "action",
+            query: %{page: 753, order_by: "-created_at"},
+            timeout: 1_000_000
+          )
           |> Enum.to_list()
         end),
         Task.async(fn ->
-          Ak.Api.stream("action", query: %{page: 742, order_by: "-created_at"})
+          Ak.Api.stream(
+            "action",
+            query: %{page: 742, order_by: "-created_at"},
+            timeout: 1_000_000
+          )
           |> Enum.to_list()
         end),
         Task.async(fn ->
-          %{body: body} = Ak.Api.post("report/run/679")
+          %{body: body} = Ak.Api.post("report/run/679", timeout: 1_000_000)
 
           Enum.map(body, fn [user_id, created_at] ->
             %{"user" => "/rest/v1/user/#{user_id}", "created_at" => created_at}

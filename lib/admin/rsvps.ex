@@ -1,19 +1,24 @@
 defmodule Rsvps do
   def csv_for(id) do
     all_attendances = OsdiClient.stream(client(), "events/#{id}/attendances")
-    people_ids = Enum.map(all_attendances, & &1.person)
+
+    people_sources =
+      Enum.reduce(all_attendances, %{}, fn attendance, acc ->
+        Map.put(acc, attendance.person, get_in(attendance, ~w(referrer_data source)a))
+      end)
+
+    people_ids = Enum.map(all_attendances, & &1.person) |> MapSet.new()
 
     people_fetch_tasks =
       Enum.map(
         people_ids,
         &Task.async(fn ->
           %{body: body} = OsdiClient.get(client(), "people/#{&1}")
-          body
+          Map.put(body, :id, &1)
         end)
       )
 
     people = Enum.map(people_fetch_tasks, fn t -> Task.await(t, :infinity) end)
-    IO.inspect(people)
 
     csv_content =
       Enum.map(people, fn p ->

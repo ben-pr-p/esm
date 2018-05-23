@@ -1,96 +1,120 @@
-import React, { Component } from 'react'
-import enUS from 'antd/lib/locale-provider/en_US'
-import { Layout, LocaleProvider } from 'antd'
-import socket from '../socket'
-import EventCard from './event-card'
-import { Spin } from 'antd'
+import React, { Component } from "react";
+import enUS from "antd/lib/locale-provider/en_US";
+import { Layout, LocaleProvider } from "antd";
+import socket from "../socket";
+import EventCard from "./event-card";
+import moment from "moment";
+import { Spin } from "antd";
 
-const { Header, Content } = Layout
+const { Header, Content } = Layout;
 
 export default class MyEvents extends Component {
   state = {
     events: {},
     typeOptions: [],
     channel: null
-  }
+  };
 
   componentWillMount() {
-    window.tagOptions = []
+    window.tagOptions = [];
   }
 
   componentDidMount() {
     const token = document
-      .querySelector('#organizer-token')
-      .getAttribute('content')
+      .querySelector("#organizer-token")
+      .getAttribute("content");
 
-    this.state.channel = socket.channel('events', { organizer_token: token })
+    this.state.channel = socket.channel("events", { organizer_token: token });
 
     this.state.channel
       .join()
-      .receive('ok', resp => {
-        console.log('Joined successfully', resp)
+      .receive("ok", resp => {
+        console.log("Joined successfully", resp);
       })
-      .receive('error', resp => {
-        console.log('Unable to join', resp)
-      })
+      .receive("error", resp => {
+        console.log("Unable to join", resp);
+      });
 
-    this.state.channel.on('event', ({ id, event }) => {
-      event.tags.forEach(t => window.tagOptions.push(t))
-      this.state.events[id] = event
+    this.state.channel.on("event", ({ id, event }) => {
+      event.tags.forEach(t => window.tagOptions.push(t));
+      this.state.events[id] = event;
       this.state.typeOptions = [
         ...new Set(this.state.typeOptions.concat([event.type]))
-      ]
+      ];
 
-      this.forceUpdate()
-    })
+      this.forceUpdate();
+    });
 
-    this.state.channel.push('ready', { page: 'my-events' })
+    this.state.channel.push("ready", { page: "my-events" });
 
     setTimeout(() => {
       if (Object.keys(this.state.events).length == 0) {
-        this.setState({ no_events: true })
+        this.setState({ no_events: true });
       }
-    }, 20000)
+    }, 20000);
   }
 
   render() {
     const events = Object.keys(this.state.events).filter(id => {
-      return this.state.events[id].status != 'cancelled'
-    })
+      return this.state.events[id].status != "cancelled";
+    });
 
-    const future = events.filter(id => {
-      return new Date(this.state.events[id].start_date) > new Date()
-    })
+    const future = events
+      .filter(id => {
+        return new Date(this.state.events[id].start_date) > new Date();
+      })
+      .sort(
+        (a, b) =>
+          moment(this.state.events[a].start_date).isBefore(
+            moment(this.state.events[b].start_date)
+          )
+            ? -1
+            : 1
+      );
 
-    const past = events.filter(idx => {
-      return new Date(this.state.events[idx].start_date) < new Date()
-    })
+    const past = events
+      .filter(idx => {
+        return new Date(this.state.events[idx].start_date) < new Date();
+      })
+      .sort(
+        (a, b) =>
+          moment(this.state.events[a].start_date).isBefore(
+            moment(this.state.events[b].start_date)
+          )
+            ? 1
+            : -1
+      );
+
+    const help_email = document
+      .getElementById("help-email")
+      .getAttribute("data-email");
 
     return (
       <LocaleProvider locale={enUS}>
-        <Layout style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-          <Header style={{ display: 'flex', justifyContent: 'space-around' }}>
-            <h1 style={{ color: 'white' }}>Edit Your Events</h1>
-            <h2 style={{ color: 'white' }}>
+        <Layout style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+          <Header style={{ display: "flex", justifyContent: "space-around" }}>
+            <h1 style={{ color: "white" }}>Edit Your Events</h1>
+            <h2 style={{ color: "white" }}>
               You can double click on any text field or date to edit it.
             </h2>
           </Header>
 
           <Content
             style={{
-              width: '100%',
+              width: "100%",
               padding: 25,
-              minHeight: '100vh',
-              position: 'relative'
-            }}>
+              minHeight: "100vh",
+              position: "relative"
+            }}
+          >
             {Object.keys(this.state.events).length == 0 &&
               !this.state.no_events && (
                 <Spin
                   style={{
-                    height: '100%',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%'
+                    height: "100%",
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%"
                   }}
                   size="large"
                 />
@@ -98,12 +122,10 @@ export default class MyEvents extends Component {
 
             {this.state.no_events && (
               <div>
-                <h1 style={{ textAlign: 'center' }}> No Events </h1>
-                <span style={{fontSize: 18}}>
+                <h1 style={{ textAlign: "center" }}> No Events </h1>
+                <span style={{ fontSize: 18 }}>
                   Does this seem like a mistake? Please contact
-                  <a href="mailto:organizing@betofortexas.com">
-                    {' '}organizing@betofortexas.com{' '}
-                  </a>
+                  <a href={help_email}>{help_email}</a>
                   to resolve any potential issues.
                 </span>
               </div>
@@ -111,9 +133,9 @@ export default class MyEvents extends Component {
 
             {Object.keys(this.state.events).length > 0 &&
               (future.length > 0 ? (
-                <h1 style={{ textAlign: 'center' }}> Upcoming </h1>
+                <h1 style={{ textAlign: "center" }}> Upcoming </h1>
               ) : (
-                <h1 style={{ textAlign: 'center' }}> No Upcoming Events </h1>
+                <h1 style={{ textAlign: "center" }}> No Upcoming Events </h1>
               ))}
 
             {future.map(id => (
@@ -129,7 +151,7 @@ export default class MyEvents extends Component {
             ))}
 
             {past.length > 0 && (
-              <h1 style={{ textAlign: 'center' }}> Past Events </h1>
+              <h1 style={{ textAlign: "center" }}> Past Events </h1>
             )}
             {past.map(id => (
               <EventCard
@@ -145,6 +167,6 @@ export default class MyEvents extends Component {
           </Content>
         </Layout>
       </LocaleProvider>
-    )
+    );
   }
 }

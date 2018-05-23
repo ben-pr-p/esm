@@ -109,7 +109,7 @@ defmodule Admin.EventsChannel do
   def handle_in("tags-" <> id, tags, socket) do
     insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
 
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.one(id)
     calendar_tags = Enum.filter(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(tags, calendar_tags)
@@ -127,7 +127,7 @@ defmodule Admin.EventsChannel do
       actor: current_resource(socket)
     })
 
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.one(id)
 
     as_tags = Enum.map(calendars, &"Calendar: #{&1}")
     regular_tags = Enum.reject(event.tags, &String.contains?(&1, "Calendar: "))
@@ -178,7 +178,7 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("message-host-" <> id, %{"message" => message}, socket) do
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.one(id)
 
     Webhooks.on("message_host", %{
       event: event_pipeline(event),
@@ -233,12 +233,8 @@ defmodule Admin.EventsChannel do
   end
 
   def do_message_attendees(hook_type, event_id, message) do
-    [%{body: event}, attendee_emails] =
-      [
-        Task.async(fn -> OsdiClient.get(client(), "events/#{event_id}") end),
-        Task.async(fn -> Rsvps.emails_for(event_id) end)
-      ]
-      |> Enum.map(fn t -> Task.await(t, :infinity) end)
+    event = EventMirror.one(event_id)
+    attendee_emails = Rsvps.emails_for(event_id)
 
     Webhooks.on(hook_type, %{
       event: event_pipeline(event),
@@ -249,7 +245,7 @@ defmodule Admin.EventsChannel do
 
   defp send_esm_events(socket) do
     all_events =
-      OsdiClient.stream(client(), "events")
+      EventMirror.all()
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event ->
         %{id: event.id, event: event}
@@ -267,9 +263,9 @@ defmodule Admin.EventsChannel do
 
   defp send_list_events(socket) do
     all_events =
-      OsdiClient.stream(client(), "events")
+      EventMirror.all()
       |> Enum.map(&event_pipeline/1)
-      |> Enum.map(fn event = %{id: id} ->
+      |> Enum.each(fn event = %{id: id} ->
         %{id: event.id, event: event}
       end)
 
@@ -277,27 +273,23 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
-    OsdiClient.stream(client(), "events")
-    |> Flow.from_enumerable()
-    |> Flow.filter(&(&1.organizer_id == organizer_id))
-    |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
-    |> Flow.map(&event_pipeline/1)
-    |> Flow.each(fn event ->
+    EventMirror.all()
+    |> Enum.filter(&(&1.organizer_id == organizer_id))
+    |> Enum.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
+    |> Enum.map(&event_pipeline/1)
+    |> Enum.each(fn event ->
       push(socket, "event", %{id: event.id, event: event})
     end)
-    |> Flow.run()
   end
 
   defp send_candidate_events(socket = %{assigns: %{candidate_tag: candidate_tag}}) do
-    OsdiClient.stream(client(), "events")
-    |> Flow.from_enumerable()
-    |> Flow.filter(&Enum.member?(&1.tags, candidate_tag))
-    |> Flow.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
-    |> Flow.map(&event_pipeline/1)
-    |> Flow.each(fn event ->
+    EventMirror.all()
+    |> Enum.filter(&Enum.member?(&1.tags || [], candidate_tag))
+    |> Enum.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
+    |> Enum.map(&event_pipeline/1)
+    |> Enum.each(fn event ->
       push(socket, "event", %{id: event.id, event: event})
     end)
-    |> Flow.run()
   end
 
   def event_pipeline(event) do
@@ -344,22 +336,19 @@ defmodule Admin.EventsChannel do
 
   defp apply_edit(id, [key, value]) do
     change = Map.put(%{}, key, value)
-    OsdiClient.put(client(), "events/#{id}", change)
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.edit(id, change)
     event_pipeline(event)
   end
 
   defp apply_edit(id, change) when is_map(change) do
-    OsdiClient.put(client(), "events/#{id}", change)
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.edit(id, change)
     event_pipeline(event)
   end
 
   defp apply_contact_edit(id, [raw_key, value]) do
     "contact." <> key = raw_key
     contact_change = Map.put(%{}, key, value)
-    OsdiClient.put(client(), "events/#{id}", %{contact: contact_change})
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.edit(id, %{contact: contact_change})
     event_pipeline(event)
   end
 
@@ -371,58 +360,49 @@ defmodule Admin.EventsChannel do
       end
 
     location_change = Map.put(%{}, key, value)
-    OsdiClient.put(client(), "events/#{id}", %{location: location_change})
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
-    new_event = event_pipeline(event)
+    event = EventMirror.edit(id, %{location: location_change})
+    post_pipeline = event_pipeline(event)
 
     Webhooks.on("important_change", %{
-      event: event_pipeline(new_event),
+      event: post_pipeline,
       attendee_emails: Rsvps.emails_for(id) |> Enum.join(";")
     })
 
-    new_event
+    post_pipeline
   end
 
   def edit_tags_and_fetch(id, tags) do
-    OsdiClient.put(client(), "events/#{id}", %{tags: tags})
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.edit(id, %{tags: tags})
     event_pipeline(event)
   end
 
   defp set_status(id, status) do
-    case status do
-      "cancelled" ->
-        %{body: event} = OsdiClient.get(client(), "events/#{id}")
-        OsdiClient.delete(client(), "events/#{id}")
+    event = EventMirror.edit(id, %{status: status})
 
-        event
-        |> Map.put(:status, "cancelled")
-        |> event_pipeline()
-
-      _ ->
-        OsdiClient.put(client(), "events/#{id}", %{status: status})
-        %{body: event} = OsdiClient.get(client(), "events/#{id}")
-        event_pipeline(event)
+    if status == "cancelled" do
+      OsdiClient.delete(client(), "events/#{id}")
     end
+
+    event_pipeline(event)
   end
 
   defp mark_action(id, action) do
-    %{body: %{tags: current_tags}} = OsdiClient.get(client(), "events/#{id}")
+    %{tags: current_tags} = EventMirror.one(id)
     tag = "Event: Action: #{String.capitalize(action)}"
     new_tags = Enum.concat(current_tags, [tag])
-    OsdiClient.put(client(), "events/#{id}", %{tags: new_tags})
-    %{body: event} = OsdiClient.get(client(), "events/#{id}")
+    event = EventMirror.edit(id, %{tags: new_tags})
     event_pipeline(event)
   end
 
   defp duplicate(id, overrides) do
-    %{body: old} = OsdiClient.get(client(), "events/#{id}")
+    old = EventMirror.one(id)
 
     to_create =
       Enum.reduce(old, %{}, fn {key, val}, acc ->
         Map.put(acc, key, Map.get(overrides, Atom.to_string(key), val))
       end)
       |> Map.put(:status, "tentative")
+      |> Map.put(:tags, Enum.reject(old.tags, &String.contains?(&1, "Action:")))
       |> Map.drop([:identifiers, :id])
 
     %{body: new} = OsdiClient.post(client(), "events", to_create)
@@ -470,7 +450,7 @@ defmodule Admin.EventsChannel do
         payload = %{event: event},
         socket = %{assigns: %{candidate_tag: candidate_tag}}
       ) do
-    if event.tags |> Enum.member?(candidate_tag) do
+    if (event.tags || []) |> Enum.member?(candidate_tag) do
       push(socket, "event", payload)
     end
 

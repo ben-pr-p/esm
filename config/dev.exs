@@ -115,4 +115,11 @@ config :admin,
 
 config :rollbax,
   access_token: System.get_env("ROLLBAR_TOKEN"),
-  environment: "development"
+  environment: "production"
+
+config :cosmic, slug: System.get_env("COSMIC_BUCKET_SLUG")
+
+config :admin,
+  cosmic_info_slug: System.get_env("COSMIC_CONFIG_SLUG"),
+  whitelist_domain: System.get_env("WHITELISTED_DOMAIN"),
+  help_email: System.get_env("HELP_EMAIL")

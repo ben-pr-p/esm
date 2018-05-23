@@ -53,4 +53,11 @@ defmodule OsdiClient do
   def is_last_page(~m(total_pages page)a) do
     total_pages == page
   end
+
+  def client,
+    do:
+      OsdiClient.build_client(
+        Application.get_env(:admin, :osdi_base_url),
+        Application.get_env(:admin, :osdi_api_token)
+      )
 end

@@ -23,7 +23,7 @@ defmodule Admin.PageController do
       |> Cosmic.get_type()
       |> Enum.filter(&(not is_nil(&1["metadata"]["district"])))
       |> Enum.map(& &1["title"])
-      |> Enum.concat(["Brand New Congress", "Justice Democrats"])
+      |> Enum.concat(["Brand New Congress", "Justice Democrats", "Local Chapter"])
       |> Poison.encode!()
 
     render(conn, "esm.html", calendars: calendars, email: email)
@@ -39,8 +39,16 @@ defmodule Admin.PageController do
 
   def my_events(conn, %{"token" => token}) do
     case token |> URI.encode_www_form() |> MyCipher.decrypt() do
-      {:error, _message} -> alert_user_edit(conn)
-      _organizer_id -> render(conn, "my-events.html", organizer_token: token)
+      {:error, _message} ->
+        alert_user_edit(conn)
+
+      _organizer_id ->
+        render(
+          conn,
+          "my-events.html",
+          organizer_token: token,
+          help_email: Application.get_env(:admin, :help_email)
+        )
     end
   end
 
@@ -162,6 +170,11 @@ defmodule Admin.PageController do
 
   def interval_events_api(conn, _) do
     text(conn, "Missing secret – please visit /api/events?secret=thethingigotfromben")
+  end
+
+  def update_cosmic(conn, _) do
+    Cosmic.update()
+    text(conn, "OK")
   end
 
   def is_in_future?(ev) do
