@@ -1,0 +1,66 @@
+<%= if not @hide_intro do %>
+  <p> Just a few more fields to get your <%= @type %> on the map, <%= @name %>.
+    <a href="/event/clear-session-redirect"> Not <%= @name %>? </a>
+  </p>
+<% end %>
+
+<form action="/event/create" method="post">
+  <div class="input-field">
+    <label> Event Date </label>
+    <input type="date" name="date" min="<%= Timex.format!(Timex.now(), ~s({YYYY}-{0M}-{0D})) %>"/>
+  </div>
+
+  <div class="input-field">
+    <label> Start Time </label>
+    <input type="time" name="start_time" step="900" min="08:00" max="22:00"/>
+  </div>
+
+  <div class="input-field">
+    <label> End Time </label>
+    <input type="time" name="end_time" step="900" min="06:00" max="22:00" required="true"/>
+  </div>
+
+  <div class="input-field">
+    <label> Event Title </label>
+    <input type="text" name="title" required="true"/>
+  </div>
+
+  <div class="input-field">
+    <label> Event Description </label>
+    <textarea name="description" required="true"></textarea>
+  </div>
+
+  <div class="input-field">
+    <label> Event Venue </label>
+    <input type="text" name="venue" required="true"/>
+  </div>
+
+  <div class="input-field">
+    <label> Venue Capacity </label>
+    <input type="number" name="capacity" required="true" defaultValue="10"/>
+  </div>
+
+  <div class="input-field">
+    <label> Event Address </label>
+    <input type="text" name="address" required="true" />
+  </div>
+
+  <div class="input-field">
+    <label> Event City </label>
+    <input type="text" name="city" required="true" />
+  </div>
+
+  <div class="input-field">
+    <label> State </label>
+    <input type="text" name="state" required="true" />
+  </div>
+
+  <div class="input-field">
+    <label> Zip Code </label>
+    <input type="text" name="zip" required="true" maxlength="5"/>
+  </div>
+
+  <div class="input-field">
+    <button type="submit"> Done </button>
+  </div>
+</form>

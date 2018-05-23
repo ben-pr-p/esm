@@ -45,7 +45,6 @@ defmodule Admin.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:cosmic, git: "https://github.com/justicedemocrats/cosmic_ex.git"},
-      {:maps, git: "https://github.com/justicedemocrats/maps_ex.git"},
       {:ueberauth_google, "~> 0.5"},
       {:guardian, "~> 0.14"},
       {:distillery, "~> 1.0.0"},

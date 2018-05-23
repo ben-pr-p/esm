@@ -29,7 +29,7 @@ defmodule Admin.Application do
               port: Application.get_env(:admin, :mongodb_port)
             ]
           ]),
-          worker(PotentialHosts, []),
+          # worker(PotentialHosts, []),
           worker(EventMirror, [])
           # Start your own worker by calling: Admin.Worker.start_link(arg1, arg2, arg3)
           # worker(Admin.Worker, [arg1, arg2, arg3]),

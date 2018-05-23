@@ -4,10 +4,10 @@ defmodule Admin.HostsChannel do
   use Guardian.Channel
   import Guardian.Phoenix.Socket
   alias Admin.{CheckoutAgent}
+  alias Esm.{Submissions}
   import ShortMaps
 
-  @instance Application.get_env(:admin, :instance, "jd")
-  def deployed_url, do: Application.get_env(:admin, :deployed_url, "localhost:4000")
+  def deployed_url, do: Application.get_env(:admin, :deployed_url, "http://localhost:4000/")
 
   def join("hosts", _payload, socket) do
     {:ok, socket}
@@ -34,39 +34,41 @@ defmodule Admin.HostsChannel do
     {:noreply, socket}
   end
 
-  def handle_in("call-logs-for-" <> id, _payload, socket) do
-    calls = Admin.CallLogs.get_for(id)
-    push(socket, "call-logs", ~m(calls id))
-    {:noreply, socket}
-  end
+  # def handle_in("call-logs-for-" <> id, _payload, socket) do
+  #   calls = Admin.CallLogs.get_for(id)
+  #   push(socket, "call-logs", ~m(calls id))
+  #   {:noreply, socket}
+  # end
 
-  def handle_in("add-call-log-" <> event_id, ~m(note result), socket) do
-    actor = current_resource(socket)
+  # def handle_in("add-call-log-" <> event_id, ~m(note result), socket) do
+  #   actor = current_resource(socket)
 
-    Admin.CallLogs.add_to(~m(actor event_id note result))
-    calls = Admin.CallLogs.get_for(event_id)
+  #   Admin.CallLogs.add_to(~m(actor event_id note result))
+  #   calls = Admin.CallLogs.get_for(event_id)
 
-    Admin.HostStatus.set_for(event_id, result)
+  #   Admin.HostStatus.set_for(event_id, result)
 
-    push(socket, "call-logs", Map.merge(~m(calls), %{"id" => event_id}))
-    send_hosts(socket)
-    {:noreply, socket}
-  end
+  #   push(socket, "call-logs", Map.merge(~m(calls), %{"id" => event_id}))
+  #   send_hosts(socket)
+  #   {:noreply, socket}
+  # end
 
   def send_hosts(socket) do
     all_hosts =
-      PotentialHosts.get_potential_hosts()
-      |> Flow.from_enumerable()
-      |> Flow.map(&wrap_with_result/1)
-      |> Enum.to_list()
+      Submissions.get_all_non_created()
+      |> Enum.map(&wrap_with_id/1)
 
     broadcast(socket, "hosts", %{all_hosts: all_hosts})
   end
 
-  def wrap_with_result(object = ~m(id host)) do
-    case Admin.HostStatus.get_for(id) do
-      %{"result" => status} -> Map.put(object, "host", Map.merge(host, ~m(status)))
-      nil -> object
-    end
+  def wrap_with_id(~m(id created_at data status)) do
+    host =
+      Map.merge(data, %{
+        "submitted_at" => created_at,
+        "status" => status,
+        "submission_complete_url" => deployed_url() <> "/event/host?submission_id=#{id}"
+      })
+
+    ~m(id host)
   end
 end

@@ -10,10 +10,6 @@ defmodule EventMirror do
     all =
       OsdiClient.stream(client(), "events")
       |> Enum.reduce(%{}, fn event, acc ->
-        if event.id == "2103" do
-          IO.inspect(event)
-        end
-
         Map.put(acc, event.id, event)
       end)
 

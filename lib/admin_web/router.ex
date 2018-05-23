@@ -1,17 +1,26 @@
 defmodule Admin.Router do
   use Admin, :router
 
-  pipeline :browser do
+  pipeline :browser_admin do
     plug(:accepts, ["html"])
     plug(:fetch_session)
     plug(:fetch_flash)
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
-  end
-
-  pipeline :browser_auth do
     plug(Guardian.Plug.VerifySession)
     plug(Guardian.Plug.LoadResource)
+
+    plug(:put_layout, {Admin.LayoutView, :admin})
+  end
+
+  pipeline :browser_form do
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_flash)
+    # plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+
+    plug(:put_layout, {Admin.LayoutView, :form})
   end
 
   pipeline :api do
@@ -19,7 +28,7 @@ defmodule Admin.Router do
   end
 
   scope "/", Admin do
-    pipe_through([:browser, :browser_auth])
+    pipe_through(:browser_admin)
 
     get("/auth", AuthController, :index)
     delete("/auth/logout", AuthController, :delete)
@@ -36,6 +45,18 @@ defmodule Admin.Router do
     get("/candidate-events/:token", PageController, :candidate_events)
 
     get("/rsvps/:encrypted", PageController, :rsvps)
+  end
+
+  scope "/", Admin do
+    pipe_through(:browser_form)
+
+    get("/event/host", FormController, :form_one)
+    post("/event/host", FormController, :form_one_submit)
+    get("/event/create", FormController, :form_two)
+    post("/event/create", FormController, :form_two_submit)
+    get("/event/directpublish", FormController, :direct_publish)
+    post("/event/directpublish", FormController, :direct_publish_submit)
+    get("/event/clear-session-redirect", FormController, :clear_session_redirect)
   end
 
   scope "/api", Admin do

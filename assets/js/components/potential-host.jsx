@@ -65,45 +65,66 @@ export default class EventCard extends Component {
   render() {
     const { ph, category } = this.props;
 
-    const { contact, type } = ph;
+    const { contact, type, submitted_at, submission_complete_url } = ph;
+    const { name, phone_number, email_address, zip } = contact;
 
     const disabled = true;
 
     return (
       <Card
         title={contact.name}
-        extra={
-          <div style={{ display: "flex" }}>
-            <div style={{ marginLeft: 30 }}>
-              <CallLogs
-                id={this.props.id}
-                channel={this.props.channel}
-                calls={this.props.calls}
-                category={this.props.category}
-              />
-            </div>
-          </div>
-        }
+        // extra={
+        //   <div style={{ display: "flex" }}>
+        //     <div style={{ marginLeft: 30 }}>
+        //       <CallLogs
+        //         id={this.props.id}
+        //         channel={this.props.channel}
+        //         calls={this.props.calls}
+        //         category={this.props.category}
+        //       />
+        //     </div>
+        //   </div>
+        // }
         style={{ width: "45%", marginTop: 25 }}
         bodyStyle={{
           display: "flex",
           flexWrap: "wrap",
           width: "100%",
-          height: 150,
+          height: 450,
           overflowY: "scroll"
         }}
       >
-        <Table
-          pagination={false}
-          size="small"
-          width="100%"
-          columns={[
-            { key: "type", title: "Type", dataIndex: "type" },
-            { key: "phone_number", title: "Phone", dataIndex: "phone_number" },
-            { key: "email_address", title: "Email", dataIndex: "email_address" }
-          ]}
-          dataSource={[Object.assign(contact, { type })]}
-        />
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Submission Finish Url</strong> <br />
+          <a href={submission_complete_url} target="_blank">
+            {submission_complete_url}
+          </a>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Submitted At:</strong>
+          <div>{new Date(submitted_at).toString()}</div>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Phone Number</strong>
+          <div>{phone_number}</div>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Type</strong>
+          <div>{type}</div>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Email</strong>
+          <div>{email_address}</div>
+        </div>
+
+        <div className="field-group" style={{ margin: 10, minWidth: 250 }}>
+          <strong>Zip</strong>
+          <div>{zip}</div>
+        </div>
       </Card>
     );
   }

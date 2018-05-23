@@ -1,18 +1,14 @@
 export default [
   {
-    title: "Uncalled",
-    fn: h => !h.status
+    title: "In Progress",
+    fn: h => h.status == "in_progress"
   },
   {
-    title: "Not Interested",
-    fn: h => h.status == "not-interested"
+    title: "Awaiting Creation by Tool",
+    fn: h => h.status == "awaiting_creation"
   },
   {
-    title: "Call back later",
-    fn: h => h.status == "call-back-later"
-  },
-  {
-    title: "Success",
-    fn: h => h.status == "success"
+    title: "Failed",
+    fn: h => h.status == "failed"
   }
 ];

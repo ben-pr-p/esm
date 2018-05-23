@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Host an Event</title>
+    <link rel="stylesheet" href="https://cdn.shoelace.style/1.0.0-beta24/shoelace.css">
+  </head>
+
+  <body style="text-align: center; padding: 20px;">
+    <main class="main" role="main" style="max-width: 700px; text-align: left;">
+      <%= render @view_module, @view_template, assigns %>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+    <script src="https://cdn.shoelace.style/1.0.0-beta24/shoelace.js"></script>
+  </body>
+</html>

@@ -20,8 +20,6 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :cosmic, slug: "brand-new-congress"
-
 config :guardian, Guardian,
   allowed_algos: ["HS512"],
   verify_module: Guardian.JWT,
@@ -40,10 +38,6 @@ config :admin, Admin.Scheduler,
     {"*/5 * * * *", {Admin.EditAgent, :send_and_clear, []}},
     {"*/3 * * * *", {EventMirror, :update, []}}
   ]
-
-config :admin,
-  cosmic_info_slug: "jd-esm-config",
-  whitelist_domain: "@justicedemocrats.com"
 
 config :logger, backends: [:console, Rollbax.Logger]
 

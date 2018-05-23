@@ -35,7 +35,6 @@ defmodule Turnout do
 
     spawn(fn ->
       %{body: event} = OsdiClient.get(Admin.EventsChannel.client(), "events/#{event_id}")
-      IO.inspect(event)
       candidate = event.tags |> Enum.filter(&is_candidate_tag/1) |> extract_candidate()
 
       Admin.Webhooks.on(
