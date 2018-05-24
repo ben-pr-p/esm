@@ -50,7 +50,7 @@ defmodule Admin.Mixfile do
       {:distillery, "~> 1.0.0"},
       {:cipher, "~> 1.3.4"},
       {:quantum, ">= 2.1.0"},
-      {:httpotion, "~> 3.0.2"},
+      {:httpotion, "~> 3.1.0"},
       {:mongodb, "~> 0.4.3"},
       {:timex, "~> 3.1"},
       {:short_maps, "~> 0.1.2"},
