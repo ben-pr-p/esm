@@ -1,7 +1,6 @@
 <div id="app"></div>
 <script>
   window.userEmail = "<%= raw(@email) %>";
-  window.calendarOptions = <%= raw(@calendars) %>;
   window.states = [
     'AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC',
     'FM', 'FL', 'GA', 'GU', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA',

@@ -17,16 +17,7 @@ defmodule Admin.PageController do
 
   def esm(conn, _params) do
     email = Plug.current_resource(conn)
-
-    calendars =
-      "candidates"
-      |> Cosmic.get_type()
-      |> Enum.filter(&(not is_nil(&1["metadata"]["district"])))
-      |> Enum.map(& &1["title"])
-      |> Enum.concat(["Brand New Congress", "Justice Democrats", "Local Chapter"])
-      |> Poison.encode!()
-
-    render(conn, "esm.html", calendars: calendars, email: email)
+    render(conn, "esm.html", email: email)
   end
 
   def list(conn, _params) do
