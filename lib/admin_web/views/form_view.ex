@@ -9,14 +9,21 @@ defmodule Admin.FormView do
   end
 
   def thanks_html do
-    %{"metafields" => ~m(thanks)} = Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
+    %{"metadata" => ~m(thanks)} = Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
     thanks
   end
 
   def intro_html do
-    %{"metafields" => ~m(introduction)} =
+    %{"metadata" => ~m(introduction)} =
       Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
 
     introduction
+  end
+
+  def event_types do
+    %{"metadata" => ~m(event_types)} =
+      Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
+
+    String.split(event_types, "\n")
   end
 end

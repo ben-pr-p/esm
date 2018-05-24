@@ -1,40 +1,61 @@
 <%= raw(intro_html()) %>
 
 <form action="/event/host" method="post">
-  <div class="input-field">
-    <label>First Name</label>
-    <input type="text" required="true" name="first_name">
-  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="input-field">
+          <label>First Name</label>
+          <input type="text" required="true" name="first_name">
+        </div>
+      </div>
 
-  <div class="input-field">
-    <label>Last Name</label>
-    <input type="text" required="true" name="last_name"/>
-  </div>
+      <div class="col-sm-6">
+        <div class="input-field">
+          <label>Last Name</label>
+          <input type="text" required="true" name="last_name"/>
+        </div>
+      </div>
+    </div>
 
-  <div class="input-field">
-    <label>Email</label>
-    <input type="email" required="true" name="email"/>
-  </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="input-field">
+          <label>Email</label>
+          <input type="email" required="true" name="email"/>
+        </div>
+      </div>
 
-  <div class="input-field">
-    <label>Phone</label>
-    <input type="tel" required="true" name="phone"/>
-  </div>
+      <div class="col-sm-6">
+        <div class="input-field">
+          <label>Phone</label>
+          <input type="tel" required="true" name="phone"/>
+        </div>
+      </div>
+    </div>
 
-  <div class="input-field">
-    <label>Zip Code</label>
-    <input type="text" required="true" name="zip" maxlength="5"/>
-  </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="input-field">
+          <label>Zip Code</label>
+          <input type="text" required="true" name="zip" maxlength="5"/>
+        </div>
+      </div>
 
+      <div class="col-sm-6">
+        <div class="input-field">
+          <label>Event Type</label>
+          <select name="type">
+            <%= for type <- event_types() do %>
+              <option value="<%= type %>"> <%= type %> </option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+    </div>
 
-  <div class="input-field">
-    <label>Event Type</label>
-    <select name="type">
-      <option value="Phonebank"> Phonebank </option>
-    </select>
-  </div>
-
-  <div class="input-field">
-    <button type="submit"> Next </button>
+    <div class="input-field">
+      <button class="button-block" type="submit"> Next </button>
+    </div>
   </div>
 </form>
