@@ -73,5 +73,5 @@ config :rollbax,
 config :cosmic, slug: "${COSMIC_BUCKET_SLUG}"
 
 config :admin,
-  cosmic_info_slug: "${COSMIC_CONFIG_SLUG}",
+  cosmic_config_slug: "${COSMIC_CONFIG_SLUG}",
   whitelist_domain: "${WHITELISTED_DOMAIN}"

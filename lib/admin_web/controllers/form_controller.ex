@@ -4,7 +4,6 @@ defmodule Admin.FormController do
   import ShortMaps
 
   @max_delay_time 120
-  @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
 
   def form_one(conn, params) do
     submission_id =
@@ -130,7 +129,7 @@ defmodule Admin.FormController do
 
   def create(conn, params) do
     %{"metadata" => %{"event_submitted" => success_hook, "submission_failure" => failure_hook}} =
-      Cosmic.get(@cosmic_config_slug)
+      Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
 
     try do
       spawn(fn ->
