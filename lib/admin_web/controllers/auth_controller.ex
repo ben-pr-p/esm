@@ -2,9 +2,6 @@ defmodule Admin.AuthController do
   use Admin, :controller
   plug(Ueberauth)
 
-  @cosmic_config_slug Application.get_env(:admin, :cosmic_info_slug)
-  @whitelist_domain Application.get_env(:admin, :whitelist_domain)
-
   alias Guardian.Plug
   alias Admin.{Repo}
 
@@ -38,14 +35,21 @@ defmodule Admin.AuthController do
     email = Map.get(info, :email)
 
     cond do
-      String.contains?(email, @whitelist_domain) -> {:ok, %{email: email, google_id: uid}}
-      is_on_whitelist(email) -> {:ok, %{email: email, google_id: uid}}
-      true -> {:error, email}
+      String.contains?(email, Application.get_env(:admin, :whitelist_domain)) ->
+        {:ok, %{email: email, google_id: uid}}
+
+      is_on_whitelist(email) ->
+        {:ok, %{email: email, google_id: uid}}
+
+      true ->
+        {:error, email}
     end
   end
 
   defp is_on_whitelist(email) do
-    %{"metadata" => %{"user_whitelist" => whitelist}} = Cosmic.get(@cosmic_config_slug)
+    %{"metadata" => %{"user_whitelist" => whitelist}} =
+      Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
+
     whitelisted = String.split(whitelist, "\n")
     Enum.member?(whitelisted, email)
   end

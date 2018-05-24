@@ -106,12 +106,12 @@ config :cipher,
 config :admin,
   osdi_base_url: System.get_env("OSDI_BASE_URL"),
   osdi_api_token: System.get_env("OSDI_API_TOKEN"),
+  mongodb_dbname: System.get_env("MONGO_DBNAME"),
   mongodb_username: System.get_env("MONGO_USERNAME"),
   mongodb_hostname: System.get_env("MONGO_HOSTNAME"),
   mongodb_password: System.get_env("MONGO_PASSWORD"),
   mongodb_port: System.get_env("MONGO_PORT"),
-  deployed_url: System.get_env("DEPLOYED_URL"),
-  instance: "beto"
+  deployed_url: System.get_env("DEPLOYED_URL")
 
 config :rollbax,
   access_token: System.get_env("ROLLBAR_TOKEN"),
@@ -120,6 +120,6 @@ config :rollbax,
 config :cosmic, slug: System.get_env("COSMIC_BUCKET_SLUG")
 
 config :admin,
-  cosmic_info_slug: System.get_env("COSMIC_CONFIG_SLUG"),
+  cosmic_config_slug: System.get_env("COSMIC_CONFIG_SLUG"),
   whitelist_domain: System.get_env("WHITELISTED_DOMAIN"),
   help_email: System.get_env("HELP_EMAIL")

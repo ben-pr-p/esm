@@ -22,7 +22,7 @@ defmodule Admin.Application do
           worker(Mongo, [
             [
               name: :mongo,
-              database: "esm",
+              database: Application.get_env(:admin, :mongodb_dbname),
               username: Application.get_env(:admin, :mongodb_username),
               password: Application.get_env(:admin, :mongodb_password),
               hostname: Application.get_env(:admin, :mongodb_hostname),

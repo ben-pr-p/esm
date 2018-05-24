@@ -2,6 +2,8 @@ defmodule Esm.Submissions do
   import ShortMaps
   require Logger
 
+  @abandon_minutes 20
+
   def start(submission = ~m(first_name last_name email phone zip type)) do
     data = %{
       "type" => type,
@@ -99,14 +101,36 @@ defmodule Esm.Submissions do
     })
   end
 
-  # def handle_abandons do
-  #   Mongo.find(:mongo, "submissions", %{
-  #     "status" => "awaiting_creation",
-  #     "created_at" => %{
-  #       "$lt" => Timex.now() |> Timex.shift(minutes: -15)
-  #     }
-  #   })
-  #   |> Stream.map(&handle_abandon/1)
-  #   |> Stream.run()
-  # end
+  def handle_abandons do
+    Mongo.find(:mongo, "submissions", %{
+      "status" => "in_progress",
+      "created_at" => %{
+        "$lt" => Timex.now() |> Timex.shift(minutes: -1 * @abandon_minutes),
+        "$gt" => Timex.now() |> Timex.shift(minutes: -2 * @abandon_minutes)
+      }
+    })
+    |> Stream.map(&handle_abandon/1)
+    |> Stream.run()
+  end
+
+  def handle_abandon(submission) do
+    %{"metadata" => ~m(host_abandon)} =
+      Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
+
+    to_send =
+      ~m(id) =
+      submission
+      |> replace_with_standard_id()
+
+    encoded =
+      to_send
+      |> Map.put(
+        "submission_complete_url",
+        Application.get_env(:admin, :deployed_url, "http://localhost:4000/") <>
+          "/event/host?submission_id=#{id}"
+      )
+      |> Poison.encode!()
+
+    HTTPotion.post(host_abandon, body: encoded)
+  end
 end

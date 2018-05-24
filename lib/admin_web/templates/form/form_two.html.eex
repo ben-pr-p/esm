@@ -1,24 +1,9 @@
-<%= if not @hide_intro do %>
-  <p> Just a few more fields to get your <%= @type %> on the map, <%= @name %>.
-    <a href="/event/clear-session-redirect"> Not <%= @name %>? </a>
-  </p>
-<% end %>
-
 <form action="/event/create" method="post">
-  <div class="input-field">
-    <label> Event Date </label>
-    <input type="date" name="date" min="<%= Timex.format!(Timex.now(), ~s({YYYY}-{0M}-{0D})) %>"/>
-  </div>
-
-  <div class="input-field">
-    <label> Start Time </label>
-    <input type="time" name="start_time" step="900" min="08:00" max="22:00"/>
-  </div>
-
-  <div class="input-field">
-    <label> End Time </label>
-    <input type="time" name="end_time" step="900" min="06:00" max="22:00" required="true"/>
-  </div>
+  <%= if not @hide_intro do %>
+    <p> Just a few more questions to get your <%= @type %> on the map, <%= @name %>.
+      <a href="/event/clear-session-redirect"> Not <%= @name %>? </a>
+    </p>
+  <% end %>
 
   <div class="input-field">
     <label> Event Title </label>
@@ -31,6 +16,26 @@
   </div>
 
   <div class="input-field">
+    <label> Event Date </label>
+    <input type="date" name="date" min="<%= Timex.format!(Timex.now(), ~s({YYYY}-{0M}-{0D})) %>"/>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="input-field">
+        <label> Start Time </label>
+        <input type="time" name="start_time" step="900" min="08:00" max="22:00"/>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="input-field">
+        <label> End Time </label>
+        <input type="time" name="end_time" step="900" min="06:00" max="22:00" required="true"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-field">
     <label> Event Venue </label>
     <input type="text" name="venue" required="true"/>
   </div>
@@ -40,27 +45,37 @@
     <input type="number" name="capacity" required="true" defaultValue="10"/>
   </div>
 
-  <div class="input-field">
-    <label> Event Address </label>
-    <input type="text" name="address" required="true" />
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="input-field">
+        <label> Event Address </label>
+        <input type="text" name="address" required="true" />
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="input-field">
+        <label> Event City </label>
+        <input type="text" name="city" required="true" />
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="input-field">
+        <label> State </label>
+        <input type="text" name="state" required="true" />
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="input-field">
+        <label> Zip Code </label>
+        <input type="text" name="zip" required="true" maxlength="5"/>
+      </div>
+    </div>
   </div>
 
   <div class="input-field">
-    <label> Event City </label>
-    <input type="text" name="city" required="true" />
-  </div>
-
-  <div class="input-field">
-    <label> State </label>
-    <input type="text" name="state" required="true" />
-  </div>
-
-  <div class="input-field">
-    <label> Zip Code </label>
-    <input type="text" name="zip" required="true" maxlength="5"/>
-  </div>
-
-  <div class="input-field">
-    <button type="submit"> Done </button>
+    <button class="button-block" type="submit"> Done </button>
   </div>
 </form>

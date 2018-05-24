@@ -12,7 +12,7 @@
   </head>
 
   <body style="text-align: center; padding: 20px;">
-    <main class="main" role="main" style="max-width: 700px; text-align: left;">
+    <main class="main" role="main" style="text-align: left; display: flex; justify-content: center;">
       <%= render @view_module, @view_template, assigns %>
     </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
