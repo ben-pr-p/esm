@@ -34,10 +34,7 @@ const isIn5Days = ev => {
 };
 
 const isStaff = ev => {
-  return (
-    ev.contact.email_address &&
-    ev.contact.email_address.includes("@betofortexas.com")
-  );
+  return ev.contact.email_address;
 };
 
 export default [

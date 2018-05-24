@@ -15,11 +15,9 @@ use Mix.Config
 # which you typically run after static files are built.
 config :admin, Admin.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [scheme: "https", host: "beto-esm.gigalixirapp.com", port: 4000],
+  url: [scheme: "https", host: "randy-esm.gigalixirapp.com", port: 4000],
   check_origin: [
-    "https://admin.justicedemocrats.com",
-    "https://esm.betofortexas.com",
-    "https://beto-esm.gigalixirapp.com"
+    "https://randy-esm.gigalixirapp.com"
   ],
   force_ssl: [rewrite_on: [:x_forwarded_proto]],
   cache_static_manifest: "priv/static/manifest.json",
