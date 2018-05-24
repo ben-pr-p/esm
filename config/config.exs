@@ -36,7 +36,8 @@ config :guardian, Guardian,
 config :admin, Admin.Scheduler,
   jobs: [
     {"*/5 * * * *", {Admin.EditAgent, :send_and_clear, []}},
-    {"*/3 * * * *", {EventMirror, :update, []}}
+    {"*/3 * * * *", {EventMirror, :update, []}},
+    {"*/20 * * * *", {Esm.Submissions, :handle_abandons, []}}
   ]
 
 config :logger, backends: [:console, Rollbax.Logger]
