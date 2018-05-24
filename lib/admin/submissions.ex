@@ -74,6 +74,13 @@ defmodule Esm.Submissions do
           }
         })
 
+        %{"metadata" => ~m(event_submitted)} =
+          Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
+
+        event_submitted
+        |> HTTPotion.post(body: created |> Admin.Webhooks.process_event() |> Poison.encode!())
+        |> IO.inspect()
+
       %{body: error} ->
         Logger.error("Failed to create event: #{inspect(error)}")
 
