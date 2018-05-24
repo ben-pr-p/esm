@@ -64,8 +64,7 @@ config :admin,
   mongodb_hostname: "${MONGO_HOSTNAME}",
   mongodb_password: "${MONGO_PASSWORD}",
   mongodb_port: "${MONGO_PORT}",
-  deployed_url: "${DEPLOYED_URL}",
-  instance: "beto"
+  deployed_url: "${DEPLOYED_URL}"
 
 config :rollbax,
   access_token: "${ROLLBAR_TOKEN}",
