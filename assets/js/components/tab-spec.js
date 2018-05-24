@@ -42,10 +42,6 @@ const isStaff = ev => {
 
 export default [
   {
-    title: "Interest Form",
-    fn: ev => false
-  },
-  {
     title: "Needs Approval",
     fn: ev => isInFuture(ev) && ev.status == "tentative"
   },
