@@ -64,7 +64,7 @@ defmodule Esm.Submissions do
     IO.inspect(submission)
 
     case OsdiClient.post(OsdiClient.client(), "events", data, timeout: 200_000) do
-      %{body: ~m(id)a} ->
+      %{body: created = ~m(id)a} ->
         Logger.info("Successfully created event #{id}")
 
         Mongo.update_one!(:mongo, "submissions", %{"_id" => submission["_id"]}, %{
