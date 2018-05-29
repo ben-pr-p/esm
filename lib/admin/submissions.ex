@@ -31,11 +31,16 @@ defmodule Esm.Submissions do
   end
 
   def complete(submission_id, data) do
-    %{"data" => fragment} = Mongo.find_one(:mongo, "submissions", to_id_query(submission_id))
+    %{"data" => fragment = %{"data" => %{"contact" => ~m(name email_address phone_number)}}} =
+      Mongo.find_one(:mongo, "submissions", to_id_query(submission_id))
 
     Mongo.update_one!(:mongo, "submissions", %{"_id" => BSON.ObjectId.decode!(submission_id)}, %{
       "$set" => %{
-        "data" => Map.merge(fragment, data),
+        "data" =>
+          Map.merge(fragment, data, %{
+            "instructions" =>
+              "Your host, #{name}, can be reached at #{email_address} or #{phone_number}."
+          }),
         "status" => "awaiting_creation"
       }
     })

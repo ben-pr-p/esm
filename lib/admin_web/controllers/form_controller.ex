@@ -70,8 +70,7 @@ defmodule Admin.FormController do
           },
           "tags" => ["Event: Should Contact Host", "Source: New Volunteer Form"],
           "start_date" => combine_time_and_date(start_time, date),
-          "end_date" => combine_time_and_date(end_time, date),
-          "instructions" => "Your host, #{first_name}, can be reached at #{email} or #{phone}."
+          "end_date" => combine_time_and_date(end_time, date)
         },
         ~m(title description capacity)
       )
@@ -182,7 +181,7 @@ defmodule Admin.FormController do
     end_date = construct_dt(end_time, date)
     type = event_type
     status = if Map.has_key?(body, "whitelist"), do: "confirmed", else: "tentative"
-    instructions = "Your host, #{first_name}, can be reached at #{email} or #{phone}."
+    instructions = "Your host, #{contact.name}, can be reached at #{email} or #{phone}."
 
     %{body: created} = OsdiClient.post(client(), "events", ~m(
       location contact start_date end_date tags type title description status
