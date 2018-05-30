@@ -114,8 +114,8 @@ defmodule Admin.FormController do
           "end_date" => construct_dt(end_time, date),
           "instructions" =>
             "If you have questions, please contact your host, #{first_name} #{last_name}, who can be reached at #{
-              email_address
-            } or #{phone_number}."
+              email
+            } or #{phone}."
         },
         ~m(title description capacity type)
       )
