@@ -43,7 +43,9 @@ defmodule Esm.Submissions do
             fragment,
             Map.merge(data, %{
               "instructions" =>
-                "Your host, #{name}, can be reached at #{email_address} or #{phone_number}."
+                "If you have questions, please contact your host, #{name}, who can be reached at #{
+                  email_address
+                } or #{phone_number}."
             })
           ),
         "status" => "awaiting_creation"

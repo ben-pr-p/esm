@@ -105,15 +105,17 @@ defmodule Admin.FormController do
             "postal_code" => zip
           },
           "contact" => %{
-            "given_name" => first_name,
-            "last_name" => last_name,
+            "name" => "#{first_name} #{last_name}",
             "email_address" => email,
             "phone_number" => phone
           },
           "tags" => ["Event: Should Contact Host", "Source: New Volunteer Form"],
           "start_date" => construct_dt(start_time, date),
           "end_date" => construct_dt(end_time, date),
-          "instructions" => "Your host, #{first_name}, can be reached at #{email} or #{phone}."
+          "instructions" =>
+            "If you have questions, please contact your host, #{first_name} #{last_name}, who can be reached at #{
+              email_address
+            } or #{phone_number}."
         },
         ~m(title description capacity type)
       )
@@ -191,7 +193,11 @@ defmodule Admin.FormController do
     end_date = construct_dt(end_time, date)
     type = event_type
     status = if Map.has_key?(body, "whitelist"), do: "confirmed", else: "tentative"
-    instructions = "Your host, #{contact.name}, can be reached at #{email} or #{phone}."
+
+    instructions =
+      "If you have questions, please contact your host #{contact.name}, who can be reached at #{
+        email
+      } or #{phone}."
 
     %{body: created} = OsdiClient.post(client(), "events", ~m(
       location contact start_date end_date tags type title description status
