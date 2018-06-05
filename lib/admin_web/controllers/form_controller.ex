@@ -334,9 +334,9 @@ defmodule Admin.FormController do
   end
 
   def do_rerun do
-    ~s[]
+    ~s[6/3/2018 20:24:44	Stephanie	Corte	stephaniec@betofortexas.com	9565629693	Organizing Meeting	6/10/2018	5:00:00 PM	6:30:00 PM	Rio Grande City | Organizing Meeting 	Join a local Beto for Texas Field Manager for an organizing meeting in Rio Grande City. We will have a campaign update and an overview of ways everyone can get involved to help elect Beto to the U.S. Senate in November.	Simple Cafe - Back Room 	15	778 N FM 2360	Rio Grande City	TX	78582]
     |> String.split("\n")
-    |> Enum.map(&IO.inspect(rerun(&1)))
+    |> Enum.map(&IO.inspect(rerun_whitelist(&1)))
   end
 
   def client,

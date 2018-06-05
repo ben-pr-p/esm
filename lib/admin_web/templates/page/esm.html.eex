@@ -1,5 +1,4 @@
-<h1> Down for Maintenance </h1>
-<%# <div id="app"></div> %>
+<div id="app"></div>
 <script>
   window.userEmail = "<%= raw(@email) %>";
   window.states = [
