@@ -40,7 +40,9 @@ export default class List extends Component {
           ? -1
           : 1
         : typeof a[attr] == "string"
-          ? a[attr] < b[attr] ? -1 : 1
+          ? a[attr] < b[attr]
+            ? -1
+            : 1
           : a[attr] - b[attr],
     render: (text, record, index) =>
       text && text.component ? text.component : text
@@ -89,6 +91,7 @@ export default class List extends Component {
     });
 
     this.state.channel.on("events", ({ all_events }) => {
+      console.log(all_events);
       all_events.forEach(({ id, event }) => {
         this.state.events.push(preprocess(event));
       });
@@ -186,6 +189,8 @@ const preprocess = ({
         .map(t => t.split(":")[1].trim())[0] || "General",
     tags: tags.filter(t => !t.startsWith("Calendar: ")).join(", ")
   };
+
+  return result;
 };
 
 const linkify = href => ({
