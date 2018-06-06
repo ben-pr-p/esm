@@ -144,7 +144,7 @@ defmodule Admin.Webhooks do
       ]
       |> Enum.at(month - 1)
 
-    "#{month}, #{day} "
+    "#{month} #{day} "
   end
 
   defp humanize_time(dt, tz) do
