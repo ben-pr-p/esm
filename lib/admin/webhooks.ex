@@ -118,13 +118,10 @@ defmodule Admin.Webhooks do
   end
 
   def get_date_line(event) do
-    date_line =
-      humanize_date(event.start_date) <>
-        "from " <>
-        humanize_time(event.start_date, get_in(event, ~w(location time_zone)a)) <>
-        " - " <> humanize_time(event.end_date, get_in(event, ~w(location time_zone)a))
-
-    Map.put(event, "date_line", date_line)
+    humanize_date(event.start_date) <>
+      "from " <>
+      humanize_time(event.start_date, get_in(event, ~w(location time_zone)a)) <>
+      " - " <> humanize_time(event.end_date, get_in(event, ~w(location time_zone)a))
   end
 
   defp humanize_date(dt) do
@@ -147,7 +144,7 @@ defmodule Admin.Webhooks do
       ]
       |> Enum.at(month - 1)
 
-    "#{month}, #{day} "
+    "#{month} #{day} "
   end
 
   defp humanize_time(dt, tz) do

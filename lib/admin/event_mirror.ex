@@ -18,7 +18,7 @@ defmodule EventMirror do
         if not Map.has_key?(state, "#{id}") do
           Map.put(old_state, "#{id}", event)
         else
-          old_state
+          put_in(old_state, ["#{id}", :attendance_count], event.attendance_count)
         end
       end)
     end)

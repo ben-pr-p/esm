@@ -265,7 +265,7 @@ defmodule Admin.EventsChannel do
     all_events =
       EventMirror.all()
       |> Enum.map(&event_pipeline/1)
-      |> Enum.each(fn event = %{id: id} ->
+      |> Enum.map(fn event = %{id: id} ->
         %{id: event.id, event: event}
       end)
 

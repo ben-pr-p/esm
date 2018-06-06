@@ -1,5 +1,6 @@
 <%= raw(thanks_html()) %>
 
 <h1> Thanks </h1>
-
+<br/>
+<br/>
 <p> We'll be in touch soon. </p>
