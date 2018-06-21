@@ -1,6 +1,10 @@
-<%= raw(thanks_html()) %>
-
-<h1> Thanks </h1>
-<br/>
-<br/>
-<p> We'll be in touch soon. </p>
+<div>
+  <%= if thanks_html() == "" do %>
+    <h1> Thanks </h1>
+    <br/>
+    <br/>
+    <p> We'll be in touch soon. </p>
+  <% else %>
+    <%= raw(thanks_html()) %>
+  <% end %>
+</div>

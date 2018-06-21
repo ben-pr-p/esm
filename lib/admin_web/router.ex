@@ -56,6 +56,7 @@ defmodule Admin.Router do
     post("/event/create", FormController, :form_two_submit)
     get("/event/directpublish", FormController, :direct_publish)
     post("/event/directpublish", FormController, :direct_publish_submit)
+    get("/events/thanks", FormController, :thanks)
     get("/event/clear-session-redirect", FormController, :clear_session_redirect)
   end
 

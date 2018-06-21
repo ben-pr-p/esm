@@ -71,8 +71,6 @@ defmodule Esm.Submissions do
   end
 
   def create_event(submission = ~m(data)) do
-    IO.inspect(submission)
-
     case OsdiClient.post(OsdiClient.client(), "events", data, timeout: 200_000) do
       %{body: created = ~m(id)a} ->
         Logger.info("Successfully created event #{id}")
@@ -104,7 +102,7 @@ defmodule Esm.Submissions do
   end
 
   def from_inserted_result(%{inserted_id: obj_id}), do: BSON.ObjectId.encode!(obj_id)
-  def to_id_query(id), do: %{"_id" => BSON.ObjectId.decode!(id)}
+  def to_id_query(id), do: %{"_id" => BSON.ObjectId.decode!(IO.inspect(id))}
 
   def replace_with_standard_id(obj = %{"_id" => id}) do
     obj

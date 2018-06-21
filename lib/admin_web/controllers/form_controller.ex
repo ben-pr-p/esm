@@ -26,7 +26,13 @@ defmodule Admin.FormController do
 
     conn
     |> put_session(:submission_id, submission_id)
-    |> render("form_two.html", type: params["type"], name: params["name"], hide_intro: true)
+    |> render(
+      "form_two.html",
+      type: params["type"],
+      name: params["name"],
+      hide_intro: true,
+      submission_id: submission_id
+    )
   end
 
   def form_two(conn, params) do
@@ -42,7 +48,14 @@ defmodule Admin.FormController do
       submission_id ->
         case Submissions.get_fragment(submission_id) do
           %{"data" => %{"type" => type, "contact" => ~m(name)}} ->
-            render(conn, "form_two.html", type: type, name: name, hide_intro: false)
+            render(
+              conn,
+              "form_two.html",
+              type: type,
+              name: name,
+              hide_intro: false,
+              submission_id: submission_id
+            )
 
           nil ->
             conn
@@ -75,12 +88,16 @@ defmodule Admin.FormController do
         ~m(title description capacity)
       )
 
-    submission_id = get_session(conn, :submission_id)
+    submission_id = get_session(conn, :submission_id) || params["submission_id"]
     Submissions.complete(submission_id, data)
 
     conn
     |> delete_session(:submission_id)
-    |> render("thanks.html")
+    |> redirect(to: "/events/thanks")
+  end
+
+  def thanks(conn, _params) do
+    render(conn, "thanks.html")
   end
 
   def direct_publish(conn, _params) do
