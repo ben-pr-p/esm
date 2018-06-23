@@ -40,7 +40,12 @@ defmodule EventMirror do
 
   def edit(id, edits) do
     spawn(fn ->
-      OsdiClient.put(client(), "events/#{id}", edits)
+      %{body: _} = OsdiClient.put(client(), "events/#{id}", edits)
+      # %{body: event} = OsdiClient.get(client(), "events/#{id}")
+
+      # Agent.update(__MODULE__, fn state ->
+      #   Map.put(state, "#{id}", event)
+      # end)
     end)
 
     Agent.get_and_update(__MODULE__, fn state ->

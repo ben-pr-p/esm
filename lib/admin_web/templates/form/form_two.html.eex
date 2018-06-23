@@ -4,6 +4,7 @@
       <a href="/event/clear-session-redirect"> Not <%= @name %>? </a>
     </p>
   <% end %>
+  <input type="hidden" value="<%= @submission_id %>" id="submission_id" name="submission_id"/>
 
   <div class="input-field">
     <label> Event Title </label>
@@ -42,7 +43,7 @@
 
   <div class="input-field">
     <label> Venue Capacity </label>
-    <input type="number" name="capacity" required="true" defaultValue="10"/>
+    <input type="number" name="capacity" required="true" defaultValue="10" min="0"/>
   </div>
 
   <div class="row">
@@ -70,7 +71,7 @@
     <div class="col-sm-6">
       <div class="input-field">
         <label> Zip Code </label>
-        <input type="text" name="zip" required="true" maxlength="5"/>
+        <input type="text" name="zip" required="true" maxlength="5" minlength="5" pattern="[0-9]*"/>
       </div>
     </div>
   </div>

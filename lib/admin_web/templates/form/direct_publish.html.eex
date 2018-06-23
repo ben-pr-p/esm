@@ -64,7 +64,7 @@
 
     <div class="input-field">
       <label> Event Date </label>
-      <input type="date" name="date" min="<%= Timex.format!(Timex.now(), ~s({YYYY}-{0M}-{0D})) %>"/>
+      <input type="date" name="date" min="<%= Timex.format!(Timex.now(), ~s({YYYY}-{0M}-{0D})) %>" required="true" />
     </div>
 
     <div class="row">
@@ -89,7 +89,7 @@
 
     <div class="input-field">
       <label> Venue Capacity </label>
-      <input type="number" name="capacity" required="true" defaultValue="10"/>
+      <input type="number" name="capacity" required="true" defaultValue="10" min="0"/>
     </div>
 
     <div class="row">
@@ -117,7 +117,7 @@
       <div class="col-sm-6">
         <div class="input-field">
           <label> Zip Code </label>
-          <input type="text" name="zip" required="true" maxlength="5"/>
+          <input type="text" name="zip" required="true" maxlength="5" minlength="5"/>
         </div>
       </div>
     </div>
