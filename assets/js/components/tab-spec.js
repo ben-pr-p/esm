@@ -83,31 +83,31 @@ export default [
     }
   },
 
-  {
-    title: "Needs Debrief",
-    fn: ev => {
-      const match_date = ev.end_date || ev.start_date;
+  // {
+  //   title: "Needs Debrief",
+  //   fn: ev => {
+  //     const match_date = ev.end_date || ev.start_date;
 
-      return (
-        isInPast(ev) &&
-        !isToday(ev) &&
-        !ev.tags.includes("Event: Action: Debriefed") &&
-        ev.status == "confirmed"
-      );
-    }
-  },
+  //     return (
+  //       isInPast(ev) &&
+  //       !isToday(ev) &&
+  //       !ev.tags.includes("Event: Action: Debriefed") &&
+  //       ev.status == "confirmed"
+  //     );
+  //   }
+  // },
 
-  {
-    title: "Past",
-    fn: ev => {
-      const match_date = ev.end_date || ev.start_date;
-      return (
-        isInPast(ev) &&
-        (ev.tags.includes("Event: Action: Debriefed") ||
-          ev.tags.includes("Source: Sync"))
-      );
-    }
-  },
+  // {
+  //   title: "Past",
+  //   fn: ev => {
+  //     const match_date = ev.end_date || ev.start_date;
+  //     return (
+  //       isInPast(ev) &&
+  //       (ev.tags.includes("Event: Action: Debriefed") ||
+  //         ev.tags.includes("Source: Sync"))
+  //     );
+  //   }
+  // },
 
   {
     title: "Rejected",
@@ -116,10 +116,10 @@ export default [
   {
     title: "Cancelled",
     fn: ev => ev.status == "cancelled"
-  },
-
-  {
-    title: "Unapproved in the Past",
-    fn: ev => ev.status == "tentative" && isInPast(ev)
   }
+
+  // {
+  //   title: "Unapproved in the Past",
+  //   fn: ev => ev.status == "tentative" && isInPast(ev)
+  // }
 ];
