@@ -15,7 +15,7 @@ defmodule FakeEventMirror do
     OsdiClient.stream(client(), "events")
     |> Enum.filter(fn ~m(start_date)a ->
       {:ok, std, _} = DateTime.from_iso8601(start_date)
-      Timex.before?(Timex.now() |> Timex.shift(days: -1), std)
+      Timex.before?(Timex.now() |> Timex.shift(weeks: -2), std)
     end)
   end
 
