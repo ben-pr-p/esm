@@ -118,14 +118,16 @@ defmodule Admin.Webhooks do
   end
 
   def get_date_line(event) do
-    humanize_date(event.start_date) <>
+    tz = get_in(event, ~w(location time_zone)a)
+    zone = Timex.Timezone.get(tz)
+
+    humanize_date(event.start_date, zone) <>
       "from " <>
-      humanize_time(event.start_date, get_in(event, ~w(location time_zone)a)) <>
-      " - " <> humanize_time(event.end_date, get_in(event, ~w(location time_zone)a))
+      humanize_time(event.start_date, zone) <> " - " <> humanize_time(event.end_date, zone)
   end
 
-  defp humanize_date(dt) do
-    %DateTime{month: month, day: day} = parse(dt)
+  defp humanize_date(dt, zone) do
+    %DateTime{month: month, day: day} = parse(dt) |> Timex.Timezone.convert(zone)
 
     month =
       [
@@ -147,8 +149,7 @@ defmodule Admin.Webhooks do
     "#{month} #{day} "
   end
 
-  defp humanize_time(dt, tz) do
-    zone = Timex.Timezone.get(tz)
+  defp humanize_time(dt, zone) do
     %DateTime{hour: hour, minute: minute} = parse(dt) |> Timex.Timezone.convert(zone)
     hour = if hour == 0, do: 12, else: hour
     minute = if minute == 0, do: "", else: ":#{minute}"
@@ -157,7 +158,7 @@ defmodule Admin.Webhooks do
     "#{hour}#{minute} " <> am_pm
   end
 
-  defp humanize_time(dt) do
+  defp humanize_time(dt, tz) do
     %DateTime{hour: hour, minute: minute} = parse(dt)
 
     {hour, am_pm} = if hour >= 12, do: {hour - 12, "PM"}, else: {hour, "AM"}
