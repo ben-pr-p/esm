@@ -152,8 +152,8 @@ defmodule Admin.FormController do
     %{"metadata" => %{"event_submitted" => success_hook, "submission_failure" => failure_hook}} =
       Cosmic.get(Application.get_env(:admin, :cosmic_config_slug))
 
-    try do
-      spawn(fn ->
+    spawn(fn ->
+      try do
         created =
           params
           |> IO.inspect()
@@ -169,19 +169,19 @@ defmodule Admin.FormController do
         success_hook
         |> HTTPotion.post(body: created |> Poison.encode!())
         |> IO.inspect()
-      end)
 
-      text(conn, "OK")
-    rescue
-      error ->
-        failure_hook
-        |> HTTPotion.post(body: Map.put(params, "error", error) |> Poison.encode!())
-        |> IO.inspect()
+        text(conn, "OK")
+      rescue
+        error ->
+          failure_hook
+          |> HTTPotion.post(body: Map.put(params, "error", error) |> Poison.encode!())
+          |> IO.inspect()
 
-        conn
-        |> put_status(500)
-        |> json(%{"error" => error, "event" => params})
-    end
+          conn
+          |> put_status(500)
+          |> json(%{"error" => error, "event" => params})
+      end
+    end)
   end
 
   def do_create(body) do
