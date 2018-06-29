@@ -87,13 +87,24 @@ defmodule Admin.PageController do
   end
 
   defp authorized_rsvp(conn, id) do
-    csv_content = Rsvps.csv_for(id)
     filename = [DateTime.utc_now() |> DateTime.to_iso8601(), id, "rsvps"] |> Enum.join("-")
+    csv_content_stream = Rsvps.stream_csv_for(id)
 
-    conn
-    |> put_resp_content_type("text/csv")
-    |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}.csv\"")
-    |> send_resp(200, csv_content)
+    conn =
+      conn
+      |> put_resp_content_type("text/csv")
+      |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}.csv\"")
+      |> send_chunked(200)
+
+    Enum.reduce_while(csv_content_stream, conn, fn chunk, conn ->
+      case chunk(conn, chunk) do
+        {:ok, conn} ->
+          {:cont, conn}
+
+        {:error, :closed} ->
+          {:halt, conn}
+      end
+    end)
   end
 
   def events_api(conn, %{"secret" => input_secret}) do
