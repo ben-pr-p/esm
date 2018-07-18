@@ -40,6 +40,10 @@ config :admin, Admin.Scheduler,
     {"*/20 * * * *", {Esm.Submissions, :handle_abandons, []}}
   ]
 
+config :admin,
+  include_past: false,
+  event_crud: FakeEventMirror
+
 config :logger, backends: [:console, Rollbax.Logger]
 
 # Import environment specific config. This must remain at the bottom

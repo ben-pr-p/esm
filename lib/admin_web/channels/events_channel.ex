@@ -14,6 +14,8 @@ defmodule Admin.EventsChannel do
   )a
 
   @instance Application.get_env(:admin, :instance, "jd")
+  @event_mirror Application.get_env(:admin, :event_mirror, FakeEventMirror)
+
   def deployed_url, do: Application.get_env(:admin, :deployed_url, "localhost:4000")
 
   intercept(["event", "events"])
@@ -109,7 +111,7 @@ defmodule Admin.EventsChannel do
   def handle_in("tags-" <> id, tags, socket) do
     insert_edit(%{event_id: id, edit: Map.new([{"tags", tags}]), actor: current_resource(socket)})
 
-    event = EventMirror.one(id)
+    event = @event_mirror.one(id)
     calendar_tags = Enum.filter(event.tags, &String.contains?(&1, "Calendar: "))
 
     new_tags = Enum.concat(tags, calendar_tags)
@@ -127,7 +129,7 @@ defmodule Admin.EventsChannel do
       actor: current_resource(socket)
     })
 
-    event = EventMirror.one(id)
+    event = @event_mirror.one(id)
 
     as_tags = Enum.map(calendars, &"Calendar: #{&1}")
     regular_tags = Enum.reject(event.tags, &String.contains?(&1, "Calendar: "))
@@ -178,7 +180,7 @@ defmodule Admin.EventsChannel do
   end
 
   def handle_in("message-host-" <> id, %{"message" => message}, socket) do
-    event = EventMirror.one(id)
+    event = @event_mirror.one(id)
 
     Webhooks.on("message_host", %{
       event: event_pipeline(event),
@@ -233,7 +235,7 @@ defmodule Admin.EventsChannel do
   end
 
   def do_message_attendees(hook_type, event_id, message) do
-    event = EventMirror.one(event_id)
+    event = @event_mirror.one(event_id)
     attendee_emails = Rsvps.emails_for(event_id)
 
     Webhooks.on(hook_type, %{
@@ -245,7 +247,7 @@ defmodule Admin.EventsChannel do
 
   defp send_esm_events(socket) do
     all_events =
-      EventMirror.all()
+      @event_mirror.all()
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event ->
         %{id: event.id, event: event}
@@ -263,7 +265,7 @@ defmodule Admin.EventsChannel do
 
   defp send_list_events(socket) do
     all_events =
-      EventMirror.all()
+      @event_mirror.all()
       |> Enum.map(&event_pipeline/1)
       |> Enum.map(fn event = %{id: id} ->
         %{id: event.id, event: event}
@@ -273,7 +275,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_my_events(socket = %{assigns: %{organizer_id: organizer_id}}) do
-    EventMirror.all()
+    @event_mirror.all()
     |> Enum.filter(&(&1.organizer_id == organizer_id))
     |> Enum.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
     |> Enum.map(&event_pipeline/1)
@@ -283,7 +285,7 @@ defmodule Admin.EventsChannel do
   end
 
   defp send_candidate_events(socket = %{assigns: %{candidate_tag: candidate_tag}}) do
-    EventMirror.all()
+    @event_mirror.all()
     |> Enum.filter(&Enum.member?(&1.tags || [], candidate_tag))
     |> Enum.filter(&(&1.status != "cancelled" and &1.status != "rejected"))
     |> Enum.map(&event_pipeline/1)
@@ -336,19 +338,19 @@ defmodule Admin.EventsChannel do
 
   defp apply_edit(id, [key, value]) do
     change = Map.put(%{}, key, value)
-    event = EventMirror.edit(id, change)
+    event = @event_mirror.edit(id, change)
     event_pipeline(event)
   end
 
   defp apply_edit(id, change) when is_map(change) do
-    event = EventMirror.edit(id, change)
+    event = @event_mirror.edit(id, change)
     event_pipeline(event)
   end
 
   defp apply_contact_edit(id, [raw_key, value]) do
     "contact." <> key = raw_key
     contact_change = Map.put(%{}, key, value)
-    event = EventMirror.edit(id, %{contact: contact_change})
+    event = @event_mirror.edit(id, %{contact: contact_change})
     event_pipeline(event)
   end
 
@@ -360,7 +362,7 @@ defmodule Admin.EventsChannel do
       end
 
     location_change = Map.put(%{}, key, value)
-    event = EventMirror.edit(id, %{location: location_change})
+    event = @event_mirror.edit(id, %{location: location_change})
     post_pipeline = event_pipeline(event)
 
     Webhooks.on("important_change", %{
@@ -372,12 +374,12 @@ defmodule Admin.EventsChannel do
   end
 
   def edit_tags_and_fetch(id, tags) do
-    event = EventMirror.edit(id, %{tags: tags})
+    event = @event_mirror.edit(id, %{tags: tags})
     event_pipeline(event)
   end
 
   defp set_status(id, status) do
-    event = EventMirror.edit(id, %{status: status})
+    event = @event_mirror.edit(id, %{status: status})
 
     if status == "cancelled" do
       OsdiClient.delete(client(), "events/#{id}")
@@ -387,15 +389,15 @@ defmodule Admin.EventsChannel do
   end
 
   defp mark_action(id, action) do
-    %{tags: current_tags} = EventMirror.one(id)
+    %{tags: current_tags} = @event_mirror.one(id)
     tag = "Event: Action: #{String.capitalize(action)}"
     new_tags = Enum.concat(current_tags, [tag])
-    event = EventMirror.edit(id, %{tags: new_tags})
+    event = @event_mirror.edit(id, %{tags: new_tags})
     event_pipeline(event)
   end
 
   defp duplicate(id, overrides) do
-    old = EventMirror.one(id)
+    old = @event_mirror.one(id)
 
     to_create =
       Enum.reduce(old, %{}, fn {key, val}, acc ->

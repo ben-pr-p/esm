@@ -58,7 +58,8 @@ defmodule Admin.Mixfile do
       {:rollbax, "~> 0.6"},
       {:actionkit, git: "https://github.com/justicedemocrats/actionkit_ex.git"},
       {:tesla, "~> 0.10.0"},
-      {:poison, ">= 1.0.0"}
+      {:poison, ">= 1.0.0"},
+      {:nimble_csv, "~> 0.3"}
     ]
   end
 
