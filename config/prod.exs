@@ -17,7 +17,8 @@ config :admin, Admin.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [scheme: "https", host: "randy-esm.gigalixirapp.com", port: 4000],
   check_origin: [
-    "https://randy-esm.gigalixirapp.com"
+    "https://randy-esm.gigalixirapp.com",
+    "https://events.randybryceforcongress.com"
   ],
   force_ssl: [rewrite_on: [:x_forwarded_proto]],
   cache_static_manifest: "priv/static/manifest.json",
