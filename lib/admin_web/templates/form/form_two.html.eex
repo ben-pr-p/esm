@@ -18,7 +18,7 @@
 
   <div class="input-field">
     <label> Event Date </label>
-    <input type="date" name="date" min="<%= Timex.format!(Timex.now(), ~s({YYYY}-{0M}-{0D})) %>"/>
+    <input type="date" name="date" min="<%= Timex.format!(Timex.now(), ~s({YYYY}-{0M}-{0D})) %>" required="true" />
   </div>
 
   <div class="row">

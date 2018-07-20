@@ -251,6 +251,7 @@ defmodule Admin.FormController do
       utc_offset: 0,
       zone_abbr: "UTC"
     }
+    |> Timex.format("{YYYY}-{0M}-{0D}T{h24}:{m}")
   end
 
   def construct_dt(time, date) do
